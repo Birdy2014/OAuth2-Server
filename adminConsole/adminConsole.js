@@ -1,14 +1,16 @@
 const fs = require("fs");
 const readline = require("readline");
+const path = require("path");
+const appDir = path.dirname(require.main.filename);
 
 function start() {
     const commands = new Map();
-    fs.readdir("./adminConsole/commands", "utf8", (err, files) => {
+    fs.readdir(`${appDir}/adminConsole/commands`, "utf8", (err, files) => {
         if (err) return console.error(err);
         files.forEach(file => {
             if (!file.endsWith(".js")) return;
             const commandName = file.split(".")[0];
-            const props = require(`./commands/${file}`);
+            const props = require(`${appDir}/adminConsole/commands/${file}`);
             commands.set(commandName, props);
         });
     });
