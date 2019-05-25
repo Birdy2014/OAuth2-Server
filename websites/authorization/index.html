@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" >
+    <link href="login.css" rel="stylesheet">
+    <title>Login</title>
+    <script src="authorization.js"></script>
+</head>
+<body>
+    <div id="interactionContainer">
+        <!--Logo-->
+        <h1 id="interactionHeader">Anmeldung</h1>
+        <label>
+            <input id="usernameInput" type="text" placeholder="Nutzername, ID oder E-Mail">
+            <br>
+            <input id="passwordInput" type="password" placeholder="Passwort">
+        </label>
+        <a id="recoverLink" href="">Anmeldedaten vergessen?</a>
+        <button id="registerButton">Anmelden</button>
+        <button id="loginButton" onclick="submit()">Weiter</button>
+    </div>
+</body>
+</html>

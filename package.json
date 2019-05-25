@@ -1,0 +1,16 @@
+{
+  "name": "oauth2-server",
+  "version": "0.1.0",
+  "description": "A simple OAuth2 Server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Moritz Vogel",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^3.0.6",
+    "express": "^4.16.4",
+    "mysql": "^2.17.0"
+  }
+}

@@ -1,0 +1,118 @@
+#interactionContainer {
+    width: 22%;
+    height: 50%;
+    position: absolute;
+    left: 39%;
+    top: 25%;
+    border: 1px solid #bdbdbd;
+    text-align: center;
+    border-radius: 5px;
+    background: white;
+}
+
+@media screen and (orientation: portrait) {
+    #interactionContainer {
+        width: 90%;
+        height: 70%;
+        left: 5%;
+        top: 15%;
+    }
+}
+
+#interactionHeader {
+    alignment: center;
+    font-weight: lighter;
+    font-family: sans-serif;
+    color: #202124;
+}
+
+#usernameInput {
+    width: 80%;
+    height: 10%;
+    border: 2px solid #121212;
+    border-radius: 8px;
+    left: 9%;
+    top: 20%;
+    position: absolute;
+    font-size: 14px;
+    color: #202124;
+    font-family: sans-serif;
+    padding-left: 2%;
+}
+
+#emailInput {
+    width: 80%;
+    height: 10%;
+    border: 2px solid #121212;
+    border-radius: 8px;
+    left: 9%;
+    top: 35%;
+    position: absolute;
+    font-size: 14px;
+    color: #202124;
+    font-family: sans-serif;
+    padding-left: 2%;
+}
+
+#passwordInput {
+    width: 80%;
+    height: 10%;
+    border: 2px solid #121212;
+    border-radius: 8px;
+    left: 9%;
+    top: 52%;
+    position: absolute;
+    font-size: 14px;
+    color: #202124;
+    padding-left: 2%;
+}
+
+#passwordVerification {
+    width: 80%;
+    height: 10%;
+    border: 2px solid #121212;
+    border-radius: 8px;
+    left: 9%;
+    top: 65%;
+    position: absolute;
+    font-size: 14px;
+    color: #202124;
+    padding-left: 2%;
+}
+
+#loginButton {
+    display: inline;
+    position: absolute;
+    height: 7%;
+    bottom: 11%;
+    left: 10%;
+    text-align: center;
+    border: none;
+    font-weight: bold;
+    background: #FFFFFF;
+}
+
+#loginButton:hover {
+    cursor: pointer;
+}
+
+#registerButton {
+    display: inline;
+    position: absolute;
+    height: 9%;
+    bottom: 10%;
+    right: 8%;
+    text-align: center;
+    border: 2px solid black;
+    border-radius: 5px;
+    font-weight: bold;
+    background: #FFFFFF;
+}
+
+#registerButton:hover {
+    cursor: pointer;
+}
+
+body {
+    background: #EEEEEE;
+}
