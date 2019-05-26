@@ -1,8 +1,10 @@
 # OAuth2 Server
 ## Description
 
+A simple OAuth2 Server written in JavaScript. It currently supports the authorization code and refresh token grant types.
+
 ## Setup
-Dependencies:
+Requirements:
 
 - Node.JS
 - A mysql or mariadb server
@@ -36,8 +38,14 @@ You can change the configuration of the server by editing the config.json file.
 
 ### Custom websites
 
+TODO
+
 ## Usage
 
 ### API
 
+TODO
+
 ### Console
+
+TODO
