@@ -1,4 +1,5 @@
-const dbInterface = require("../../DBInterface");
+const DBInterface = require("../../DBInterface");
+const dbInterface = new DBInterface();
 const { generateToken, respond, requireValues } = require("../utils");
 const { validateUser } = require("../user/UserMethods");
 

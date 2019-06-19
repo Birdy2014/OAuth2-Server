@@ -1,4 +1,5 @@
-const dbInterface = require("../../DBInterface");
+const DBInterface = require("../../DBInterface");
+const dbInterface = new DBInterface();
 
 async function post(req, res) {
     //TODO

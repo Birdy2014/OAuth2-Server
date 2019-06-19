@@ -1,7 +1,8 @@
 const { generateToken, currentUnixTime, respond, requireValues } = require("../utils");
-const dbInterface = require("../../DBInterface");
-const configReader = require("../../ConfigReader");
-const { validateClient } = require("../client/ClientMethods");
+const DBInterface = require("../../DBInterface");
+const ConfigReader = require("../../ConfigReader");
+const dbInterface = new DBInterface();
+const configReader = new ConfigReader();
 
 async function tokenInfo(req, res) {
     if (!requireValues(res, req.body.access_token, req.header("Authorization"))) return;

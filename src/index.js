@@ -1,3 +1,7 @@
+const ConfigReader = require("./ConfigReader");
+const DBInterface = require("./DBInterface");
+const configReader = new ConfigReader("../config");
+const dbInterface = new DBInterface(configReader.mysqlConfig());
 const express = require("express");
 const authRouter = require("./api/authorization/AuthRouter");
 const tokenRouter = require("./api/token/TokenRouter");
@@ -5,8 +9,6 @@ const tokenInfoRouter = require("./api/token/TokenInfoRouter");
 const userRouter = require("./api/user/UserRouter");
 const clientRouter = require("./api/client/ClientRouter");
 const permissionRouter = require("./api/permission/PermissionRouter");
-const configReader = require("./ConfigReader");
-const dbInterface = require("./DBInterface");
 const { currentUnixTime } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
 var app = express();

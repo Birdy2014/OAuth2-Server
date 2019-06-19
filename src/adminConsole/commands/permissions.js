@@ -1,5 +1,4 @@
 const PermissionMethods = require("../../api/permission/PermissionMethods");
-const dbInterface = require("../../DBInterface");
 const { getUserId } = require("../../api/utils");
 
 module.exports.run = async args => {

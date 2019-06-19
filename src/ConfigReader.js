@@ -1,6 +1,12 @@
 class ConfigReader {
+    static instance;
+
     constructor(path = "../config") {
+        if (ConfigReader.instance) return ConfigReader.instance;
+
         this.config = require(path);
+
+        ConfigReader.instance = this;
     }
 
     mysqlConfig() {
@@ -31,4 +37,4 @@ class ConfigReader {
     }
 }
 
-module.exports = new ConfigReader("../config");
+module.exports = ConfigReader;

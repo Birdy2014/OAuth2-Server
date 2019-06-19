@@ -1,7 +1,9 @@
 const bcrypt = require("bcrypt");
-const dbInterface = require("../../DBInterface");
+const DBInterface = require("../../DBInterface");
 const { respond, requireValues } = require("../utils");
-const configReader = require("../../ConfigReader");
+const ConfigReader = require("../../ConfigReader");
+const dbInterface = new DBInterface();
+const configReader = new ConfigReader();
 
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 const emailRegEx = /^\S+@\S+\.\S+$/;

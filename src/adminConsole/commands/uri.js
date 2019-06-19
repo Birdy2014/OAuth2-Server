@@ -1,5 +1,6 @@
 const { getClientId } = require("../../api/utils");
-const dbInterface = require("../../DBInterface");
+const DBInterface = require("../../DBInterface");
+const dbInterface = new DBInterface();
 const UriMethods = require("../../api/client/UriMethods");
 
 module.exports.run = async args => {

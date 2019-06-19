@@ -1,8 +1,9 @@
 const mysql = require("mysql");
 const util = require("util");
-const configReader = require("./ConfigReader");
 
 class DBInterface {
+    static instance;
+
     constructor(mysqlConfig) {
         if (DBInterface.instance) return DBInterface.instance;
 
@@ -149,4 +150,4 @@ class DBInterface {
     }
 }
 
-module.exports = new DBInterface(require("./ConfigReader").mysqlConfig());
+module.exports = DBInterface;
