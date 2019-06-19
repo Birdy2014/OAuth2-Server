@@ -27,15 +27,32 @@ class DBInterface {
         })
     }
 
-    //check if all necessary tables and columns exist and create them otherwise
+    /**
+     * check if all necessary tables and columns exist
+     * @returns {boolean}
+    */
     async checkDatabase() {
-        //TODO
+        try {
+            await this.query("SELECT * FROM access_token");
+            await this.query("SELECT * FROM authorization_code");
+            await this.query("SELECT * FROM client");
+            await this.query("SELECT * FROM permissions");
+            await this.query("SELECT * FROM redirect_uri");
+            await this.query("SELECT * FROM refresh_token");
+            await this.query("SELECT * FROM user");
+            return true;
+        } catch (e) {
+            if (e.code === "ER_NO_SUCH_TABLE")
+                return false;
+            else
+                throw e;
+        }
     }
 
     /**
      * Creates all the necessary tables of the database
      */
-    async initDatabase() {
+    async initDatabase(dashboard_id, dashboard_secret, dashboard_uri) {
         //create client table
         await this.query(`
             CREATE TABLE IF NOT EXISTS client(
@@ -108,24 +125,26 @@ class DBInterface {
                 PRIMARY KEY (client_id(100), redirect_uri(100))
             )
         `);
+
+        //add Dashboard client
+        this.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${dashboard_id}', '${dashboard_secret}', 'Dashboard', '')`);
+        this.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
     }
 
     //check if client exists and is valid
     async validateClient(client_id, client_secret, redirect_uri) {
-        //Dashboard
-        if (client_id === configReader.dashboardId && (client_secret === configReader.dashboardSecret || redirect_uri === configReader.dashboardUri)) return true;
-
         //Normal Client
         if (redirect_uri) {
-            let results = await this.query(`SELECT * FROM redirect_uri WHERE client_id = '${client_id}'`);
+            let results = await this.query(`SELECT redirect_uri, name FROM redirect_uri JOIN client ON redirect_uri.client_id = client.client_id WHERE redirect_uri.client_id = '${client_id}'`);
             for (const item of results) {
                 if (redirect_uri.startsWith(item.redirect_uri)) {
-                    return true;
+                    return item.name;
                 }
             }
             return false;
         } else if (client_secret) {
-            return (await this.query(`SELECT * FROM client WHERE client_id='${client_id}' AND client_secret='${client_secret}'`)).length === 1;
+            let results = await this.query(`SELECT * FROM client WHERE client_id='${client_id}' AND client_secret='${client_secret}'`);
+            return results.length === 1 ? results[0].name : false;
         }
     }
 }

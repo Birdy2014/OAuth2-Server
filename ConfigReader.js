@@ -23,18 +23,6 @@ class ConfigReader {
         return this.config.emailDomain;
     }
 
-    dashboardUri() {
-        return this.config.dashboard.redirectUri;
-    }
-
-    dashboardId() {
-        return this.config.dashboard.clientId;
-    }
-
-    dashboardSecret() {
-        return this.config.dashboard.clientSecret;
-    }
-
     /**
      * Get the time it takes until an access token expires in seconds
      */

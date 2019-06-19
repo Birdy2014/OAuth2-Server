@@ -7,7 +7,8 @@ async function get(req, res) {
     if (!requireValues(res, req.header("Authorization"), req.body.user_id, req.body.client_id, req.body.client_secret)) return;
 
     //Dashboard only
-    if (!(dbInterface.validateClient(req.body.client_id, req.body.client_secret) && req.body.client_id === configReader.dashboardId())) {
+    let client_name = dbInterface.validateClient(req.body.client_id, req.body.client_secret);
+    if (client_name === "Dashboard") {
         respond(res, 403);
         return;
     }
@@ -37,7 +38,8 @@ async function post(req, res) {
     if (!requireValues(res, req.header("Authorization"), req.body.user_id, req.body.permission, req.body.client_id, req.body.client_secret)) return;
 
     //Dashboard only
-    if (!(dbInterface.validateClient(req.body.client_id, req.body.client_secret) && req.body.client_id === configReader.dashboardId())) {
+    let client_name = dbInterface.validateClient(req.body.client_id, req.body.client_secret);
+    if (client_name === "Dashboard") {
         respond(res, 403);
         return;
     }
@@ -67,7 +69,8 @@ async function del(req, res) {
     if (!requireValues(res, req.header("Authorization"), req.body.user_id, req.body.permission, req.body.client_id, req.body.client_secret)) return;
 
     //Dashboard only
-    if (!(dbInterface.validateClient(req.body.client_id, req.body.client_secret) && req.body.client_id === configReader.dashboardId())) {
+    let client_name = dbInterface.validateClient(req.body.client_id, req.body.client_secret);
+    if (client_name === "Dashboard") {
         respond(res, 403);
         return;
     }

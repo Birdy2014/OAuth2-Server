@@ -9,10 +9,5 @@
     "accessTokenExpirationTime": 3600,
     "accessTokenLength": 40,
     "refreshTokenLength": 40,
-    "emailDomain": "",
-    "dashboard": {
-        "redirectUri": "http://localhost",
-        "clientId": "c660922b-0ce4-4c27-8f92-833443b4e4a4",
-        "clientSecret": "XR8DXyYjfcnL"
-    }
+    "emailDomain": ""
 }

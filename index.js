@@ -11,31 +11,38 @@ const { currentUnixTime } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
 var app = express();
 
-//create tables if they don't exist
-dbInterface.initDatabase();
+async function main() {
+    //create tables if they don't exist
+    if (!(await dbInterface.checkDatabase())) {
+        await dbInterface.initDatabase("ce48c1b6-2ca6-47f6-ad19-53a7a5d78b08", "rrpYu87YvznA", "http://example.com"); //TODO Prompt for dashboard client creation
+        console.log("Tables created");
+    }
 
-app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
 
-//Frontend
-app.use("/authorize", express.static(__dirname + "/websites/authorization"));
-app.use("/register", express.static(__dirname + "/websites/register"));
-app.use("/dashboard", express.static(__dirname + "/websites/dashboard"));
+    //Frontend
+    app.use("/authorize", express.static(__dirname + "/websites/authorization"));
+    app.use("/register", express.static(__dirname + "/websites/register"));
+    app.use("/dashboard", express.static(__dirname + "/websites/dashboard"));
 
-//Backend
-app.use("/api/authorize", authRouter);
-app.use("/api/token", tokenRouter);
-app.use("/api/token_info", tokenInfoRouter);
-app.use("/api/user", userRouter);
-app.use("/api/client", clientRouter);
-app.use("/api/permission", permissionRouter);
+    //Backend
+    app.use("/api/authorize", authRouter);
+    app.use("/api/token", tokenRouter);
+    app.use("/api/token_info", tokenInfoRouter);
+    app.use("/api/user", userRouter);
+    app.use("/api/client", clientRouter);
+    app.use("/api/permission", permissionRouter);
 
-//delete old access tokens, run once every day
-setInterval(() => {
-    dbInterface.query(`DELETE FROM access_token WHERE expires < ${currentUnixTime()}`);
-}, 86400000);
+    //delete old access tokens, run once every day
+    setInterval(() => {
+        dbInterface.query(`DELETE FROM access_token WHERE expires < ${currentUnixTime()}`);
+    }, 86400000);
 
-app.listen(configReader.port());
+    app.listen(configReader.port());
 
-//start console
-adminConsole.start();
+    //start console
+    adminConsole.start();
+}
+
+main().catch(e => console.error(e));
