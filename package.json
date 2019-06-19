@@ -4,7 +4,9 @@
   "description": "A simple OAuth2 Server",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "babel-node src/index.js",
+    "build": "babel src -d build"
   },
   "author": "Moritz Vogel",
   "license": "ISC",
@@ -12,5 +14,10 @@
     "bcrypt": "^3.0.6",
     "express": "^4.16.4",
     "mysql": "^2.17.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/node": "^7.4.5"
   }
 }

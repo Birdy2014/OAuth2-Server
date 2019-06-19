@@ -1,5 +1,5 @@
 class ConfigReader {
-    constructor(path = "./config") {
+    constructor(path = "../config") {
         this.config = require(path);
     }
 
@@ -31,4 +31,4 @@ class ConfigReader {
     }
 }
 
-module.exports = new ConfigReader("./config");
+module.exports = new ConfigReader("../config");
