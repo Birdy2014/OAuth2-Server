@@ -9,7 +9,7 @@
     "build": "babel src -d build"
   },
   "author": "Moritz Vogel",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "bcrypt": "^3.0.6",
     "express": "^4.16.4",
