@@ -18,7 +18,10 @@ async function post(req, res) {
     try {
         respond(res, 201, {user_id: await createUser(req.body.email, req.body.username, req.body.password)});
     } catch(e) {
-        respond(res, 409);
+        if (typeof e === "number")
+            respond(res, e);
+        else
+            respond(res, 409);
     }
 }
 
