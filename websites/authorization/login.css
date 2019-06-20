@@ -10,6 +10,18 @@
     background: white;
 }
 
+input {
+    width: 80%;
+    height: 10%;
+    border: 2px solid #121212;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #202124;
+    font-family: sans-serif;
+    color: white;
+    padding-left: 2%;
+}
+
 @media screen and (orientation: portrait) {
     #interactionContainer {
         width: 90%;
@@ -27,30 +39,15 @@
 }
 
 #usernameInput {
-    width: 80%;
-    height: 10%;
-    border: 2px solid #121212;
-    border-radius: 8px;
     left: 9%;
     top: 20%;
     position: absolute;
-    font-size: 14px;
-    color: #202124;
-    font-family: sans-serif;
-    padding-left: 2%;
 }
 
 #passwordInput {
-    width: 80%;
-    height: 10%;
-    border: 2px solid #121212;
-    border-radius: 8px;
     left: 9%;
     top: 35%;
     position: absolute;
-    font-size: 14px;
-    color: #202124;
-    padding-left: 2%;
 }
 
 #registerButton {
@@ -63,6 +60,8 @@
     border: none;
     font-weight: bold;
     background: #FFFFFF;
+    color: black;
+    text-decoration: none;
 }
 
 #registerButton:hover {

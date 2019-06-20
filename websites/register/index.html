@@ -5,6 +5,7 @@
     <link href="register.css" rel="stylesheet">
     <title>Registrierung</title>
     <script src="register.js"></script>
+    <script src="../authorize/authorization.js"></script>
 </head>
 <body>
 <div id="interactionContainer">
@@ -19,8 +20,8 @@
         <br>
         <input id="passwordVerification" type="password" placeholder="Passwort bestätigen">
     </label>
-    <button id="loginButton" onclick="submit()">Registrieren</button>
-    <button id="registerButton">Weiter</button>
+    <a id="loginButton" href="../authorize">Anmelden</a>
+    <button id="registerButton" onclick="submitRegister()">Weiter</button>
 </div>
 </body>
 </html>

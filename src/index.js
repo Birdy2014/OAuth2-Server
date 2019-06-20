@@ -11,6 +11,7 @@ const clientRouter = require("./api/client/ClientRouter");
 const permissionRouter = require("./api/permission/PermissionRouter");
 const { currentUnixTime } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
+const path = require("path");
 var app = express();
 
 async function main() {
@@ -24,9 +25,9 @@ async function main() {
     app.use(express.urlencoded({ extended: true }));
 
     //Frontend
-    app.use("/authorize", express.static(__dirname + "/websites/authorization"));
-    app.use("/register", express.static(__dirname + "/websites/register"));
-    app.use("/dashboard", express.static(__dirname + "/websites/dashboard"));
+    app.use("/authorize", express.static(__dirname + "/../websites/authorization"));
+    app.use("/register", express.static(__dirname + "/../websites/register"));
+    app.use("/dashboard", express.static(__dirname + "/../websites/dashboard"));
 
     //Backend
     app.use("/api/authorize", authRouter);
@@ -35,6 +36,15 @@ async function main() {
     app.use("/api/user", userRouter);
     app.use("/api/client", clientRouter);
     app.use("/api/permission", permissionRouter);
+
+    //404
+    app.use((req, res) => {
+        res.status(404);
+        if (req.accepts('html'))
+            res.sendFile(path.resolve(__dirname + "/../websites/404.html"));
+        else
+            res.send({ status: 404 });
+    })
 
     //delete old access tokens, run once every day
     setInterval(() => {
