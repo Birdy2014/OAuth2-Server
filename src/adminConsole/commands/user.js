@@ -72,8 +72,8 @@ module.exports.run = async args => {
         case "edit": {
             args.shift();
             try {
-                if (args.length < 3 || !(args[1] === "username" || args[1] === "password")) {
-                    console.log("Usage: user edit <email, username or user ID> username/password <new username or password>");
+                if (args.length < 3 || !(args[1] === "username" || args[1] === "password" || args[1] === "email")) {
+                    console.log("Usage: user edit <email, username or user ID> username/password/email <new username, password or email>");
                 } else {
                     await getUserId(args[0], async user_id => {
                         switch (args[1]) {
@@ -83,6 +83,8 @@ module.exports.run = async args => {
                             case "password":
                                 await UserMethods.changePassword(user_id, args[2]);
                                 break;
+                            case "email":
+                                await UserMethods.changeEmail(user_id, args[2]);
                         }
                     });
                 }

@@ -27,7 +27,7 @@ async function post(req, res) {
 }
 
 async function put(req, res) {
-    if (!req.header("Authorization") || !(req.body.username || req.body.password)) {
+    if (!req.header("Authorization") || !(req.body.username || req.body.password || req.body.email)) {
         respond(res, 400);
         return;
     }
@@ -39,6 +39,7 @@ async function put(req, res) {
         } else {
             if (req.body.username) await changeUsername(user_id, req.body.username);
             if (req.body.password) await changePassword(user_id, req.body.password);
+            if (req.body.email) await changeEmail(user_id, req.body.email);
             respond(res, 200);
         }
     } catch (e) {
@@ -109,6 +110,10 @@ async function changePassword(user_id, password) {
     await dbInterface.query(`UPDATE user SET password_hash = '${password_hash}' WHERE user_id = '${user_id}'`);
 }
 
+async function changeEmail(user_id, email) {
+    await dbInterface.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
+}
+
 async function getUserInfo() {
 
 }
@@ -139,4 +144,4 @@ async function validateUser(login, password) {
     }
 }
 
-module.exports = { post, put, del, validateUser, createUser, deleteUser, changeUsername, changePassword };
+module.exports = { post, put, del, validateUser, createUser, deleteUser, changeUsername, changePassword, changeEmail };
