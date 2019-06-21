@@ -9,7 +9,7 @@ Requirements:
 - Node.JS
 - A mysql or mariadb server
 
-Download and install node.js dependencies:
+download source and install dependencies:
 ```bash
 git clone https://github.com/Birdy2014/OAuth2-Server
 cd ./OAuth2-Server
@@ -19,7 +19,7 @@ Customize the config.json as shown in [Configuration](#Configuration)
 
 Run:
 ```bash
-node index.js
+npm start
 ```
 
 ## Configuration
@@ -34,7 +34,6 @@ You can change the configuration of the server by editing the config.json file.
 - accessTokenLength: The length of an access token
 - refreshTokenLength: The length of a refresh token
 - emailDomain: The accepted domain for email addresses. Example: "example.com". Leave empty to accept all domains
-- dashboard: The settings for the dashboard client. Change the redirectUri value to fit your Website url
 
 ### Custom websites
 
@@ -44,7 +43,7 @@ TODO
 
 ### API
 
-TODO
+See the [REST API Documentation in the wiki](https://github.com/Birdy2014/OAuth2-Server/wiki/REST-API)
 
 ### Console
 
