@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const DBInterface = require("../../DBInterface");
 const { respond, requireValues } = require("../utils");
 const ConfigReader = require("../../ConfigReader");
+const { validateAccessToken } = require("../token/TokenMethods");
 const dbInterface = new DBInterface();
 const configReader = new ConfigReader();
 
@@ -26,7 +27,26 @@ async function post(req, res) {
 }
 
 async function put(req, res) {
+    if (!req.header("Authorization") || !(req.body.username || req.body.password)) {
+        respond(res, 400);
+        return;
+    }
 
+    try {
+        let { user_id } = await validateAccessToken(req.header("Authorization"), await dbInterface.getDashboardId());
+        if (!user_id) {
+            respond(res, 403);
+        } else {
+            if (req.body.username) await changeUsername(user_id, req.body.username);
+            if (req.body.password) await changePassword(user_id, req.body.password);
+            respond(res, 200);
+        }
+    } catch (e) {
+        if (typeof e === "number")
+            respond(res, e);
+        else
+            respond(res, 500);
+    }
 }
 
 async function del(req, res) {
@@ -80,12 +100,13 @@ async function deleteUser(user_id) {
     await dbInterface.query(`DELETE FROM user WHERE user_id = '${user_id}'`);
 }
 
-async function changeUsername() {
-
+async function changeUsername(user_id, username) {
+    await dbInterface.query(`UPDATE user SET username = '${username}' WHERE user_id = '${user_id}'`);
 }
 
-async function changePassword() {
-
+async function changePassword(user_id, password) {
+    let password_hash = await bcrypt.hash(password, 12);
+    await dbInterface.query(`UPDATE user SET password_hash = '${password_hash}' WHERE user_id = '${user_id}'`);
 }
 
 async function getUserInfo() {
@@ -118,4 +139,4 @@ async function validateUser(login, password) {
     }
 }
 
-module.exports = { post, put, del, validateUser, createUser, deleteUser };
+module.exports = { post, put, del, validateUser, createUser, deleteUser, changeUsername, changePassword };

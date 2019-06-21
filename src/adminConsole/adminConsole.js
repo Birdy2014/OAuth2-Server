@@ -23,7 +23,8 @@ function start() {
 
     rl.setPrompt("OAuth2-Server>");
     rl.on("line", async input => {
-        let args = input.split(" ");
+        let args = input.match(/(".*?"|[^"\s]+)+(?=\s*|\s*$)/g);
+        for (let i = 0; i < args.length; i++) args[i] = args[i].replace(/"/g, "");
         let command = args.shift();
         let cmd = commands.get(command);
         if (!cmd)

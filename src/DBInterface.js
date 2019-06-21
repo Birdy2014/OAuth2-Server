@@ -132,6 +132,10 @@ class DBInterface {
         this.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
     }
 
+    async getDashboardId() {
+        return (await this.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
+    }
+
     //check if client exists and is valid
     async validateClient(client_id, client_secret, redirect_uri) {
         //Normal Client

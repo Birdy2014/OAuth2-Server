@@ -7,7 +7,7 @@ function getAuthorizationCode(login, password, client_id, redirect_uri, state) {
     xhttp.onreadystatechange = () => {
         if (xhttp.readyState === 4 && xhttp.status === 201) {
             let jsonObj = JSON.parse(xhttp.responseText);
-            window.location.href = `${redirect_uri}${redirect_uri.includes("?") ? "&" : "?"}authorization_code=${jsonObj.data.authorization_code}${state === undefined ? "" : state}`;
+            window.location.href = `${redirect_uri}${redirect_uri.includes("?") ? "&" : "?"}authorization_code=${jsonObj.data.authorization_code}&state=${state === undefined ? "" : state}`;
         } else if (xhttp.readyState === 4 && xhttp.status === 403) {
             alert("Invalid username or password");
         } else if (xhttp.readyState === 4) {
