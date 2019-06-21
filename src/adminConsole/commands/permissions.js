@@ -1,5 +1,5 @@
 const PermissionMethods = require("../../api/permission/PermissionMethods");
-const { getUserId } = require("../../api/utils");
+const { getUserId, getClientId } = require("../../api/utils");
 
 module.exports.run = async args => {
     switch (args[0]) {
@@ -16,7 +16,7 @@ module.exports.run = async args => {
                         } else {
                             let output = "";
                             for (const permission of permissions) {
-                                output += `${permission}\n`;
+                                output += `client_id: ${permission.client_id} permission: ${permission.permission}\n`;
                             }
                             console.log(output.substring(0, output.length - 1));
                         }
@@ -30,17 +30,20 @@ module.exports.run = async args => {
         case "add": {
             args.shift();
             try {
-                if (args.length <= 1) {
-                    console.log("Usage: permissions add <email, username or user ID> <permission>");
+                if (args.length < 3) {
+                    console.log("Usage: permissions add <email, username or user ID> <client name or id> <permission>");
                 } else {
                     let login = args[0];
-                    args.shift();
-                    for (const permission of args) {
-                        await getUserId(login, async user_id => {
-                            await PermissionMethods.addPermission(user_id, permission);
-                            console.log(`User ${user_id} has now the Permission ${permission}`);
+                    let client_login = args[1];
+                    args.splice(0, 2);
+                    await getUserId(login, async user_id => {
+                        await getClientId(client_login, async client_id => {
+                            for (const permission of args) {
+                                await PermissionMethods.addPermission(user_id, client_id, permission);
+                                console.log(`User ${user_id} has now the Permission ${permission} on client ${client_id}`);
+                            }
                         });
-                    }
+                    });
                 }
             } catch (e) {
                 console.error(e);
@@ -50,17 +53,20 @@ module.exports.run = async args => {
         case "remove": {
             args.shift();
             try {
-                if (args.length <= 1) {
-                    console.log("Usage: permissions remove <email, username or ID> <permission>");
+                if (args.length < 3) {
+                    console.log("Usage: permissions remove <email, username or ID> <client name or id> <permission>");
                 } else {
                     let login = args[0];
-                    args.shift();
-                    for (const permission of args) {
-                        await getUserId(login, async user_id => {
-                            await PermissionMethods.removePermission(user_id, permission);
-                            console.log(`Removed Permission ${permission} from user ${user_id}`);
+                    let client_login = args[1];
+                    args.splice(0, 2);
+                    await getUserId(login, async user_id => {
+                        await getClientId(client_login, async client_id => {
+                            for (const permission of args) {
+                                await PermissionMethods.removePermission(user_id, client_id, permission);
+                                console.log(`Removed Permission ${permission} from user ${user_id} on client ${client_id}`);
+                            }
                         });
-                    }
+                    });
                 }
             } catch (e) {
                 console.error(e);

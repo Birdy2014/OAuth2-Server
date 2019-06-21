@@ -52,7 +52,7 @@ async function tokenInfo(req, res) {
 async function token(req, res) {
     switch (req.body.grant_type) {
         case "authorization_code": {
-            if (!requireValues(req.body.authorization_code, req.body.client_id)) return;
+            if (!requireValues(res, req.body.authorization_code, req.body.client_id)) return;
 
             try {
                 let response = await validateAuthorizationCode(req.body.authorization_code, req.body.client_id);
@@ -64,7 +64,7 @@ async function token(req, res) {
             break;
         }
         case "refresh_token": {
-            if (!requireValues(req.body.refresh_token, req.body.client_id)) return;
+            if (!requireValues(res, req.body.refresh_token, req.body.client_id)) return;
 
             try {
                 let response = await refreshAccessToken(req.body.refresh_token, req.body.client_id);

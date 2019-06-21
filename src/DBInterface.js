@@ -113,8 +113,9 @@ class DBInterface {
         await this.query(`
             CREATE TABLE IF NOT EXISTS permissions(
                 user_id TEXT NOT NULL,
+                client_id TEXT NOT NULL,
                 permission TEXT NOT NULL,
-                PRIMARY KEY (user_id(100), permission(100))
+                PRIMARY KEY (user_id(100), client_id(100), permission(100))
             )
         `);
 
