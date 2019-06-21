@@ -50,64 +50,37 @@ async function tokenInfo(req, res) {
 }
 
 async function token(req, res) {
-    //Validate Client
-    let client_id, client_secret;
-    try {
-        [client_id, client_secret] = Buffer.from(req.header("Authorization").substring("Basic ".length), "base64").toString().split(":");
-        if (!dbInterface.validateClient(client_id, client_secret)) {
-            respond(res, 401);
-            return;
-        }
-    } catch (e) {
-        respond(res, 401);
-        return;
-    }
+    switch (req.body.grant_type) {
+        case "authorization_code": {
+            if (!requireValues(req.body.authorization_code, req.body.client_id)) return;
 
-    if (req.body.grant_type === "authorization_code") {
-        if (req.body.authorization_code === undefined) {
+            try {
+                let response = await validateAuthorizationCode(req.body.authorization_code, req.body.client_id);
+                respond(res, 201, response);
+            } catch (e) {
+                console.log("Error: " + e);
+                respond(res, e);
+            }
+            break;
+        }
+        case "refresh_token": {
+            if (!requireValues(req.body.refresh_token, req.body.client_id)) return;
+
+            try {
+                let response = await refreshAccessToken(req.body.refresh_token, req.body.client_id);
+                respond(res, 201, response);
+            } catch (e) {
+                respond(res, e);
+            }
+            break;
+        }
+        default:
             respond(res, 400);
-            return;
-        }
-
-        try {
-            let response = await validateAuthorizationCode(req.body.authorization_code, client_id);
-            respond(res, 201, response);
-        } catch (e) {
-            console.log("Error: " + e);
-            respond(res, e);
-        }
-    } else if (req.body.grant_type === "refresh_token") {
-        if (req.body.refresh_token === undefined) {
-            respond(res, 400);
-            return;
-        }
-
-        try {
-            let response = await refreshAccessToken(req.body.refresh_token, client_id);
-            respond(res, 201, response);
-        } catch (e) {
-            respond(res, e);
-        }
-    } else {
-        respond(res, 400);
     }
 }
 
 async function revoke(req, res) {
-    //Validate Client
-    let client_id, client_secret;
-    try {
-        [client_id, client_secret] = Buffer.from(req.header("Authorization").substring("Basic ".length), "base64").toString().split(":");
-        if (!dbInterface.validateClient(client_id, client_secret)) {
-            respond(res, 401);
-            return;
-        }
-    } catch (e) {
-        respond(res, 401);
-        return;
-    }
-
-    if (req.body.access_token === undefined && req.body.refresh_token === undefined) {
+    if (req.body.access_token === undefined && req.body.refresh_token === undefined || req.body.client_id === undefined) {
         respond(res, 400);
         return;
     }
@@ -115,7 +88,7 @@ async function revoke(req, res) {
     if (req.body.access_token !== undefined) {
         //revoke access_token
         try {
-            await dbInterface.query(`DELETE FROM access_token WHERE access_token = '${req.body.access_token}' AND client_id = '${client_id}'`);
+            await dbInterface.query(`DELETE FROM access_token WHERE access_token = '${req.body.access_token}' AND client_id = '${req.body.client_id}'`);
         } catch (e) {
             console.error(`Failed to revoke access token: ${e}`);
             respond(res, 404);
@@ -126,7 +99,7 @@ async function revoke(req, res) {
     if (req.body.refresh_token !== undefined) {
         //revoke refresh_token
         try {
-            await dbInterface.query(`DELETE FROM refresh_token WHERE refresh_token = '${req.body.refresh_token}' AND client_id = '${client_id}'`);
+            await dbInterface.query(`DELETE FROM refresh_token WHERE refresh_token = '${req.body.refresh_token}' AND client_id = '${req.body.client_id}'`);
         } catch (e) {
             console.error(`Failed to revoke refresh token: ${e}`);
             respond(res, 404);
