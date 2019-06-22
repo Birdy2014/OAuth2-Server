@@ -129,4 +129,4 @@ async function hasPermission(user_id, client_id, permission) {
     return false;
 }
 
-module.exports = { get, post, del, addPermission, removePermission, getPermissions };
+module.exports = { get, post, del, addPermission, removePermission, getPermissions, hasPermission };
