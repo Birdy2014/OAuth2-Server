@@ -15,7 +15,12 @@ class DBInterface {
 
     connectDB() {
         this.connection = mysql.createConnection(this.mysqlConfig);
-        this.connection.connect();
+        this.connection.connect(err => {
+            if (err) {
+                console.log("Can't connect to the Database");
+                process.exit(0);
+            }
+        });
         this.query = util.promisify(this.connection.query).bind(this.connection);
 
         //Reconnect if the connection is closed
