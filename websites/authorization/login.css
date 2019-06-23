@@ -18,8 +18,9 @@ input {
     font-size: 14px;
     color: #202124;
     font-family: sans-serif;
-    color: white;
+    color: black;
     padding-left: 2%;
+    background-color: white;
 }
 
 @media screen and (orientation: portrait) {
