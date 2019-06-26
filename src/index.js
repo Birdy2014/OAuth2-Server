@@ -12,6 +12,7 @@ const permissionRouter = require("./api/permission/PermissionRouter");
 const { currentUnixTime } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
 const path = require("path");
+const cors = require("cors");
 var app = express();
 
 async function main() {
@@ -21,6 +22,7 @@ async function main() {
         console.log("Tables created");
     }
 
+    app.use(cors());
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
