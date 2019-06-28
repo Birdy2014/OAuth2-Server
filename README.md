@@ -33,7 +33,7 @@ You can change the configuration of the server by editing the config.json file.
 - accessTokenExpirationTime: The time it takes for an access token to expire in seconds
 - accessTokenLength: The length of an access token
 - refreshTokenLength: The length of a refresh token
-- emailDomain: The accepted domain for email addresses. Example: "example.com". Leave empty to accept all domains
+- emailWhitelist: Array containing the accepted domains for email addresses. Example: ["example.com", "example.de"]. Leave empty to accept all domains
 
 ### Custom websites
 

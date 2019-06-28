@@ -25,8 +25,8 @@ class ConfigReader {
         return this.config.refreshTokenLength;
     }
 
-    emailDomain() {
-        return this.config.emailDomain;
+    emailWhitelist() {
+        return this.config.emailWhitelist;
     }
 
     /**

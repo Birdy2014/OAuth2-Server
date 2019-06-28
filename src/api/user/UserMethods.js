@@ -82,8 +82,7 @@ async function del(req, res) {
  */
 async function createUser(email, username, password) {
     //Is email really an email adress?
-    if (!emailRegEx.test(email)) throw 400;
-    if (!(!configReader.emailDomain() || !email.endsWith(configReader.emailDomain()))) throw 400;
+    if (!await checkEmail(email)) throw 400;
 
     //Create password hash
     let password_hash = await bcrypt.hash(password, 12);
@@ -111,6 +110,7 @@ async function changePassword(user_id, password) {
 }
 
 async function changeEmail(user_id, email) {
+    if (!checkEmail(email)) throw 400;
     await dbInterface.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
 }
 
@@ -142,6 +142,20 @@ async function validateUser(login, password) {
     } catch (e) {
         return "";
     }
+}
+
+/**
+ * Checks if email address matches the whitelist of the config file
+ * @param {string} email 
+ * @returns {boolean}
+ */
+async function checkEmail(email) {
+    if (!emailRegEx.test(email)) return false;
+    if (!configReader.emailWhitelist() || configReader.emailWhitelist().length === 0) return true;
+    for (const whitelistDomain of configReader.emailWhitelist()) {
+        if (email.endsWith(whitelistDomain)) return true;
+    }
+    return false;
 }
 
 module.exports = { post, put, del, validateUser, createUser, deleteUser, changeUsername, changePassword, changeEmail };

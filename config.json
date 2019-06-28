@@ -9,5 +9,5 @@
     "accessTokenExpirationTime": 3600,
     "accessTokenLength": 40,
     "refreshTokenLength": 40,
-    "emailDomain": ""
+    "emailWhitelist": []
 }
