@@ -1,7 +1,6 @@
 const UserMethods = require("../../api/user/UserMethods");
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
-const { getUserId } = require("../../api/utils");
 
 module.exports.run = async args => {
     switch (args[0]) {
@@ -43,7 +42,7 @@ module.exports.run = async args => {
             args.shift();
             for (const login of args) {
                 try {
-                    await getUserId(login, async user_id => {
+                    await UserMethods.getUserId(login, async user_id => {
                         await UserMethods.deleteUser(user_id);
                         console.log(`Deleted user ${user_id}`);
                     });
@@ -59,7 +58,7 @@ module.exports.run = async args => {
                 if (args.length === 0) {
                     console.log("Usage: user get <email, username or user ID>");
                 } else {
-                    await getUserId(args[0], async user_id => {
+                    await UserMethods.getUserId(args[0], async user_id => {
                         let results = await dbInterface.query(`SELECT username, email FROM user WHERE user_id = '${user_id}'`);
                         console.log(`id: ${user_id} name: ${results[0].username} email: ${results[0].email}`);
                     });
@@ -75,7 +74,7 @@ module.exports.run = async args => {
                 if (args.length < 3 || !(args[1] === "username" || args[1] === "password" || args[1] === "email")) {
                     console.log("Usage: user edit <email, username or user ID> username/password/email <new username, password or email>");
                 } else {
-                    await getUserId(args[0], async user_id => {
+                    await UserMethods.getUserId(args[0], async user_id => {
                         switch (args[1]) {
                             case "username":
                                 await UserMethods.changeUsername(user_id, args[2]);

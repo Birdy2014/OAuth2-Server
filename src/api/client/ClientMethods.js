@@ -2,6 +2,7 @@ const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
 const { generateToken, respond, requireValues } = require("../utils");
 const { validateUser } = require("../user/UserMethods");
+const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 
 async function post(req, res) {
     if (!requireValues(res, req.body.name, req.header("Authorization"), req.body.redirect_uri)) return;
@@ -80,7 +81,29 @@ async function deleteClient(client_id) {
     await dbInterface.query(`DELETE FROM redirect_uri WHERE client_id = '${client_id}'`);
 }
 
-//TODO change name
-//TODO add and delete redirect_uris
+/**
+ * Get the client_id from the name
+ * @param {string} identifier - name or client_id
+ * @param {function(string)} callback - async callback with client_id as param
+ */
+async function getClientId(identifier, callback) {
+    let query;
+    if (uuidRegEx.test(identifier))
+        query = `SELECT client_id FROM client WHERE client_id = '${identifier}'`;
+    else
+        query = `SELECT client_id FROM client WHERE name = '${identifier}'`;
 
-module.exports = { post, del, createClient, deleteClient };
+    let result = await dbInterface.query(query);
+    if (result.length === 1) {
+        let client_id = result[0].client_id;
+        await callback(client_id);
+    } else if (result.length === 0) {
+        console.log(`Can't find client ${identifier}`);
+    } else {
+        console.log(`Found ${result.length} clients with name ${identifier}`);
+    }
+}
+
+//TODO change name
+
+module.exports = { post, del, createClient, deleteClient, getClientId };

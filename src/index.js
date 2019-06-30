@@ -9,7 +9,7 @@ const tokenInfoRouter = require("./api/token/TokenInfoRouter");
 const userRouter = require("./api/user/UserRouter");
 const clientRouter = require("./api/client/ClientRouter");
 const permissionRouter = require("./api/permission/PermissionRouter");
-const { currentUnixTime } = require("./api/utils");
+const { currentUnixTime, respond } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
 const path = require("path");
 const cors = require("cors");
@@ -18,7 +18,7 @@ var app = express();
 async function main() {
     //create tables if they don't exist
     if (!(await dbInterface.checkDatabase())) {
-        await dbInterface.initDatabase("ce48c1b6-2ca6-47f6-ad19-53a7a5d78b08", "rrpYu87YvznA", configReader.dashboardDomain());
+        await dbInterface.initDatabase(configReader.dashboardDomain);
         console.log("Tables created");
     }
 
@@ -38,6 +38,10 @@ async function main() {
     app.use("/api/user", userRouter);
     app.use("/api/client", clientRouter);
     app.use("/api/permission", permissionRouter);
+    app.get("/api/dashboard_id", async (req, res) => {
+        let client_id = (await dbInterface.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
+        respond(res, 200, {client_id: client_id});
+    });
 
     //404
     app.use((req, res) => {
@@ -46,7 +50,7 @@ async function main() {
             res.sendFile(path.resolve(__dirname + "/../websites/404.html"));
         else
             res.send({ status: 404 });
-    })
+    });
 
     //delete old access tokens, run once every day
     setInterval(() => {

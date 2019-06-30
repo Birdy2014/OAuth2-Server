@@ -1,22 +1,18 @@
-function getAuthorizationCode(login, password, client_id, redirect_uri, state) {
+async function getAuthorizationCode(login, password, client_id, redirect_uri, state) {
     let domain = window.location.href.replace('http://','').replace('https://','').split(/[/?#]/)[0];
     let secure = window.location.href.includes("https://");
     let url = `${secure ? "https://" : "http://"}${domain}/api/authorize`;
 
-    let xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = () => {
-        if (xhttp.readyState === 4 && xhttp.status === 201) {
-            let jsonObj = JSON.parse(xhttp.responseText);
-            window.location.href = `${redirect_uri}${redirect_uri.includes("?") ? "&" : "?"}authorization_code=${jsonObj.data.authorization_code}&state=${state === undefined ? "" : state}`;
-        } else if (xhttp.readyState === 4 && xhttp.status === 403) {
+    try {
+        let body = await request(url, "POST", `login=${login}&password=${password}&client_id=${client_id}&redirect_uri=${redirect_uri}`);
+        let jsonObj = JSON.parse(body);
+        window.location.href = `${redirect_uri}${redirect_uri.includes("?") ? "&" : "?"}authorization_code=${jsonObj.data.authorization_code}${state === null ? "" : "&state=" + state}`;
+    } catch(e) {
+        if (e.status === 403)
             alert("Invalid username or password");
-        } else if (xhttp.readyState === 4) {
-            alert("Unknown error: " + xhttp.status);
-        }
-    };
-    xhttp.open("POST", url, true);
-    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xhttp.send(`login=${login}&password=${password}&client_id=${client_id}&redirect_uri=${redirect_uri}`);
+        else
+            alert("Unknown error: " + e.status);
+    }
 }
 
 function submitAuthorization() {
@@ -30,4 +26,30 @@ function submitAuthorization() {
         getAuthorizationCode(login, password, client_id, redirect_uri, state);
     else
         alert("missing data");
+}
+
+function request(url, method, body, authorization) {
+    return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        xhr.open(method, url);
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                resolve(xhr.response);
+            } else {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            }
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        if (body) xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        if (authorization) xhr.setRequestHeader("Authorization", authorization);
+        xhr.send(body);
+    });
 }

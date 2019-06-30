@@ -158,4 +158,29 @@ async function checkEmail(email) {
     return false;
 }
 
-module.exports = { post, put, del, validateUser, createUser, deleteUser, changeUsername, changePassword, changeEmail };
+/**
+ * Get the user id from the login
+ * @param {string} login - email, username or user_id
+ * @param {function(string)} - async callback with user_id as param
+ */
+async function getUserId(login, callback) {
+    let query;
+    if (uuidRegEx.test(login))
+        query = `SELECT user_id FROM user WHERE user_id = '${login}'`;
+    else if (emailRegEx.test(login))
+        query = `SELECT user_id FROM user WHERE email = '${login}'`;
+    else
+        query = `SELECT user_id FROM user WHERE username = '${login}'`;
+
+    let result = await dbInterface.query(query);
+    if (result.length === 1) {
+        let user_id = result[0].user_id;
+        await callback(user_id);
+    } else if (result.length === 0) {
+        console.log(`Can't find user ${login}`);
+    } else {
+        console.log(`Found ${result.length} users with name ${login}`);
+    }
+}
+
+module.exports = { post, put, del, validateUser, createUser, deleteUser, changeUsername, changePassword, changeEmail, getUserId };

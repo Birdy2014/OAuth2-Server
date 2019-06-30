@@ -45,10 +45,6 @@ class ConfigReader {
         return this.config.accessTokenExpirationTime;
     }
 
-    dashboardDomain() {
-        return this.dashboardDomain;
-    }
-
     generateConfig(path) {
         let config = {mysql: {}, emailWhitelist: []};
 

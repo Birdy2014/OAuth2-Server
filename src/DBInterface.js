@@ -1,5 +1,6 @@
 const mysql = require("mysql");
 const util = require("util");
+const { generateToken } = require("./api/utils");
 
 class DBInterface {
     static instance;
@@ -58,7 +59,7 @@ class DBInterface {
     /**
      * Creates all the necessary tables of the database
      */
-    async initDatabase(dashboard_id, dashboard_secret, dashboard_uri) {
+    async initDatabase(dashboard_uri) {
         //create client table
         await this.query(`
             CREATE TABLE IF NOT EXISTS client(
@@ -134,9 +135,12 @@ class DBInterface {
         `);
 
         //add Dashboard client
-        this.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${dashboard_id}', '${dashboard_secret}', 'Dashboard', '')`);
-        if (dashboard_uri)
+        const dashboard_secret = generateToken(12);
+        this.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES (UUID(), '${dashboard_secret}', 'Dashboard', '')`);
+        if (dashboard_uri) {
+            const dashboard_id = await this.getDashboardId();
             this.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
+        }
     }
 
     async getDashboardId() {
