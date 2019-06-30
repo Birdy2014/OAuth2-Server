@@ -89,3 +89,6 @@ typings/
 
 # Transpiled code
 build
+
+# config
+config.json

@@ -135,7 +135,8 @@ class DBInterface {
 
         //add Dashboard client
         this.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${dashboard_id}', '${dashboard_secret}', 'Dashboard', '')`);
-        this.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
+        if (dashboard_uri)
+            this.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
     }
 
     async getDashboardId() {
