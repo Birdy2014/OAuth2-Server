@@ -47,6 +47,7 @@ class DBInterface {
             await this.query("SELECT * FROM redirect_uri");
             await this.query("SELECT * FROM refresh_token");
             await this.query("SELECT * FROM user");
+            await this.query("SELECT * FROM verification_code");
             return true;
         } catch (e) {
             if (e.code === "ER_NO_SUCH_TABLE")
@@ -79,6 +80,7 @@ class DBInterface {
                 username TEXT NOT NULL,
                 email TEXT NOT NULL,
                 password_hash TEXT NOT NULL,
+                verified BOOLEAN NOT NULL DEFAULT FALSE,
                 PRIMARY KEY (user_id(100)),
                 UNIQUE KEY (email(100))
             ) ENGINE=INNODB
@@ -131,6 +133,15 @@ class DBInterface {
                 client_id TEXT NOT NULL,
                 redirect_uri TEXT NOT NULL,
                 PRIMARY KEY (client_id(100), redirect_uri(100))
+            )
+        `);
+
+        //create verification_code table for email verification
+        await this.query(`
+            CREATE TABLE IF NOT EXISTS verification_code(
+                user_id TEXT NOT NULL,
+                verification_code TEXT NOT NULL,
+                PRIMARY KEY (user_id(100))
             )
         `);
 

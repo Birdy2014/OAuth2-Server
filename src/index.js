@@ -9,6 +9,7 @@ const tokenInfoRouter = require("./api/token/TokenInfoRouter");
 const userRouter = require("./api/user/UserRouter");
 const clientRouter = require("./api/client/ClientRouter");
 const permissionRouter = require("./api/permission/PermissionRouter");
+const verificationRouter = require("./api/verification/VerificationRouter");
 const { currentUnixTime, respond } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
 const path = require("path");
@@ -18,7 +19,7 @@ var app = express();
 async function main() {
     //create tables if they don't exist
     if (!(await dbInterface.checkDatabase())) {
-        await dbInterface.initDatabase(configReader.dashboardDomain);
+        await dbInterface.initDatabase(configReader.url());
         console.log("Tables created");
     }
 
@@ -30,6 +31,7 @@ async function main() {
     app.use("/authorize", express.static(__dirname + "/../websites/authorization"));
     app.use("/register", express.static(__dirname + "/../websites/register"));
     app.use("/dashboard", express.static(__dirname + "/../websites/dashboard"));
+    app.use("/verification", express.static(__dirname + "/../websites/verification"));
 
     //Backend
     app.use("/api/authorize", authRouter);
@@ -42,6 +44,7 @@ async function main() {
         let client_id = (await dbInterface.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
         respond(res, 200, {client_id: client_id});
     });
+    app.use("/api/verification", verificationRouter);
 
     //404
     app.use((req, res) => {

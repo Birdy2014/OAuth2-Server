@@ -1,8 +1,9 @@
 const bcrypt = require("bcrypt");
 const DBInterface = require("../../DBInterface");
-const { respond, requireValues } = require("../utils");
+const { respond, requireValues, generateToken } = require("../utils");
 const ConfigReader = require("../../ConfigReader");
 const { validateAccessToken } = require("../token/TokenMethods");
+const { sendVerificationEmail } = require("../verification/VerificationMethods");
 const dbInterface = new DBInterface();
 const configReader = new ConfigReader();
 
@@ -90,6 +91,15 @@ async function createUser(email, username, password) {
     //Create user
     await dbInterface.query(`INSERT INTO user (user_id, email, username, password_hash) VALUES (uuid(), '${email}', '${username}', '${password_hash}')`);
     let user_id = (await dbInterface.query(`SELECT user_id FROM user WHERE email = '${email}'`))[0].user_id;
+
+    if (configReader.emailVerificationEnabled()) {
+        let verification_code = generateToken(12);
+        await dbInterface.query(`INSERT INTO verification_code (user_id, verification_code) VALUES ('${user_id}', '${verification_code}')`);
+        sendVerificationEmail(username, email, verification_code);
+    } else {
+        await dbInterface.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);
+    }
+
     return user_id;
 }
 

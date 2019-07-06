@@ -45,8 +45,20 @@ class ConfigReader {
         return this.config.accessTokenExpirationTime;
     }
 
+    emailVerificationEnabled() {
+        return this.config.email.enabled;
+    }
+
+    emailConfig() {
+        return this.config.email;
+    }
+
+    url() {
+        return this.config.url;
+    }
+
     generateConfig(path) {
-        let config = {mysql: {}, emailWhitelist: []};
+        let config = {mysql: {}, emailWhitelist: [], email: {}};
 
         console.log("Mysql config");
         config.mysql.host = readlineSync.question("host: ");
@@ -60,10 +72,20 @@ class ConfigReader {
         config.refreshTokenLength = readlineSync.question("Length of the refresh tokens [40]: ") || 40;
         let emails = readlineSync.question("email address domains on whitelist separated by commas [empty]: ") || "";
         config.emailWhitelist = emails.split(",");
-        console.log("\nDashboard config");
-        this.dashboardDomain = readlineSync.question("Domain of the Dashboard: ");
+        config.url = readlineSync.question("url of the Server (e.g. https://example.com/oauth): ");
+        console.log("\nEmail config");
+        let emailEnabled = readlineSync.question("Do you want to send email address verification emails? [y/n] ");
+        if (emailEnabled.toLowerCase() === "y") {
+            config.email.enabled = true;
+            config.email.provider = readlineSync.question("Which transactional email server do you use? (supported: sendgrid) ");
+            config.email.from = readlineSync.question("from which email address do you want to send the emails? ");
+            config.email.key = readlineSync.question("API key: ");
+            config.email.template = readlineSync.question("email template: ");
+        } else {
+            config.email.enabled = false;
+        }
 
-        let ok = readlineSync.question(JSON.stringify(config, null, 4) + "\nShould this config be saved? [y/n]");
+        let ok = readlineSync.question(JSON.stringify(config, null, 4) + "\nShould this config be saved? [y/n] ");
 
         if (ok.toLowerCase() === "y") {
             fs.writeFileSync(path, JSON.stringify(config, null, 4));
