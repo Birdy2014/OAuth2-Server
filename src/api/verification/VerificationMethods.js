@@ -8,11 +8,11 @@ const configReader = new ConfigReader();
 async function post(req, res) {
     if (!requireValues(req.body.verification_code)) return;
 
-    let result = await dbInterface.query(`SELECT user_id FROM verification_code WHERE verification_code = '${req.body.verification_code}'`);
+    let result = await dbInterface.query(`SELECT user.user_id AS user_id, user.email AS email FROM verification_code JOIN user ON verification_code.user_id = user.user_id WHERE verification_code = '${req.body.verification_code}'`);
     if (result.length > 0) {
         await dbInterface.query(`DELETE FROM verification_code WHERE verification_code = '${req.body.verification_code}'`);
         await dbInterface.query(`UPDATE user SET verified=TRUE WHERE user_id = '${result[0].user_id}'`);
-        respond(res, 200);
+        respond(res, 200, {email: result[0].email});
     } else {
         respond(res, 403);
     }
