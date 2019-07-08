@@ -136,11 +136,12 @@ class DBInterface {
             )
         `);
 
-        //create verification_code table for email verification
+        //create verification_code table for email verification, "email" for new email or empty for for registration
         await this.query(`
             CREATE TABLE IF NOT EXISTS verification_code(
                 user_id TEXT NOT NULL,
                 verification_code TEXT NOT NULL,
+                email TEXT,
                 PRIMARY KEY (user_id(100))
             )
         `);

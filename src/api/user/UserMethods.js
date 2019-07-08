@@ -120,8 +120,16 @@ async function changePassword(user_id, password) {
 }
 
 async function changeEmail(user_id, email) {
-    if (!checkEmail(email)) throw 400;
-    await dbInterface.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
+    if (!await checkEmail(email)) throw 400;
+    if (configReader.emailVerificationEnabled()) {
+        let verification_code = generateToken(12);
+        await dbInterface.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //Delete old verification codes
+        await dbInterface.query(`INSERT INTO verification_code (user_id, verification_code, email) VALUES ('${user_id}', '${verification_code}', '${email}')`);
+        let username = (await dbInterface.query(`SELECT username FROM user WHERE user_id = '${user_id}'`))[0].username;
+        sendVerificationEmail(username, email, verification_code);
+    } else {
+        await dbInterface.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
+    }
 }
 
 async function getUserInfo() {
