@@ -8,10 +8,16 @@ async function getAuthorizationCode(login, password, client_id, redirect_uri, st
         let jsonObj = JSON.parse(body);
         window.location.href = `${redirect_uri}${redirect_uri.includes("?") ? "&" : "?"}authorization_code=${jsonObj.data.authorization_code}${state === null ? "" : "&state=" + state}`;
     } catch(e) {
-        if (e.status === 403)
+        let body = JSON.parse(e);
+        console.log(e);
+        if (body.status === 403 && body.error === "Invalid User credentials")
             alert("Invalid username or password");
+        else if (body.status === 403 && body.error === "Invalid Client credentials")
+            alert("Invalid client_id or redirect_uri");
+        else if (body.status === 403 && body.error === "Email Address not verified")
+            alert("Email Address not verified");
         else
-            alert("Unknown error: " + e.status);
+            alert("Unknown error: " + body.status + " " + body.error);
     }
 }
 
@@ -36,10 +42,7 @@ function request(url, method, body, authorization) {
             if (this.status >= 200 && this.status < 300) {
                 resolve(xhr.response);
             } else {
-                reject({
-                    status: this.status,
-                    statusText: xhr.statusText
-                });
+                reject(xhr.response);
             }
         };
         xhr.onerror = function () {

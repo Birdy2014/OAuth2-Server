@@ -10,7 +10,7 @@ async function post(req, res) {
         let authorization_code = await createAuthorizationCode(req.body.client_id, req.body.login, req.body.password, req.body.redirect_uri);
         respond(res, 201, { authorization_code: authorization_code });
     } catch (e) {
-        respond(res, e);
+        respond(res, e.status, undefined, e.error);
     }
 }
 
@@ -23,16 +23,18 @@ async function post(req, res) {
  */
 async function createAuthorizationCode(client_id, login, password, redirect_uri) {
     let user_id = await validateUser(login, password);
-    if (!user_id) throw 403;
+    if (!user_id) throw {status: 403, error: "Invalid User credentials"};
 
     try {
         let isRedirectUriAllowed = await dbInterface.validateClient(client_id, undefined, redirect_uri);
-        if (!isRedirectUriAllowed) throw 403;
+        if (!isRedirectUriAllowed) throw {status: 403, error: "Invalid Client credentials"};
+        let isEmailVerified = (await dbInterface.query(`SELECT verified FROM user WHERE user_id = '${user_id}'`))[0].verified;
+        if (!isEmailVerified && client_id !== await dbInterface.getDashboardId()) throw {status: 403, error: "Email Address not verified"};
     } catch (e) {
-        if (typeof e === "number")
+        if (typeof e.status === "number")
             throw e;
         console.log(e);
-        throw 500;
+        throw {status: 500, error: "Internal Server Error"};
     }
 
     let authorization_code;

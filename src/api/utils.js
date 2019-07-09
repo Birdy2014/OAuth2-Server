@@ -4,10 +4,11 @@
  * @param {Object} [data] - Additional data
  * @returns {(number|Object)} Object for api response
  */
-function respondJSON(status, data) {
+function respondJSON(status, data, error) {
     if (data === undefined) {
         return {
-            status: status
+            status: status,
+            error: error
         };
     } else {
         return {
@@ -23,9 +24,9 @@ function respondJSON(status, data) {
  * @param {number} status - The HTML status code
  * @param {Object} [data] - Additional data
  */
-function respond(res, status, data) {
+function respond(res, status, data, error) {
     res.status(status);
-    res.json(respondJSON(status, data));
+    res.json(respondJSON(status, data, error));
 }
 
 /**
