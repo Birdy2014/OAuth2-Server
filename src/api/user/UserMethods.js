@@ -20,8 +20,8 @@ async function post(req, res) {
     try {
         respond(res, 201, {user_id: await createUser(req.body.email, req.body.username, req.body.password)});
     } catch(e) {
-        if (typeof e === "number")
-            respond(res, e);
+        if (typeof e.status === "number")
+            respond(res, e.status, undefined, e.error);
         else
             respond(res, 409);
     }
@@ -44,8 +44,8 @@ async function put(req, res) {
             respond(res, 200);
         }
     } catch (e) {
-        if (typeof e === "number")
-            respond(res, e);
+        if (typeof e.status === "number")
+            respond(res, e.status, undefined, e.error);
         else
             respond(res, 500);
     }
@@ -82,8 +82,8 @@ async function del(req, res) {
  * @returns {string} user_id
  */
 async function createUser(email, username, password) {
-    //Is email really an email adress?
-    if (!await checkEmail(email)) throw 400;
+    if (!await checkEmail(email)) throw {status: 400, error: "Invalid email address"};
+    if (!await checkPassword(password)) throw {status: 400, error: "Invalid Password"};
 
     //Create password hash
     let password_hash = await bcrypt.hash(password, 12);
@@ -120,7 +120,8 @@ async function changePassword(user_id, password) {
 }
 
 async function changeEmail(user_id, email) {
-    if (!await checkEmail(email)) throw 400;
+    if (!await checkEmail(email)) throw {status: 400, error: "Invalid email address"};
+    if (!await checkPassword(password)) throw {status: 400, error: "Invalid Password"};
     if (configReader.emailVerificationEnabled()) {
         let verification_code = generateToken(12);
         await dbInterface.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //Delete old verification codes
@@ -165,7 +166,7 @@ async function validateUser(login, password) {
 /**
  * Checks if email address matches the whitelist of the config file
  * @param {string} email 
- * @returns {boolean}
+ * @returns {Promise<boolean>}
  */
 async function checkEmail(email) {
     if (!emailRegEx.test(email)) return false;
@@ -174,6 +175,16 @@ async function checkEmail(email) {
         if (email.endsWith(whitelistDomain)) return true;
     }
     return false;
+}
+
+/**
+ * Checks if the password length is ok
+ * @param {string} password 
+ * @returns {Promise<boolean>}
+ */
+async function checkPassword(password) {
+    if (password.length >= 8)
+        return true;
 }
 
 /**
