@@ -1,30 +1,25 @@
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
-const { validateAccessToken } = require("../token/TokenMethods");
-const { requireValues, respond } = require("../utils");
+const { respond } = require("../utils");
 
 async function get(req, res) {
-    if (!requireValues(res, req.header("Authorization"))) return;
-
-    //Only using the Dashboard
-    let request_user_id = (await validateAccessToken(req.header("Authorization"), await dbInterface.getDashboardId())).user_id;
-    if (!request_user_id) {
-        respond(res, 403);
+    if (req.user.origin !== "access_token" || req.client.name !== "Dashboard") {
+        respond(res, 400, undefined, "Invalid arguments");
         return;
     }
 
     //Only Admin or the user
-    if (!(request_user_id === req.query.user_id || req.query.user_id === undefined || await hasPermission(request_user_id, await dbInterface.getDashboardId(), "admin") || await hasPermission(request_user_id, req.query.client_id, "admin"))) {
+    if (!(req.user.admin || await hasPermission(request_user_id, await dbInterface.getDashboardId(), "admin") || await hasPermission(request_user_id, req.query.client_id, "admin"))) {
         respond(res, 403);
         return;
     }
 
     //Get permissions
     try {
-        respond(res, 200, await getPermissions(req.query.user_id || request_user_id, req.query.client_id));
+        respond(res, 200, await getPermissions(req.query.user_id || req.user.user_id, req.query.client_id));
     } catch (e) {
-        if (typeof e === "number")
-            respond(res, e);
+        if (typeof e.status === "number")
+            respond(res, e.status, undefined, e.error);
         else
             respond(res, 500);
     }
@@ -32,16 +27,13 @@ async function get(req, res) {
 }
 
 async function post(req, res) {
-    if (!requireValues(res, req.header("Authorization"), req.body.user_id, req.body.permission, req.body.client_id)) return;
-
-    //Only Admin using the Dashboard
-    let request_user_id = (await validateAccessToken(req.header("Authorization"), await dbInterface.getDashboardId())).user_id;
-    if (!request_user_id) {
-        respond(res, 403);
+    if (req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !req.body.user_id || !req.body.client_id || !req.body.permission) {
+        respond(res, 400, undefined, "Invalid arguments");
         return;
     }
 
-    if (!(await hasPermission(request_user_id, await dbInterface.getDashboardId(), "admin") || await hasPermission(request_user_id, req.body.client_id, "admin"))) {
+    //Only Admin
+    if (!(req.user.admin || await hasPermission(request_user_id, req.body.client_id, "admin"))) {
         respond(res, 403);
         return;
     }
@@ -51,35 +43,32 @@ async function post(req, res) {
         await addPermission(req.body.user_id, req.body.client_id, req.body.permission);
         respond(res, 201);
     } catch (e) {
-        if (typeof e === "number")
-            respond(res, e);
+        if (typeof e.status === "number")
+            respond(res, e.status, undefined, e.error);
         else
             respond(res, 500);
     }
 }
 
 async function del(req, res) {
-    if (!requireValues(res, req.header("Authorization"), req.body.permission, req.body.client_id)) return;
-
-    //Only Admin or the user using the Dashboard
-    let request_user_id = (await validateAccessToken(req.header("Authorization"), await dbInterface.getDashboardId())).user_id;
-    if (!request_user_id) {
-        respond(res, 403);
+    if (req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !req.body.permission || !req.body.client_id) {
+        respond(res, 400, undefined, "Invalid arguments");
         return;
     }
 
-    if (!(request_user_id === req.body.user_id || await hasPermission(request_user_id, await dbInterface.getDashboardId(), "admin") || await hasPermission(request_user_id, req.body.client_id, "admin"))) {
+    //Only Admin or the user
+    if (!(!req.body.user_id || req.user.user_id === req.body.user_id || req.user.admin || await hasPermission(request_user_id, req.body.client_id, "admin"))) {
         respond(res, 403);
         return;
     }
 
     //Delete permission
     try {
-        await removePermission(req.body.user_id || request_user_id, req.body.client_id, req.body.permission);
+        await removePermission(req.body.user_id || req.user.user_id, req.body.client_id, req.body.permission);
         respond(res, 200);
     } catch (e) {
-        if (typeof e === "number")
-            respond(res, e);
+        if (typeof e.status === "number")
+            respond(res, e.status, undefined, e.error);
         else
             respond(res, 500);
     }

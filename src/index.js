@@ -14,6 +14,8 @@ const { currentUnixTime, respond } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
 const path = require("path");
 const cors = require("cors");
+const getUser = require("./middleware/getUser");
+const isLoggedIn = require("./middleware/isLoggedIn");
 var app = express();
 
 async function main() {
@@ -26,6 +28,7 @@ async function main() {
     app.use(cors());
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(getUser);
 
     //Frontend
     app.use("/authorize", express.static(__dirname + "/../websites/authorization"));
@@ -34,12 +37,12 @@ async function main() {
     app.use("/verification", express.static(__dirname + "/../websites/verification"));
 
     //Backend
-    app.use("/api/authorize", authRouter);
-    app.use("/api/token", tokenRouter);
+    app.use("/api/authorize", isLoggedIn, authRouter);
+    app.use("/api/token", isLoggedIn, tokenRouter);
     app.use("/api/token_info", tokenInfoRouter);
     app.use("/api/user", userRouter);
-    app.use("/api/client", clientRouter);
-    app.use("/api/permission", permissionRouter);
+    app.use("/api/client", isLoggedIn, clientRouter);
+    app.use("/api/permission", isLoggedIn, permissionRouter);
     app.get("/api/dashboard_id", async (req, res) => {
         let client_id = (await dbInterface.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
         respond(res, 200, {client_id: client_id});

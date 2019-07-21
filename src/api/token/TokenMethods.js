@@ -1,46 +1,29 @@
-const { generateToken, currentUnixTime, respond, requireValues } = require("../utils");
+const { generateToken, currentUnixTime, respond } = require("../utils");
 const DBInterface = require("../../DBInterface");
 const ConfigReader = require("../../ConfigReader");
 const dbInterface = new DBInterface();
 const configReader = new ConfigReader();
 
 async function tokenInfo(req, res) {
-    if (!requireValues(res, req.body.access_token, req.header("Authorization"))) return;
-
-    //Validate client
-    let client_id, client_secret;
-    try {
-        [client_id, client_secret] = Buffer.from(req.header("Authorization").substring("Basic ".length), "base64").toString().split(":");
-        if (!await dbInterface.validateClient(client_id, client_secret)) {
-            respond(res, 401);
-            return;
-        }
-    } catch (e) {
-        respond(res, 401);
+    if (!req.client || req.client.origin !== "secret" || !req.user) {
+        respond(res, 400, undefined, "invalid arguments");
         return;
     }
 
     //Validate access token
     try {
-        let accessTokenInfo = await validateAccessToken(req.body.access_token, client_id);
-        let permissionsResult = await dbInterface.query(`SELECT permission FROM permissions WHERE user_id = '${accessTokenInfo.user_id}'`);
+        let permissionsResult = await dbInterface.query(`SELECT permission FROM permissions WHERE user_id = '${req.user.user_id}'`);
         let permissions = [];
         for (let i = 0; i < permissionsResult.length; i++) {
             permissions[i] = permissionsResult[i].permission;
         }
-        let tokenInfoResponse;
-        if (accessTokenInfo.active)
-            tokenInfoResponse = {
-                active: accessTokenInfo.active,
-                user_id: accessTokenInfo.user_id,
-                username: accessTokenInfo.username,
-                email: accessTokenInfo.email,
-                permissions: permissions
-            }
-        else
-            tokenInfoResponse = {
-                active: false
-            }
+        let tokenInfoResponse = {
+            active: true,
+            user_id: req.user.user_id,
+            username: req.user.username,
+            email: req.user.email,
+            permissions: permissions
+        }
 
         respond(res, 200, tokenInfoResponse);
     } catch (e) {
@@ -52,10 +35,13 @@ async function tokenInfo(req, res) {
 async function token(req, res) {
     switch (req.body.grant_type) {
         case "authorization_code": {
-            if (!requireValues(res, req.body.authorization_code, req.body.client_id)) return;
+            if (req.user.origin !== "authorization_code" || req.client.client_id !== req.body.client_id) {
+                respond(res, 400, undefined, "Invalid arguments");
+                return;
+            }
 
             try {
-                let response = await validateAuthorizationCode(req.body.authorization_code, req.body.client_id);
+                let response = await generateRefreshToken(req.body.authorization_code, req.body.client_id);
                 respond(res, 201, response);
             } catch (e) {
                 console.log("Error: " + e);
@@ -64,10 +50,13 @@ async function token(req, res) {
             break;
         }
         case "refresh_token": {
-            if (!requireValues(res, req.body.refresh_token, req.body.client_id)) return;
+            if (req.user.origin !== "refresh_token" || req.client.client_id !== req.body.client_id) {
+                respond(res, 400, undefined, "Invalid arguments");
+                return;
+            }
 
             try {
-                let response = await refreshAccessToken(req.body.refresh_token, req.body.client_id);
+                let response = await generateAccessToken(req.user.user_id, req.client.client_id);
                 respond(res, 201, response);
             } catch (e) {
                 respond(res, e);
@@ -80,31 +69,19 @@ async function token(req, res) {
 }
 
 async function revoke(req, res) {
-    if (req.body.access_token === undefined && req.body.refresh_token === undefined || req.body.client_id === undefined) {
-        respond(res, 400);
+    if (req.body.access_token === undefined && req.body.refresh_token === undefined || req.client.client_id !== req.body.client_id) {
+        respond(res, 400, undefined, "Invalid arguments");
         return;
     }
 
-    if (req.body.access_token !== undefined) {
-        //revoke access_token
-        try {
+    try {
+        if (req.body.access_token !== undefined) //revoke access_token
             await dbInterface.query(`DELETE FROM access_token WHERE access_token = '${req.body.access_token}' AND client_id = '${req.body.client_id}'`);
-        } catch (e) {
-            console.error(`Failed to revoke access token: ${e}`);
-            respond(res, 404);
-            return;
-        }
-    }
 
-    if (req.body.refresh_token !== undefined) {
-        //revoke refresh_token
-        try {
+        if (req.body.refresh_token !== undefined) //revoke refresh_token
             await dbInterface.query(`DELETE FROM refresh_token WHERE refresh_token = '${req.body.refresh_token}' AND client_id = '${req.body.client_id}'`);
-        } catch (e) {
-            console.error(`Failed to revoke refresh token: ${e}`);
-            respond(res, 404);
-            return;
-        }
+    } catch (e) {
+        respond(res, 500);
     }
 
     respond(res, 200);
@@ -114,9 +91,9 @@ async function revoke(req, res) {
  * Use the authorization_code to generate an access_token and refresh_token
  * @param {string} authorization_code 
  * @param {string} client_id 
- * @returns {(string|string|number)} access_token, refresh_token, expires
+ * @returns {Promise<(string|string|number)>} access_token, refresh_token, expires
  */
-async function validateAuthorizationCode(authorization_code, client_id) {
+async function generateRefreshToken(authorization_code, client_id) {
     //Check if authorization code exists
     let results = await dbInterface.query(`SELECT user_id FROM authorization_code WHERE authorization_code = '${authorization_code}' AND client_id = '${client_id}'`);
     if (results.length === 0) throw 404;
@@ -170,17 +147,12 @@ async function validateAccessToken(access_token, client_id) {
 }
 
 /**
- * Use the refresh_token to generate a new access_token
+ * Generate a new access_token
  * @param {string} refresh_token 
  * @param {string} client_id 
- * @returns {(string|number)} access_token, expires
+ * @returns {Promise<(string|number)>} access_token, expires
  */
-async function refreshAccessToken(refresh_token, client_id) {
-    let results = await dbInterface.query(`SELECT user_id FROM refresh_token WHERE refresh_token = '${refresh_token}' AND client_id = '${client_id}'`);
-    if (results.length === 0) throw 404;
-    let user_id = results[0].user_id;
-
-    //create unique access_token
+async function generateAccessToken(user_id, client_id) {
     let expires = currentUnixTime() + configReader.accessTokenExpirationTime();
     let access_token;
     let error = true;

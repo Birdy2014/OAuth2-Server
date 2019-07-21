@@ -18,8 +18,8 @@ async function post(req, res) {
     if (!requireValues(res, req.body.email, req.body.username, req.body.password)) return;
 
     try {
-        respond(res, 201, {user_id: await createUser(req.body.email, req.body.username, req.body.password)});
-    } catch(e) {
+        respond(res, 201, { user_id: await createUser(req.body.email, req.body.username, req.body.password) });
+    } catch (e) {
         if (typeof e.status === "number")
             respond(res, e.status, undefined, e.error);
         else
@@ -28,21 +28,16 @@ async function post(req, res) {
 }
 
 async function put(req, res) {
-    if (!req.header("Authorization") || !(req.body.username || req.body.password || req.body.email)) {
-        respond(res, 400);
+    if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !(req.body.username || req.body.password || req.body.email)) {
+        respond(res, 400, undefined, "Invalid arguments");
         return;
     }
 
     try {
-        let { user_id } = await validateAccessToken(req.header("Authorization"), await dbInterface.getDashboardId());
-        if (!user_id) {
-            respond(res, 403);
-        } else {
-            if (req.body.username) await changeUsername(user_id, req.body.username);
-            if (req.body.password) await changePassword(user_id, req.body.password);
-            if (req.body.email) await changeEmail(user_id, req.body.email);
-            respond(res, 200);
-        }
+        if (req.body.username) await changeUsername(req.user.user_id, req.body.username);
+        if (req.body.password) await changePassword(req.user.user_id, req.body.password);
+        if (req.body.email) await changeEmail(req.user.user_id, req.body.email);
+        respond(res, 200);
     } catch (e) {
         if (typeof e.status === "number")
             respond(res, e.status, undefined, e.error);
@@ -52,21 +47,13 @@ async function put(req, res) {
 }
 
 async function del(req, res) {
-    if (!requireValues(res, req.body.user_id, req.body.password)) return;
+    if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard") {
+        respond(res, 400, undefined, "Invalid arguments");
+        return;
+    }
 
     try {
-        let results = await dbInterface.query(`SELECT password_hash FROM user WHERE user_id = '${req.body.user_id}'`);
-        if (results.length === 0) {
-            respond(res, 404);
-            return;
-        }
-        let valid = await bcrypt.compare(req.body.password, results[0].password_hash);
-        if (!valid) {
-            respond(res, 403);
-            return;
-        }
-
-        await deleteUser(req.body.user_id);
+        await deleteUser(req.user.user_id);
         respond(res, 200);
     } catch (e) {
         respond(res, 500);
@@ -82,8 +69,8 @@ async function del(req, res) {
  * @returns {string} user_id
  */
 async function createUser(email, username, password) {
-    if (!await checkEmail(email)) throw {status: 400, error: "Invalid email address"};
-    if (!await checkPassword(password)) throw {status: 400, error: "Invalid Password"};
+    if (!await checkEmail(email)) throw { status: 400, error: "Invalid email address" };
+    if (!await checkPassword(password)) throw { status: 400, error: "Invalid Password" };
 
     //Create password hash
     let password_hash = await bcrypt.hash(password, 12);
@@ -120,8 +107,8 @@ async function changePassword(user_id, password) {
 }
 
 async function changeEmail(user_id, email) {
-    if (!await checkEmail(email)) throw {status: 400, error: "Invalid email address"};
-    if (!await checkPassword(password)) throw {status: 400, error: "Invalid Password"};
+    if (!await checkEmail(email)) throw { status: 400, error: "Invalid email address" };
+    if (!await checkPassword(password)) throw { status: 400, error: "Invalid Password" };
     if (configReader.emailVerificationEnabled()) {
         let verification_code = generateToken(12);
         await dbInterface.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //Delete old verification codes
@@ -151,7 +138,7 @@ async function validateUser(login, password) {
         query = `SELECT password_hash, user_id FROM user WHERE email = '${login}'`;
     else
         query = `SELECT password_hash, user_id FROM user WHERE username = '${login}'`;
-    
+
     try {
         let { password_hash, user_id } = (await dbInterface.query(query))[0];
         if (await bcrypt.compare(password, password_hash))

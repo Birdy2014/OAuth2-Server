@@ -1,21 +1,16 @@
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
-const { respond, requireValues } = require("../utils");
-const { validateAccessToken } = require("../token/TokenMethods");
+const { respond } = require("../utils");
 const { hasPermission } = require("../permission/PermissionMethods");
 
 async function post(req, res) {
-    if (!requireValues(req.header("Authorization"), req.body.client_id, req.body.redirect_uri)) return;
-
-    //Only using the Dashboard
-    let request_user_id = (await validateAccessToken(req.header("Authorization"), await dbInterface.getDashboardId())).user_id;
-    if (!request_user_id) {
-        respond(res, 403);
+    if (!req.body.client_id || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard") {
+        respond(res, 400, undefined, "Invalid arguments");
         return;
     }
 
     //Only Admin
-    if (!(await hasPermission(request_user_id, await dbInterface.getDashboardId(), "admin") || await hasPermission(request_user_id, req.body.client_id, "admin"))) {
+    if (!(req.user.admin || await hasPermission(req.user.user_id, req.body.client_id, "admin"))) {
         respond(res, 403);
         return;
     }
@@ -24,25 +19,21 @@ async function post(req, res) {
         await addUri(req.body.client_id, req.body.redirect_uri);
         respond(res, 201);
     } catch (e) {
-        if (typeof e === "number")
-            respond(res, e);
+        if (typeof e.status === "number")
+            respond(res, e.status, undefined, e.error);
         else
             respond(res, 500);
     }
 }
 
 async function del(req, res) {
-    if (!requireValues(req.header("Authorization"), req.body.client_id, req.body.redirect_uri)) return;
-
-    //Only using the Dashboard
-    let request_user_id = (await validateAccessToken(req.header("Authorization"), await dbInterface.getDashboardId())).user_id;
-    if (!request_user_id) {
-        respond(res, 403);
+    if (!req.body.client_id || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard") {
+        respond(res, 400, undefined, "Invalid arguments");
         return;
     }
 
     //Only Admin
-    if (!(await hasPermission(request_user_id, await dbInterface.getDashboardId(), "admin") || await hasPermission(request_user_id, req.body.client_id, "admin"))) {
+    if (!(req.user.admin || await hasPermission(req.user.user_id, req.body.client_id, "admin"))) {
         respond(res, 403);
         return;
     }
@@ -51,8 +42,8 @@ async function del(req, res) {
         await removeUri(req.body.client_id, req.body.redirect_uri);
         respond(res, 200);
     } catch (e) {
-        if (typeof e === "number")
-            respond(res, e);
+        if (typeof e.status === "number")
+            respond(res, e.status, undefined, e.error);
         else
             respond(res, 500);
     }
@@ -64,7 +55,7 @@ async function addUri(client_id, redirect_uri) {
         if (results.length === 1)
             await dbInterface.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${client_id}', '${redirect_uri}')`);
         else
-            throw 404;
+            throw { status: 404, error: "Client not found"};
     } catch(e) {
         if (e.code != "ER_DUP_ENTRY") throw e; //Allow adding URIs multiple times
     }
