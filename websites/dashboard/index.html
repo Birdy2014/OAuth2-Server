@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Dashboard</title>
+        <link rel="stylesheet" href="dashboard.css">
+        <script src="/authorize/authorization.js"></script>
+        <script src="/register/register.js"></script>
+        <script src="dashboard.js"></script>
+    </head>
+    <body>
+        <nav>
+            <a href="javascript:navigate('clients');">Clients</a>
+            <a href="javascript:navigate('settings');">Settings</a>
+        </nav>
+        <div class="content active" id="clients">
+            <h1>Clients</h1>
+        </div>
+        <div class="content" id="settings">
+            <h1>Settings</h1>
+            <div>
+                Username:
+                <input type="text" id="username">
+            </div>
+            <div>
+                Email Address:
+                <input type="text" id="email">
+            </div>
+        </div>
+    </body>
+</html>
