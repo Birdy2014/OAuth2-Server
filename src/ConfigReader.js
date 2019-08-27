@@ -2,6 +2,7 @@ const readlineSync = require('readline-sync');
 const { promisify } = require('util');
 const fs = require("fs");
 const { resolve } = require("path");
+const nodemailer = require("nodemailer");
 
 class ConfigReader {
     static instance;
@@ -16,6 +17,16 @@ class ConfigReader {
             this.generateConfig(path + ".json");
 
         ConfigReader.instance = this;
+
+        this.transporter = nodemailer.createTransport({
+            host: this.config.email.host,
+            port: this.config.email.port,
+            secure: this.config.email.secure, //only for SSL
+            auth: {
+                user: this.config.email.username,
+                pass: this.config.email.password
+            }
+        });
     }
 
     mysqlConfig() {
@@ -53,6 +64,10 @@ class ConfigReader {
         return this.config.email;
     }
 
+    getMailTransporter() {
+        return this.transporter;
+    }
+
     url() {
         return this.config.url;
     }
@@ -77,10 +92,13 @@ class ConfigReader {
         let emailEnabled = readlineSync.question("Do you want to send email address verification emails? [y/n] ");
         if (emailEnabled.toLowerCase() === "y") {
             config.email.enabled = true;
-            config.email.provider = readlineSync.question("Which transactional email server do you use? (supported: sendgrid) ");
             config.email.from = readlineSync.question("from which email address do you want to send the emails? ");
-            config.email.key = readlineSync.question("API key: ");
-            config.email.template = readlineSync.question("email template: ");
+            config.email.host = readlineSync.question("SMTP Server address: ");
+            config.email.port = readlineSync.question("SMTP Server port: ");
+            config.email.ssl = readlineSync.question("Does the server use SSL (Not STARTTLS)? [y/n] ").toLocaleLowerCase() == "y";
+            config.email.username = readlineSync.question("SMTP username: ");
+            config.email.password = readlineSync.question("password: ");
+            config.email.name = readlineSync.question("Display name: ");
         } else {
             config.email.enabled = false;
         }
