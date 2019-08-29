@@ -1,8 +1,7 @@
 const bcrypt = require("bcrypt");
 const DBInterface = require("../../DBInterface");
-const { respond, requireValues, generateToken } = require("../utils");
+const { respond, generateToken, handleError } = require("../utils");
 const ConfigReader = require("../../ConfigReader");
-const { validateAccessToken } = require("../token/TokenMethods");
 const { sendVerificationEmail } = require("../verification/VerificationMethods");
 const dbInterface = new DBInterface();
 const configReader = new ConfigReader();
@@ -15,49 +14,40 @@ async function get(req, res) {
 }
 
 async function post(req, res) {
-    if (!requireValues(res, req.body.email, req.body.username, req.body.password)) return;
-
     try {
-        respond(res, 201, { user_id: await createUser(req.body.email, req.body.username, req.body.password) });
+        if (!req.body.email || !req.body.username || !req.body.password)
+            throw { status: 400, error: "Invalid arguments" };
+
+        let user_id = await createUser(req.body.email, req.body.username, req.body.password);
+        respond(res, 201, { user_id });
     } catch (e) {
-        if (typeof e.status === "number")
-            respond(res, e.status, undefined, e.error);
-        else
-            respond(res, 409);
+        handleError(res, e);
     }
 }
 
 async function put(req, res) {
-    if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !(req.body.username || req.body.password || req.body.email)) {
-        respond(res, 400, undefined, "Invalid arguments");
-        return;
-    }
-
     try {
+        if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !(req.body.username || req.body.password || req.body.email))
+            throw { status: 400, error: "Invalid arguments" };
+
         if (req.body.username) await changeUsername(req.user.user_id, req.body.username);
         if (req.body.password) await changePassword(req.user.user_id, req.body.password);
         if (req.body.email) await changeEmail(req.user.user_id, req.body.email);
         respond(res, 200);
     } catch (e) {
-        if (typeof e.status === "number")
-            respond(res, e.status, undefined, e.error);
-        else
-            respond(res, 500);
+        handleError(res, e);
     }
 }
 
 async function del(req, res) {
-    if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard") {
-        respond(res, 400, undefined, "Invalid arguments");
-        return;
-    }
-
     try {
+        if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+            throw { status: 400, error: "Invalid arguments" };
+
         await deleteUser(req.user.user_id);
         respond(res, 200);
     } catch (e) {
-        respond(res, 500);
-        console.log(e);
+        handleError(res, e);
     }
 }
 
@@ -76,7 +66,15 @@ async function createUser(email, username, password) {
     let password_hash = await bcrypt.hash(password, 12);
 
     //Create user
-    await dbInterface.query(`INSERT INTO user (user_id, email, username, password_hash) VALUES (uuid(), '${email}', '${username}', '${password_hash}')`);
+    try {
+        await dbInterface.query(`INSERT INTO user (user_id, email, username, password_hash) VALUES (uuid(), '${email}', '${username}', '${password_hash}')`);
+    } catch (e) {
+        if (e.code === "ER_DUP_ENTRY")
+            throw { status: 409, error: "User already exists" };
+        else
+            throw e;
+    }
+
     let user_id = (await dbInterface.query(`SELECT user_id FROM user WHERE email = '${email}'`))[0].user_id;
 
     if (configReader.emailVerificationEnabled()) {

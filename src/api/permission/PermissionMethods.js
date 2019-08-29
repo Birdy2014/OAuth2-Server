@@ -1,76 +1,55 @@
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
-const { respond } = require("../utils");
+const { respond, handleError } = require("../utils");
 
 async function get(req, res) {
-    if (req.user.origin !== "access_token" || req.client.name !== "Dashboard") {
-        respond(res, 400, undefined, "Invalid arguments");
-        return;
-    }
-
-    //Only Admin or the user
-    if (!(req.user.admin || await hasPermission(request_user_id, await dbInterface.getDashboardId(), "admin") || await hasPermission(request_user_id, req.query.client_id, "admin"))) {
-        respond(res, 403);
-        return;
-    }
-
-    //Get permissions
     try {
+        if (req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+            throw { status: 400, error: "Invalid arguments" };
+
+        //Only Admin or the user
+        if (!(req.user.admin || await hasPermission(request_user_id, await dbInterface.getDashboardId(), "admin") || await hasPermission(request_user_id, req.query.client_id, "admin")))
+            throw { status: 403, error: "Insufficient permissions" };
+
+        //Get permissions
         respond(res, 200, await getPermissions(req.query.user_id || req.user.user_id, req.query.client_id));
     } catch (e) {
-        if (typeof e.status === "number")
-            respond(res, e.status, undefined, e.error);
-        else
-            respond(res, 500);
+        handleError(res, e);
     }
 
 }
 
 async function post(req, res) {
-    if (req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !req.body.user_id || !req.body.client_id || !req.body.permission) {
-        respond(res, 400, undefined, "Invalid arguments");
-        return;
-    }
-
-    //Only Admin
-    if (!(req.user.admin || await hasPermission(request_user_id, req.body.client_id, "admin"))) {
-        respond(res, 403);
-        return;
-    }
-
-    //Add permission
     try {
+        if (req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !req.body.user_id || !req.body.client_id || !req.body.permission)
+            throw { status: 400, error: "Invalid arguments" };
+
+        //Only Admin
+        if (!(req.user.admin || await hasPermission(request_user_id, req.body.client_id, "admin")))
+            throw { status: 403, error: "Insufficient permissions" };
+
+        //Add permission
         await addPermission(req.body.user_id, req.body.client_id, req.body.permission);
         respond(res, 201);
     } catch (e) {
-        if (typeof e.status === "number")
-            respond(res, e.status, undefined, e.error);
-        else
-            respond(res, 500);
+        handleError(res, e);
     }
 }
 
 async function del(req, res) {
-    if (req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !req.body.permission || !req.body.client_id) {
-        respond(res, 400, undefined, "Invalid arguments");
-        return;
-    }
-
-    //Only Admin or the user
-    if (!(!req.body.user_id || req.user.user_id === req.body.user_id || req.user.admin || await hasPermission(request_user_id, req.body.client_id, "admin"))) {
-        respond(res, 403);
-        return;
-    }
-
-    //Delete permission
     try {
+        if (req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !req.body.permission || !req.body.client_id)
+            throw { status: 400, error: "Invalid arguments" };
+
+        //Only Admin or the user
+        if (!(!req.body.user_id || req.user.user_id === req.body.user_id || req.user.admin || await hasPermission(request_user_id, req.body.client_id, "admin")))
+            throw { status: 403, error: "Insufficient permissions" };
+
+        //Delete permission
         await removePermission(req.body.user_id || req.user.user_id, req.body.client_id, req.body.permission);
         respond(res, 200);
     } catch (e) {
-        if (typeof e.status === "number")
-            respond(res, e.status, undefined, e.error);
-        else
-            respond(res, 500);
+        handleError(res, e);
     }
 }
 

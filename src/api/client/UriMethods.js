@@ -1,51 +1,37 @@
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
-const { respond } = require("../utils");
+const { respond, handleError } = require("../utils");
 const { hasPermission } = require("../permission/PermissionMethods");
 
 async function post(req, res) {
-    if (!req.body.client_id || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard") {
-        respond(res, 400, undefined, "Invalid arguments");
-        return;
-    }
-
-    //Only Admin
-    if (!(req.user.admin || await hasPermission(req.user.user_id, req.body.client_id, "admin"))) {
-        respond(res, 403);
-        return;
-    }
-
     try {
+        if (!req.body.client_id || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+            throw { status: 400, error: "Invalid arguments" };
+
+        //Only Admin
+        if (!(req.user.admin || await hasPermission(req.user.user_id, req.body.client_id, "admin")))
+            throw { status: 403, error: "Insufficient permissions" };
+
         await addUri(req.body.client_id, req.body.redirect_uri);
         respond(res, 201);
     } catch (e) {
-        if (typeof e.status === "number")
-            respond(res, e.status, undefined, e.error);
-        else
-            respond(res, 500);
+        handleError(res, e);
     }
 }
 
 async function del(req, res) {
-    if (!req.body.client_id || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard") {
-        respond(res, 400, undefined, "Invalid arguments");
-        return;
-    }
-
-    //Only Admin
-    if (!(req.user.admin || await hasPermission(req.user.user_id, req.body.client_id, "admin"))) {
-        respond(res, 403);
-        return;
-    }
-
     try {
+        if (!req.body.client_id || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+            throw { status: 400, error: "Invalid arguments" };
+
+        //Only Admin
+        if (!(req.user.admin || await hasPermission(req.user.user_id, req.body.client_id, "admin")))
+            throw { status: 403, error: "Insufficient permissions" };
+
         await removeUri(req.body.client_id, req.body.redirect_uri);
         respond(res, 200);
     } catch (e) {
-        if (typeof e.status === "number")
-            respond(res, e.status, undefined, e.error);
-        else
-            respond(res, 500);
+        handleError(res, e);
     }
 }
 
@@ -55,8 +41,8 @@ async function addUri(client_id, redirect_uri) {
         if (results.length === 1)
             await dbInterface.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${client_id}', '${redirect_uri}')`);
         else
-            throw { status: 404, error: "Client not found"};
-    } catch(e) {
+            throw { status: 404, error: "Client not found" };
+    } catch (e) {
         if (e.code != "ER_DUP_ENTRY") throw e; //Allow adding URIs multiple times
     }
 }

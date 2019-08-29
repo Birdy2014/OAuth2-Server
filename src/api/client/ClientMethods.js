@@ -1,42 +1,29 @@
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
-const { generateToken, respond } = require("../utils");
+const { generateToken, respond, handleError } = require("../utils");
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 
 async function post(req, res) {
-    if (!req.body.name || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard") {
-        respond(res, 400, undefined, "Invalid arguments");
-        return;
-    }
-
     try {
+        if (!req.body.name || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+            throw { status: 400, error: "Invalid arguments" };
+
         let { client_id, client_secret } = await createClient(req.body.name, req.user.user_id, req.body.redirect_uri);
         respond(res, 201, { client_id: client_id, client_secret: client_secret });
     } catch (e) {
-        if (typeof e.status === "number") {
-            respond(res, e.status, undefined, e.error);
-        } else {
-            console.log(e);
-            respond(res, 500);
-        }
+        handleError(res, e);
     }
 }
 
 async function del(req, res) {
-    if (!req.body.client_id || req.user.origin !== "access_token" || req.client.name !== "Dashboard") {
-        respond(res, 400, undefined, "Invalid arguments");
-        return;
-    }
-
     try {
+        if (!req.body.client_id || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+            throw { status: 400, error: "Invalid arguments" };
+
         await deleteClient(req.body.client_id, req.user.user_id);
         respond(res, 200)
     } catch (e) {
-        if (typeof e.status === "number") {
-            respond(res, e.status, undefined, e.error);
-        } else {
-            respond(res, 500);
-        }
+        handleError(res, e);
     }
 }
 

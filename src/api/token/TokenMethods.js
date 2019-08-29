@@ -1,17 +1,15 @@
-const { generateToken, currentUnixTime, respond } = require("../utils");
+const { generateToken, currentUnixTime, respond, handleError } = require("../utils");
 const DBInterface = require("../../DBInterface");
 const ConfigReader = require("../../ConfigReader");
 const dbInterface = new DBInterface();
 const configReader = new ConfigReader();
 
 async function tokenInfo(req, res) {
-    if (!req.client || req.client.origin !== "secret" || !req.user) {
-        respond(res, 400, undefined, "invalid arguments");
-        return;
-    }
-
-    //Validate access token
     try {
+        if (!req.client || req.client.origin !== "secret" || !req.user)
+            throw { status: 400, error: "Invalid arguments" };
+
+        //Validate access token
         let permissionsResult = await dbInterface.query(`SELECT permission FROM permissions WHERE user_id = '${req.user.user_id}'`);
         let permissions = [];
         for (let i = 0; i < permissionsResult.length; i++) {
@@ -27,64 +25,52 @@ async function tokenInfo(req, res) {
 
         respond(res, 200, tokenInfoResponse);
     } catch (e) {
-        console.log(e);
-        respond(res, 500);
+        handleError(res, e);
     }
 }
 
 async function token(req, res) {
-    switch (req.body.grant_type) {
-        case "authorization_code": {
-            if (req.user.origin !== "authorization_code" || req.client.client_id !== req.body.client_id) {
-                respond(res, 400, undefined, "Invalid arguments");
-                return;
-            }
+    try {
+        switch (req.body.grant_type) {
+            case "authorization_code": {
+                if (req.user.origin !== "authorization_code" || req.client.client_id !== req.body.client_id)
+                    throw { status: 400, error: "Invalid arguments" };
 
-            try {
                 let response = await generateRefreshToken(req.body.authorization_code, req.body.client_id);
                 respond(res, 201, response);
-            } catch (e) {
-                console.log("Error: " + e);
-                respond(res, e);
+                break;
             }
-            break;
-        }
-        case "refresh_token": {
-            if (req.user.origin !== "refresh_token" || req.client.client_id !== req.body.client_id) {
-                respond(res, 400, undefined, "Invalid arguments");
-                return;
-            }
+            case "refresh_token": {
+                if (req.user.origin !== "refresh_token" || req.client.client_id !== req.body.client_id)
+                    throw { status: 400, error: "Invalid arguments" };
 
-            try {
                 let response = await generateAccessToken(req.user.user_id, req.client.client_id);
                 respond(res, 201, response);
-            } catch (e) {
-                respond(res, e);
+                break;
             }
-            break;
+            default:
+                throw { status: 400, error: "Invalid arguments" };
         }
-        default:
-            respond(res, 400);
+    } catch (e) {
+        handleError(res, e);
     }
 }
 
 async function revoke(req, res) {
-    if (req.body.access_token === undefined && req.body.refresh_token === undefined || req.client.client_id !== req.body.client_id) {
-        respond(res, 400, undefined, "Invalid arguments");
-        return;
-    }
-
     try {
+        if (req.body.access_token === undefined && req.body.refresh_token === undefined || req.client.client_id !== req.body.client_id)
+            throw { status: 400, error: "Invalid arguments" };
+
         if (req.body.access_token !== undefined) //revoke access_token
             await dbInterface.query(`DELETE FROM access_token WHERE access_token = '${req.body.access_token}' AND client_id = '${req.body.client_id}'`);
 
         if (req.body.refresh_token !== undefined) //revoke refresh_token
             await dbInterface.query(`DELETE FROM refresh_token WHERE refresh_token = '${req.body.refresh_token}' AND client_id = '${req.body.client_id}'`);
-    } catch (e) {
-        respond(res, 500);
-    }
 
-    respond(res, 200);
+        respond(res, 200);
+    } catch (e) {
+        handleError(res, e);
+    }
 }
 
 /**

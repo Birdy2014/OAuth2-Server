@@ -2,10 +2,11 @@
  * Generates an Object for a api response
  * @param {number} status - The HTML status code
  * @param {Object} [data] - Additional data
+ * @param {string} [error] - error description
  * @returns {(number|Object)} Object for api response
  */
 function respondJSON(status, data, error) {
-    if (data === undefined) {
+    if (!data) {
         return {
             status: status,
             error: error
@@ -23,6 +24,7 @@ function respondJSON(status, data, error) {
  * @param {Object} res - The response object from express
  * @param {number} status - The HTML status code
  * @param {Object} [data] - Additional data
+ * @param {string} [error] - error description
  */
 function respond(res, status, data, error) {
     res.status(status);
@@ -63,4 +65,18 @@ function requireValues(res, ...values) {
     return true;
 }
 
-module.exports = { generateToken, currentUnixTime, respond, requireValues };
+/**
+ * 
+ * @param {*} res 
+ * @param {Object} e - Error
+ */
+function handleError(res, e) {
+    if (typeof e.status === "number") {
+        respond(res, e.status, undefined, e.error);
+    } else {
+        respond(res, 500, undefined, "Internal Server Error");
+        console.error("An error occurred: " + JSON.stringify(e));
+    }
+}
+
+module.exports = { generateToken, currentUnixTime, respond, requireValues, handleError };
