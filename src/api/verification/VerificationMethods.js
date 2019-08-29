@@ -28,7 +28,7 @@ async function sendVerificationEmail(username, email, verification_code) {
     const emailConfig = configReader.emailConfig();
 
     await configReader.getMailTransporter().sendMail({
-        from: `"Accounts" <${emailConfig.from}>`,
+        from: `${emailConfig.name} <${emailConfig.from}>`,
         to: email,
         subject: 'Email verification',
         text: `url: ${configReader.url()}/verification?verification_code=${verification_code}`,

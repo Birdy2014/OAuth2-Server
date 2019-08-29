@@ -8,10 +8,11 @@ async function register(username, email, password, client_id, redirect_uri, stat
         let user_id = JSON.parse(body).data.user_id;
         getAuthorizationCode(user_id, password, client_id, redirect_uri || `${secure ? "https://" : "http://"}${domain}/dashboard`, state);
     } catch (e) {
+        e = JSON.parse(e);
         if (e.status === 409)
             alert("User already exits");
         else
-            alert("unknown error: " + e.status);
+            alert("unknown error: " + e.error);
     }
 }
 

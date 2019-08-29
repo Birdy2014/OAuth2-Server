@@ -31,10 +31,10 @@ async function main() {
     app.use(getUser);
 
     //Frontend
-    app.use("/authorize", express.static(__dirname + "/../websites/authorization"));
-    app.use("/register", express.static(__dirname + "/../websites/register"));
-    app.use("/dashboard", express.static(__dirname + "/../websites/dashboard"));
-    app.use("/verification", express.static(__dirname + "/../websites/verification"));
+    app.use("/authorize", express.static(__dirname + "/public/authorization"));
+    app.use("/register", express.static(__dirname + "/public/register"));
+    app.use("/dashboard", express.static(__dirname + "/public/dashboard"));
+    app.use("/verification", express.static(__dirname + "/public/verification"));
 
     //Backend
     app.use("/api/authorize", isLoggedIn, authRouter);
@@ -53,7 +53,7 @@ async function main() {
     app.use((req, res) => {
         res.status(404);
         if (req.accepts('html'))
-            res.sendFile(path.resolve(__dirname + "/../websites/404.html"));
+            res.sendFile(path.resolve(__dirname + "/public/404.html"));
         else
             res.send({ status: 404 });
     });
