@@ -6,13 +6,13 @@ module.exports.run = async args => {
     switch (args[0]) {
         case "list": {
             try {
-                let results = await dbInterface.query("SELECT user_id, username, email FROM user");
+                let results = await dbInterface.query("SELECT user_id, username, email, verified FROM user");
                 if (results.length === 0) {
                     console.log("There are no users");
                 } else {
                     let output = "";
                     await results.forEach(user => {
-                        output += `id: ${user.user_id} name: ${user.username} email: ${user.email}\n`;
+                        output += `id: ${user.user_id} name: ${user.username} email: ${user.email} verified: ${user.verified}\n`;
                     });
                     console.log(output.substring(0, output.length - 1));
                 }
@@ -59,8 +59,8 @@ module.exports.run = async args => {
                     console.log("Usage: user get <email, username or user ID>");
                 } else {
                     await UserMethods.getUserId(args[0], async user_id => {
-                        let results = await dbInterface.query(`SELECT username, email FROM user WHERE user_id = '${user_id}'`);
-                        console.log(`id: ${user_id} name: ${results[0].username} email: ${results[0].email}`);
+                        let results = await dbInterface.query(`SELECT username, email, verified FROM user WHERE user_id = '${user_id}'`);
+                        console.log(`id: ${user_id} name: ${results[0].username} email: ${results[0].email} verified: ${results[0].verified}`);
                     });
                 }
             } catch (e) {
