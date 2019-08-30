@@ -1,6 +1,6 @@
-const PermissionMethods = require("../../api/permission/PermissionMethods");
-const { getUserId } = require("../../api/user/UserMethods");
-const { getClientId } = require("../../api/client/ClientMethods");
+const PermissionMethods = require("../../api/controllers/PermissionMethods");
+const { getUserId } = require("../../api/controllers/UserMethods");
+const { getClientId } = require("../../api/controllers/ClientMethods");
 
 module.exports.run = async args => {
     switch (args[0]) {

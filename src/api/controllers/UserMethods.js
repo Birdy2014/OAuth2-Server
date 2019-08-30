@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const DBInterface = require("../../DBInterface");
 const { respond, generateToken, handleError } = require("../utils");
 const ConfigReader = require("../../ConfigReader");
-const { sendVerificationEmail } = require("../verification/VerificationMethods");
+const { sendVerificationEmail } = require("./VerificationMethods");
 const dbInterface = new DBInterface();
 const configReader = new ConfigReader();
 

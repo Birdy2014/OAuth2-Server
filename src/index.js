@@ -4,13 +4,7 @@ const configReader = new ConfigReader(__dirname + "/../config");
 const dbInterface = new DBInterface(configReader.mysqlConfig());
 const express = require("express");
 const es6Renderer = require('express-es6-template-engine');
-const authRouter = require("./api/authorization/AuthRouter");
-const tokenRouter = require("./api/token/TokenRouter");
-const tokenInfoRouter = require("./api/token/TokenInfoRouter");
-const userRouter = require("./api/user/UserRouter");
-const clientRouter = require("./api/client/ClientRouter");
-const permissionRouter = require("./api/permission/PermissionRouter");
-const verificationRouter = require("./api/verification/VerificationRouter");
+const apiRouter = require("./api/router");
 const { currentUnixTime, respond } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
 const path = require("path");
@@ -46,17 +40,11 @@ async function main() {
     }));
 
     //Backend
-    app.use("/api/authorize", isLoggedIn, authRouter);
-    app.use("/api/token", isLoggedIn, tokenRouter);
-    app.use("/api/token_info", tokenInfoRouter);
-    app.use("/api/user", userRouter);
-    app.use("/api/client", isLoggedIn, clientRouter);
-    app.use("/api/permission", isLoggedIn, permissionRouter);
+    app.use("/api", apiRouter);
     app.get("/api/dashboard_id", async (req, res) => {
         let client_id = (await dbInterface.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
         respond(res, 200, { client_id: client_id });
     });
-    app.use("/api/verification", verificationRouter);
 
     //assets
     app.use("/", express.static(__dirname + "/public"));

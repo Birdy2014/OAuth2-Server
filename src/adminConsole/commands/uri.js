@@ -1,7 +1,7 @@
-const { getClientId } = require("../../api/client/ClientMethods");
+const { getClientId } = require("../../api/controllers/ClientMethods");
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
-const UriMethods = require("../../api/client/UriMethods");
+const UriMethods = require("../../api/controllers/UriMethods");
 
 module.exports.run = async args => {
     switch (args[0]) {

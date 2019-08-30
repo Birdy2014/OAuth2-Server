@@ -1,4 +1,4 @@
-const UserMethods = require("../../api/user/UserMethods");
+const UserMethods = require("../../api/controllers/UserMethods");
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
 
