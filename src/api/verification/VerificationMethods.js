@@ -1,5 +1,3 @@
-const request = require("request-promise-native");
-const nodemailer = require("nodemailer");
 const { respond, handleError } = require("../utils");
 const DBInterface = require("../../DBInterface");
 const ConfigReader = require("../../ConfigReader");

@@ -1,5 +1,4 @@
 const readlineSync = require('readline-sync');
-const { promisify } = require('util');
 const fs = require("fs");
 const { resolve } = require("path");
 const nodemailer = require("nodemailer");
