@@ -1,8 +1,11 @@
 const { respond, handleError } = require("../utils");
+const es6Renderer = require('express-es6-template-engine');
+const fs = require("fs");
 const DBInterface = require("../../DBInterface");
 const ConfigReader = require("../../ConfigReader");
 const dbInterface = new DBInterface();
 const configReader = new ConfigReader();
+const compiledEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/verification.html"), "username, url");
 
 async function post(req, res) {
     try {
@@ -35,7 +38,7 @@ async function sendVerificationEmail(username, email, verification_code) {
         to: email,
         subject: 'Email verification',
         text: `url: ${configReader.url()}/verification?verification_code=${verification_code}`,
-        html: `<a href="${configReader.url()}/verification?verification_code=${verification_code}">Email verification</a>`
+        html: compiledEmail(username, `${configReader.url()}/verification?verification_code=${verification_code}`)
     });
 }
 

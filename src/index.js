@@ -3,6 +3,7 @@ const DBInterface = require("./DBInterface");
 const configReader = new ConfigReader(__dirname + "/../config");
 const dbInterface = new DBInterface(configReader.mysqlConfig());
 const express = require("express");
+const es6Renderer = require('express-es6-template-engine');
 const authRouter = require("./api/authorization/AuthRouter");
 const tokenRouter = require("./api/token/TokenRouter");
 const tokenInfoRouter = require("./api/token/TokenInfoRouter");
@@ -29,12 +30,20 @@ async function main() {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(getUser);
+    app.engine("html", es6Renderer);
+    app.set("views", __dirname + "/views");
+    app.set("view engine", "html");
 
     //Frontend
-    app.use("/authorize", express.static(__dirname + "/public/authorization"));
-    app.use("/register", express.static(__dirname + "/public/register"));
-    app.use("/dashboard", express.static(__dirname + "/public/dashboard"));
-    app.use("/verification", express.static(__dirname + "/public/verification"));
+    app.use("/authorize", (req, res) => res.render("authorization"));
+    app.use("/register", (req, res) => res.render("register"));
+    app.use("/verification", (req, res) => res.render("verification"));
+    app.use("/dashboard", (req, res) => res.render("dashboard/template", {
+        partials: {
+            clients: "dashboard/clients",
+            settings: "dashboard/settings"
+        }
+    }));
 
     //Backend
     app.use("/api/authorize", isLoggedIn, authRouter);
@@ -45,15 +54,18 @@ async function main() {
     app.use("/api/permission", isLoggedIn, permissionRouter);
     app.get("/api/dashboard_id", async (req, res) => {
         let client_id = (await dbInterface.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
-        respond(res, 200, {client_id: client_id});
+        respond(res, 200, { client_id: client_id });
     });
     app.use("/api/verification", verificationRouter);
+
+    //assets
+    app.use("/", express.static(__dirname + "/public"));
 
     //404
     app.use((req, res) => {
         res.status(404);
         if (req.accepts('html'))
-            res.sendFile(path.resolve(__dirname + "/public/404.html"));
+            res.render("404");
         else
             res.send({ status: 404 });
     });
