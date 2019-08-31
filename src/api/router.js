@@ -5,6 +5,7 @@ const PermissionMethods = require("./controllers/PermissionMethods");
 const TokenMethods = require("./controllers/TokenMethods");
 const UserMethods = require("./controllers/UserMethods");
 const VerificationMethods = require("./controllers/VerificationMethods");
+const DashboardMethods = require("./controllers/DashboardMethods");
 const isLoggedIn = require("../middleware/isLoggedIn");
 const router = require("express").Router();
 
@@ -28,7 +29,6 @@ router.route("/token")
     .post(isLoggedIn, TokenMethods.token)
     .delete(isLoggedIn, TokenMethods.revoke);
 
-
 router.route("/token_info")
     .post(TokenMethods.tokenInfo);
 
@@ -39,5 +39,8 @@ router.route("/user")
 
 router.route("/verification")
     .post(VerificationMethods.post);
+
+router.route("/dashboard")
+    .get(isLoggedIn, DashboardMethods.get);
 
 module.exports = router;
