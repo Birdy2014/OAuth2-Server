@@ -100,13 +100,13 @@ async function changeUsername(user_id, username) {
 }
 
 async function changePassword(user_id, password) {
+    if (!await checkPassword(password)) throw { status: 400, error: "Invalid Password" };
     let password_hash = await bcrypt.hash(password, 12);
     await dbInterface.query(`UPDATE user SET password_hash = '${password_hash}' WHERE user_id = '${user_id}'`);
 }
 
 async function changeEmail(user_id, email) {
     if (!await checkEmail(email)) throw { status: 400, error: "Invalid email address" };
-    if (!await checkPassword(password)) throw { status: 400, error: "Invalid Password" };
     if (configReader.emailVerificationEnabled()) {
         let verification_code = generateToken(12);
         await dbInterface.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //Delete old verification codes
