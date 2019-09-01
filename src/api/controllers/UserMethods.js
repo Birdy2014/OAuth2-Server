@@ -59,6 +59,7 @@ async function del(req, res) {
  * @returns {string} user_id
  */
 async function createUser(email, username, password) {
+    if (!await checkEmail(email)) throw { status: 400, error: "Invalid Username" };
     if (!await checkEmail(email)) throw { status: 400, error: "Invalid email address" };
     if (!await checkPassword(password)) throw { status: 400, error: "Invalid Password" };
 
@@ -96,6 +97,7 @@ async function deleteUser(user_id) {
 }
 
 async function changeUsername(user_id, username) {
+    if (!await checkUsername(username)) throw { status: 400, error: "Invalid Username" };
     await dbInterface.query(`UPDATE user SET username = '${username}' WHERE user_id = '${user_id}'`);
 }
 
@@ -149,11 +151,23 @@ async function validateUser(login, password) {
 }
 
 /**
+ * Checks whether the username contains illegal characters
+ * @param {string} username 
+ * @returns {Promise<boolean>}
+ */
+async function checkUsername(username) {
+    const forbiddenChars = ["'", ";", "\"", "&", "="];
+    return !forbiddenChars.some(i => username.includes(i));
+}
+
+/**
  * Checks if email address matches the whitelist of the config file
  * @param {string} email 
  * @returns {Promise<boolean>}
  */
 async function checkEmail(email) {
+    const forbiddenChars = ["'", ";", "\"", "&", "="];
+    if (forbiddenChars.some(i => email.includes(i))) return false;
     if (!emailRegEx.test(email)) return false;
     if (!configReader.emailWhitelist() || configReader.emailWhitelist().length === 0) return true;
     for (const whitelistDomain of configReader.emailWhitelist()) {
