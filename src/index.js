@@ -32,6 +32,7 @@ async function main() {
     app.use("/authorize", (req, res) => res.render("authorization"));
     app.use("/register", (req, res) => res.render("register"));
     app.use("/verification", (req, res) => res.render("verification"));
+    app.use("/reset_password", (req, res) => res.render("reset_password"));
     app.use("/dashboard", (req, res) => res.render("dashboard/template", {
         partials: {
             clients: "dashboard/clients",

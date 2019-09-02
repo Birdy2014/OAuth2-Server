@@ -142,6 +142,7 @@ class DBInterface {
                 user_id TEXT NOT NULL,
                 verification_code TEXT NOT NULL,
                 email TEXT,
+                change_password BOOLEAN NOT NULL DEFAULT FALSE,
                 PRIMARY KEY (user_id(100))
             )
         `);

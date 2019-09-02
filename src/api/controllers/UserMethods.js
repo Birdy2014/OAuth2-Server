@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const DBInterface = require("../../DBInterface");
 const { respond, generateToken, handleError } = require("../utils");
 const ConfigReader = require("../../ConfigReader");
-const { sendVerificationEmail } = require("./VerificationMethods");
+const { sendVerificationEmail } = require("../services/verification.service");
 const dbInterface = new DBInterface();
 const configReader = new ConfigReader();
 
@@ -81,7 +81,7 @@ async function createUser(email, username, password) {
     if (configReader.emailVerificationEnabled()) {
         let verification_code = generateToken(12);
         await dbInterface.query(`INSERT INTO verification_code (user_id, verification_code) VALUES ('${user_id}', '${verification_code}')`);
-        sendVerificationEmail(username, email, verification_code);
+        sendVerificationEmail(username, email, verification_code, 0);
     } else {
         await dbInterface.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);
     }
@@ -114,7 +114,7 @@ async function changeEmail(user_id, email) {
         await dbInterface.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //Delete old verification codes
         await dbInterface.query(`INSERT INTO verification_code (user_id, verification_code, email) VALUES ('${user_id}', '${verification_code}', '${email}')`);
         let username = (await dbInterface.query(`SELECT username FROM user WHERE user_id = '${user_id}'`))[0].username;
-        sendVerificationEmail(username, email, verification_code);
+        sendVerificationEmail(username, email, verification_code, 1);
     } else {
         await dbInterface.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
     }
@@ -201,7 +201,11 @@ async function getUserId(login, callback) {
         query = `SELECT user_id FROM user WHERE username = '${login}'`;
 
     let result = await dbInterface.query(query);
-    if (result.length === 1) {
+    if (result.length === 1 && !callback) {
+        return result[0].user_id;
+    } else if (result.length !== 1 && !callback) {
+        throw { status: 404, error: "Cannot find User" };
+    } else if (result.length === 1) {
         let user_id = result[0].user_id;
         await callback(user_id);
     } else if (result.length === 0) {
@@ -211,4 +215,4 @@ async function getUserId(login, callback) {
     }
 }
 
-module.exports = { post, put, del, validateUser, createUser, deleteUser, changeUsername, changePassword, changeEmail, getUserId };
+module.exports = { post, put, del, validateUser, createUser, deleteUser, changeUsername, changePassword, changeEmail, getUserId, checkPassword };

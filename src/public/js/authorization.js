@@ -1,5 +1,5 @@
 async function getAuthorizationCode(login, password, client_id, redirect_uri, state) {
-    let domain = window.location.href.replace('http://','').replace('https://','').split(/[/?#]/)[0];
+    let domain = window.location.href.replace('http://', '').replace('https://', '').split(/[/?#]/)[0];
     let secure = window.location.href.includes("https://");
     let url = `${secure ? "https://" : "http://"}${domain}/api/authorize`;
 
@@ -7,7 +7,7 @@ async function getAuthorizationCode(login, password, client_id, redirect_uri, st
         let body = await request(url, "POST", `login=${login}&password=${password}&client_id=${client_id}&redirect_uri=${redirect_uri}`);
         let jsonObj = JSON.parse(body);
         window.location.href = `${redirect_uri}${redirect_uri.includes("?") ? "&" : "?"}authorization_code=${jsonObj.data.authorization_code}${state === null ? "" : "&state=" + state}`;
-    } catch(e) {
+    } catch (e) {
         let body = JSON.parse(e);
         console.log(e);
         if (body.status === 403 && body.error === "Invalid User credentials")
@@ -32,6 +32,26 @@ function submitAuthorization() {
         getAuthorizationCode(login, password, client_id, redirect_uri, state);
     else
         alert("missing data");
+}
+
+async function submitPasswordReset() {
+    try {
+        let login = document.getElementById("usernameInput").value;
+        if (login) {
+            let url = new URL(window.location.href);
+            let res = await request(`${url.protocol}//${url.host}/api/verification`, "PUT", `login=${login}`);
+            alert("Email sent");
+        } else {
+            alert("Username or email missing");
+        }
+    } catch (e) {
+        if (JSON.parse(e).error === "Invalid Password") {
+            alert("Invalid Password");
+        } else {
+            alert("Error");
+            console.error(e);
+        }
+    }
 }
 
 function request(url, method, body, authorization) {

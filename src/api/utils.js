@@ -75,7 +75,7 @@ function handleError(res, e) {
         respond(res, e.status, undefined, e.error);
     } else {
         respond(res, 500, undefined, "Internal Server Error");
-        console.error("An error occurred: " + JSON.stringify(e));
+        console.error("An error occurred: " + e);
     }
 }
 

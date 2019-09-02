@@ -38,7 +38,8 @@ router.route("/user")
     .delete(UserMethods.del);
 
 router.route("/verification")
-    .post(VerificationMethods.post);
+    .post(VerificationMethods.post)
+    .put(VerificationMethods.put);
 
 router.route("/dashboard")
     .get(isLoggedIn, DashboardMethods.get);
