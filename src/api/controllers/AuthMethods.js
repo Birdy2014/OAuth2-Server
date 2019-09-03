@@ -1,6 +1,5 @@
-const DBInterface = require("../../DBInterface");
-const dbInterface = new DBInterface();
-const { generateToken, respond, handleError } = require("../utils");
+const { respond, handleError } = require("../utils");
+const { createAuthorizationCode } = require("../services/authorization.service");
 
 async function post(req, res) {
     try {
@@ -12,28 +11,6 @@ async function post(req, res) {
     } catch (e) {
         handleError(res, e);
     }
-}
-
-/**
- * Create an authorization code for user
- * @param {number} client_id 
- * @param {string} user_id
- * @returns {Promise<string>} authorization_code
- */
-async function createAuthorizationCode(client_id, user_id) {
-    let authorization_code;
-    let error = true;
-    while (error) {
-        try {
-            authorization_code = generateToken(30);
-            await dbInterface.query(`INSERT INTO authorization_code (authorization_code, user_id, client_id) VALUES ('${authorization_code}', '${user_id}', '${client_id}')`);
-            error = false;
-        } catch (e) {
-            continue;
-        }
-    }
-
-    return authorization_code;
 }
 
 module.exports = { post: post };

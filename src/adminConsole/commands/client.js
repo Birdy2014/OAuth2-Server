@@ -1,4 +1,4 @@
-const { getUserId } = require("../../api/controllers/UserMethods");
+const { getUserId } = require("../../api/services/user.service");
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
 const ClientMethods = require("../../api/controllers/ClientMethods");

@@ -1,4 +1,4 @@
-const UserMethods = require("../../api/controllers/UserMethods");
+const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getUserId } = require("../../api/services/user.service");
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
 
@@ -25,7 +25,7 @@ module.exports.run = async args => {
             args.shift();
             try {
                 if (args.length === 3) {
-                    let user_id = await UserMethods.createUser(args[0], args[1], args[2]);
+                    let user_id = await createUser(args[0], args[1], args[2]);
                     console.log(`Created user with email: ${args[0]}, username: ${args[1]}, user_id: ${user_id}`);
                 } else {
                     console.log("Usage: user add <email> <username> <password>");
@@ -42,8 +42,8 @@ module.exports.run = async args => {
             args.shift();
             for (const login of args) {
                 try {
-                    await UserMethods.getUserId(login, async user_id => {
-                        await UserMethods.deleteUser(user_id);
+                    await getUserId(login, async user_id => {
+                        await deleteUser(user_id);
                         console.log(`Deleted user ${user_id}`);
                     });
                 } catch (e) {
@@ -58,7 +58,7 @@ module.exports.run = async args => {
                 if (args.length === 0) {
                     console.log("Usage: user get <email, username or user ID>");
                 } else {
-                    await UserMethods.getUserId(args[0], async user_id => {
+                    await getUserId(args[0], async user_id => {
                         let results = await dbInterface.query(`SELECT username, email, verified FROM user WHERE user_id = '${user_id}'`);
                         console.log(`id: ${user_id} name: ${results[0].username} email: ${results[0].email} verified: ${results[0].verified}`);
                     });
@@ -74,16 +74,16 @@ module.exports.run = async args => {
                 if (args.length < 3 || !(args[1] === "username" || args[1] === "password" || args[1] === "email")) {
                     console.log("Usage: user edit <email, username or user ID> username/password/email <new username, password or email>");
                 } else {
-                    await UserMethods.getUserId(args[0], async user_id => {
+                    await getUserId(args[0], async user_id => {
                         switch (args[1]) {
                             case "username":
-                                await UserMethods.changeUsername(user_id, args[2]);
+                                await changeUsername(user_id, args[2]);
                                 break;
                             case "password":
-                                await UserMethods.changePassword(user_id, args[2]);
+                                await changePassword(user_id, args[2]);
                                 break;
                             case "email":
-                                await UserMethods.changeEmail(user_id, args[2]);
+                                await changeEmail(user_id, args[2]);
                         }
                     });
                 }

@@ -1,10 +1,39 @@
 const es6Renderer = require('express-es6-template-engine');
 const fs = require("fs");
+const { changePassword } = require("./user.service");
 const ConfigReader = require("../../ConfigReader");
 const configReader = new ConfigReader();
 const verificationEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/verification.html"), "username, url");
 const emailChangeEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/change.html"), "username, url");
 const passwordResetEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/reset.html"), "username, url");
+
+/**
+ * 
+ * @param {string} verification_code 
+ * @param {string} [password] 
+ * @returns {Promise<string>}
+ */
+async function validateVerificationCode(verification_code, password) {
+    let result = await dbInterface.query(`SELECT user_id, email, change_password FROM verification_code WHERE verification_code = '${req.body.verification_code}'`);
+    if (result.length === 0) throw { status: 403, error: "Invalid verification_code" };
+    let { user_id, email, change_password } = result[0];
+
+    await dbInterface.query(`DELETE FROM verification_code WHERE verification_code = '${verification_code}'`);
+    await dbInterface.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);
+    if (email) {
+        //change email
+        await dbInterface.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
+        return email;
+    } else if (change_password) {
+        //forgot password
+        if (!password) throw { status: 400, error: "Invalid arguments" };
+        await changePassword(user_id, password);
+        return "";
+    } else {
+        //user registered
+        return email;
+    }
+}
 
 /**
  * 
@@ -48,4 +77,4 @@ async function sendVerificationEmail(username, email, verification_code, action)
     });
 }
 
-module.exports = { sendVerificationEmail };
+module.exports = { sendVerificationEmail, validateVerificationCode };

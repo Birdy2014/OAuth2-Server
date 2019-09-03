@@ -1,3 +1,5 @@
+const configReader = new (require("../ConfigReader"))();
+
 /**
  * Generates an Object for a api response
  * @param {number} status - The HTML status code
@@ -62,4 +64,41 @@ function handleError(res, e) {
     }
 }
 
-module.exports = { generateToken, currentUnixTime, respond, handleError };
+/**
+ * Checks whether the username contains illegal characters
+ * @param {string} username 
+ * @returns {Promise<boolean>}
+ */
+async function checkUsername(username) {
+    const forbiddenChars = ["'", ";", "\"", "&", "="];
+    return !forbiddenChars.some(i => username.includes(i));
+}
+
+/**
+ * Checks if email address matches the whitelist of the config file
+ * @param {string} email 
+ * @returns {Promise<boolean>}
+ */
+async function checkEmail(email) {
+    const emailRegEx = /^\S+@\S+\.\S+$/;
+    const forbiddenChars = ["'", ";", "\"", "&", "="];
+    if (forbiddenChars.some(i => email.includes(i))) return false;
+    if (!emailRegEx.test(email)) return false;
+    if (!configReader.emailWhitelist() || configReader.emailWhitelist().length === 0) return true;
+    for (const whitelistDomain of configReader.emailWhitelist()) {
+        if (email.endsWith(whitelistDomain)) return true;
+    }
+    return false;
+}
+
+/**
+ * Checks if the password length is ok
+ * @param {string} password 
+ * @returns {Promise<boolean>}
+ */
+async function checkPassword(password) {
+    if (password.length >= 8)
+        return true;
+}
+
+module.exports = { generateToken, currentUnixTime, respond, handleError, checkUsername, checkEmail, checkPassword };

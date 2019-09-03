@@ -1,6 +1,6 @@
 const DBInterface = require("../DBInterface");
 const dbInterface = new DBInterface();
-const { validateUser } = require("../api/controllers/UserMethods");
+const { validateUser } = require("../api/services/user.service");
 const { respond, currentUnixTime } = require("../api/utils");
 const { getPermissions, hasPermission } = require("../api/controllers/PermissionMethods");
 
