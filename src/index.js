@@ -7,10 +7,8 @@ const es6Renderer = require('express-es6-template-engine');
 const apiRouter = require("./api/router");
 const { currentUnixTime, respond } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
-const path = require("path");
 const cors = require("cors");
 const getUser = require("./middleware/getUser");
-const isLoggedIn = require("./middleware/isLoggedIn");
 var app = express();
 
 async function main() {

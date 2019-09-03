@@ -49,23 +49,6 @@ function currentUnixTime() {
 }
 
 /**
- * checks if required values exist and return the code 400 and false if they don't
- * @param {*} res
- * @param  {...any} values 
- * @returns {boolean} 
- */
-function requireValues(res, ...values) {
-    for (const value of values) {
-        if (value == undefined) {
-            respond(res, 400);
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/**
  * 
  * @param {*} res 
  * @param {Object} e - Error
@@ -79,4 +62,4 @@ function handleError(res, e) {
     }
 }
 
-module.exports = { generateToken, currentUnixTime, respond, requireValues, handleError };
+module.exports = { generateToken, currentUnixTime, respond, handleError };
