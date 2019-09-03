@@ -9,11 +9,12 @@ Requirements:
 - Node.JS
 - A mysql or mariadb server
 
-download source and install dependencies:
+download source, install dependencies and build:
 ```bash
 git clone https://github.com/Birdy2014/OAuth2-Server
 cd ./OAuth2-Server
 npm install
+npm run build
 ```
 
 Run the server:
