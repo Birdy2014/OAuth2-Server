@@ -52,6 +52,7 @@ async function deleteUser(user_id) {
     await dbInterface.query(`DELETE FROM access_token WHERE user_id = '${user_id}'`);
     await dbInterface.query(`DELETE FROM refresh_token WHERE user_id = '${user_id}'`);
     await dbInterface.query(`DELETE FROM user WHERE user_id = '${user_id}'`);
+    await dbInterface.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`);
 }
 
 async function changeUsername(user_id, username) {
