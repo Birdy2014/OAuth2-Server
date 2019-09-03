@@ -38,7 +38,7 @@ async function createUser(email, username, password) {
 
     if (configReader.emailVerificationEnabled()) {
         let verification_code = generateToken(12);
-        await dbInterface.query(`INSERT INTO verification_code (user_id, verification_code) VALUES ('${user_id}', '${verification_code}')`);
+        await dbInterface.query(`INSERT INTO verification_code (user_id, email, verification_code) VALUES ('${user_id}', '${email}', '${verification_code}')`);
         sendVerificationEmail(username, email, verification_code, 0);
     } else {
         await dbInterface.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);

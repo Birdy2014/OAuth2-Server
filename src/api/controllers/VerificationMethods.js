@@ -9,8 +9,8 @@ async function post(req, res) {
         if (!req.body.verification_code)
             throw { status: 400, error: "Invalid arguments" };
 
-        await validateVerificationCode(req.body.verification_code, req.body.password);
-        respond(res, 200, { email: result[0].new_email });
+        let email = await validateVerificationCode(req.body.verification_code, req.body.password);
+        respond(res, 200, { email });
     } catch (e) {
         handleError(res, e);
     }

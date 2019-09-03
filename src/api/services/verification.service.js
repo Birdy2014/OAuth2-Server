@@ -3,6 +3,7 @@ const fs = require("fs");
 const { changePassword } = require("./user.service");
 const ConfigReader = require("../../ConfigReader");
 const configReader = new ConfigReader();
+const dbInterface = new (require("../../DBInterface"))();
 const verificationEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/verification.html"), "username, url");
 const emailChangeEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/change.html"), "username, url");
 const passwordResetEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/reset.html"), "username, url");
@@ -14,7 +15,7 @@ const passwordResetEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views
  * @returns {Promise<string>}
  */
 async function validateVerificationCode(verification_code, password) {
-    let result = await dbInterface.query(`SELECT user_id, email, change_password FROM verification_code WHERE verification_code = '${req.body.verification_code}'`);
+    let result = await dbInterface.query(`SELECT user_id, email, change_password FROM verification_code WHERE verification_code = '${verification_code}'`);
     if (result.length === 0) throw { status: 403, error: "Invalid verification_code" };
     let { user_id, email, change_password } = result[0];
 
