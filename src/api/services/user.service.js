@@ -79,6 +79,24 @@ async function changeEmail(user_id, email) {
     }
 }
 
+/**
+ * Get all users. admin only
+ */
+async function getAllUsers() {
+    let results = await dbInterface.query(`SELECT user.user_id AS user_id, user.username AS username, user.email AS email, user.verified AS verified, admins.permission AS permission FROM user LEFT JOIN (SELECT * FROM permissions WHERE client_id = '${await dbInterface.getDashboardId()}' AND permission = 'admin') admins ON user.user_id = admins.user_id`);
+    let users = [];
+    await results.forEach(user => {
+        users.push({
+            user_id: user.user_id,
+            username: user.username,
+            email: user.email,
+            verified: user.verified === 1,
+            admin: user.permission === "admin"
+        });
+    });
+    return users;
+}
+
 async function getUserInfo() {
 
 }
@@ -138,4 +156,4 @@ async function getUserId(login, callback) {
     }
 }
 
-module.exports = { validateUser, createUser, deleteUser, changeUsername, changePassword, changeEmail, getUserId };
+module.exports = { validateUser, createUser, deleteUser, changeUsername, changePassword, changeEmail, getUserId, getAllUsers };

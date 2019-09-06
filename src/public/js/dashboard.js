@@ -51,6 +51,21 @@ async function loadData(access_token) {
         //Load data to DOM
         input_username.placeholder = username;
         input_email.placeholder = email;
+
+        //admin settings
+        if (admin) document.getElementById("menu_item_admin_settings").style.display = "inline";
+        let users = JSON.parse(await request(`${url.protocol}//${url.host}/api/user`, "GET", "", access_token)).data;
+        users.forEach(user => {
+            let user_element = document.createElement("li");
+            user_element.innerHTML = `user_id: ${user.user_id}, username: ${user.username}, email: ${user.email}, verified: ${user.verified}, admin: ${user.admin}`;
+            user_list.appendChild(user_element);
+        });
+        let clients = JSON.parse(await request(`${url.protocol}//${url.host}/api/client`, "GET", "", access_token)).data;
+        clients.forEach(client => {
+            let client_element = document.createElement("li");
+            client_element.innerHTML = `client_id: ${client.client_id}, name: ${client.name}, dev_id: ${client.dev_id}`;
+            client_list.appendChild(client_element);
+        });
     } catch (e) {
         if (JSON.parse(e).status === 403) {
             await loadData(await refreshToken(window.localStorage.getItem("refresh_token")));
@@ -88,11 +103,15 @@ var input_username;
 var input_email;
 var input_password;
 var input_confirm_password;
+var user_list;
+var client_list;
 window.onload = () => {
     input_username = document.getElementById("input_username");
     input_email = document.getElementById("input_email");
     input_password = document.getElementById("input_password");
     input_confirm_password = document.getElementById("input_confirm_password");
+    user_list = document.getElementById("user_list");
+    client_list = document.getElementById("client_list");
 
     login().then(access_token => { global_access_token = access_token; loadData(access_token) });
 

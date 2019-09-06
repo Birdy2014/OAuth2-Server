@@ -34,7 +34,8 @@ async function main() {
     app.use("/dashboard", (req, res) => res.render("dashboard/template", {
         partials: {
             clients: "dashboard/clients",
-            settings: "dashboard/settings"
+            settings: "dashboard/settings",
+            admin_settings: "dashboard/admin_settings"
         }
     }));
 

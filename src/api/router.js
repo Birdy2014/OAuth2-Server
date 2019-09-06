@@ -13,6 +13,7 @@ router.route("/authorize")
     .post(isLoggedIn, AuthMethods.post);
 
 router.route("/client")
+    .get(isLoggedIn, ClientMethods.get)
     .post(isLoggedIn, ClientMethods.post)
     .delete(isLoggedIn, ClientMethods.del);
 
@@ -33,6 +34,7 @@ router.route("/token_info")
     .post(TokenMethods.tokenInfo);
 
 router.route("/user")
+    .get(isLoggedIn, UserMethods.get)
     .post(UserMethods.post)
     .put(UserMethods.put)
     .delete(UserMethods.del);

@@ -1,8 +1,16 @@
 const { respond, handleError } = require("../utils");
-const { createUser, deleteUser, changeUsername, changeEmail, changePassword } = require("../services/user.service");
+const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getAllUsers } = require("../services/user.service");
 
 async function get(req, res) {
+    try {
+        if (!req.user.admin || req.client.name !== "Dashboard")
+            throw { status: 403, error: "Insufficient permissions" };
 
+        let users = await getAllUsers();
+        respond(res, 200, users);
+    } catch (e) {
+        handleError(res, e);
+    }
 }
 
 async function post(req, res) {
@@ -43,4 +51,4 @@ async function del(req, res) {
     }
 }
 
-module.exports = { post, put, del };
+module.exports = { get, post, put, del };

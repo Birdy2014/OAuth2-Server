@@ -3,6 +3,18 @@ const dbInterface = new DBInterface();
 const { generateToken, respond, handleError } = require("../utils");
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 
+async function get(req, res) {
+    try {
+        if (!req.user.admin || req.client.name !== "Dashboard")
+            throw { status: 403, error: "Insufficient permissions" };
+
+        let clients = await getClients();
+        respond(res, 200, clients);
+    } catch (e) {
+        handleError(res, e);
+    }
+}
+
 async function post(req, res) {
     try {
         if (!req.body.name || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
@@ -88,6 +100,19 @@ async function getClientId(identifier, callback) {
     }
 }
 
+async function getClients() {
+    let results = await dbInterface.query("SELECT client_id, name, dev_id FROM client");
+    let clients = [];
+    results.forEach(client => {
+        clients.push({
+            client_id: client.client_id,
+            name: client.name,
+            dev_id: client.dev_id
+        });
+    });
+    return clients;
+}
+
 //TODO change name
 
-module.exports = { post, del, createClient, deleteClient, getClientId };
+module.exports = { get, post, del, createClient, deleteClient, getClientId };
