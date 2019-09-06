@@ -40,7 +40,7 @@ module.exports.run = async args => {
             for (const login of args) {
                 try {
                     await getUserId(login, async user_id => {
-                        await PermissionMethods.removePermission(user_id, "admin");
+                        await PermissionMethods.removePermission(user_id, await dbInterface.getDashboardId(), "admin");
                         console.log(`${user_id} is no admin anymore`);
                     });
                 } catch (e) {
