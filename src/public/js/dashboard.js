@@ -57,7 +57,7 @@ async function loadData(access_token) {
         let users = JSON.parse(await request(`${url.protocol}//${url.host}/api/user`, "GET", "", access_token)).data;
         users.forEach(user => {
             let user_element = document.createElement("li");
-            user_element.innerHTML = `user_id: ${user.user_id}, username: ${user.username}, email: ${user.email}, verified: ${user.verified}, admin: ${user.admin}`;
+            user_element.innerHTML = `user_id: ${user.user_id}, username: <input type="text" placeholder="${user.username}" id="input_username_${user.user_id}"/>, email: <input type="email" placeholder="${user.email}" id="input_email_${user.user_id}"/>, Password: <input type="password" id="input_password_${user.user_id}"/>, verified: ${user.verified}, admin: ${user.admin} <a href="javascript:void(0)" onclick="changeSettings(global_access_token, '${user.user_id}', document.getElementById('input_username_${user.user_id}').value, document.getElementById('input_email_${user.user_id}').value, document.getElementById('input_password_${user.user_id}').value)">Submit</a>`;
             user_list.appendChild(user_element);
         });
         let clients = JSON.parse(await request(`${url.protocol}//${url.host}/api/client`, "GET", "", access_token)).data;
@@ -75,10 +75,11 @@ async function loadData(access_token) {
     }
 }
 
-async function changeSettings(access_token, new_username, new_email, new_password) {
+async function changeSettings(access_token, user_id, new_username, new_email, new_password) {
     try {
         if (!(new_username || new_email || new_password)) return { status: 400, error: "Input missing" };
         let data = "";
+        if (user_id) data += `user_id=${user_id}&`;
         if (new_username) data += `username=${new_username}&`;
         if (new_email) data += `email=${new_email}&`;
         if (new_password) data += `password=${new_password}&`;
@@ -89,7 +90,7 @@ async function changeSettings(access_token, new_username, new_email, new_passwor
     } catch (e) {
         e = JSON.parse(e);
         if (e.status === 403) {
-            await changeSettings(await refreshToken(window.localStorage.getItem("refresh_token")), new_username, new_email, new_password);
+            await changeSettings(await refreshToken(window.localStorage.getItem("refresh_token")), user_id, new_username, new_email, new_password);
         } else {
             console.error(e);
             return e;
@@ -119,7 +120,7 @@ window.onload = () => {
         if (input_password.value !== input_confirm_password.value) {
             alert("Passwords don't match");
         } else {
-            changeSettings(global_access_token, input_username.value, input_email.value, input_password.value).then(result => {
+            changeSettings(global_access_token, undefined, input_username.value, input_email.value, input_password.value).then(result => {
                 if (result.status === 200) {
                     input_username.value = "";
                     input_email.value = "";

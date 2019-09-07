@@ -30,9 +30,17 @@ async function put(req, res) {
         if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !(req.body.username || req.body.password || req.body.email))
             throw { status: 400, error: "Invalid arguments" };
 
-        if (req.body.username) await changeUsername(req.user.user_id, req.body.username);
-        if (req.body.password) await changePassword(req.user.user_id, req.body.password);
-        if (req.body.email) await changeEmail(req.user.user_id, req.body.email);
+        let user_id;
+        if (req.body.user_id !== req.user.user_id && !req.user.admin)
+            throw { status: 403, error: "Insufficient permissions" }
+        else if (req.body.user_id !== req.user.user_id && req.user.admin)
+            user_id = req.body.user_id;
+        else
+            user_id = req.user.user_id;
+
+        if (req.body.username) await changeUsername(user_id, req.body.username);
+        if (req.body.password) await changePassword(user_id, req.body.password);
+        if (req.body.email) await changeEmail(user_id, req.body.email);
         respond(res, 200);
     } catch (e) {
         handleError(res, e);
@@ -44,7 +52,15 @@ async function del(req, res) {
         if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
             throw { status: 400, error: "Invalid arguments" };
 
-        await deleteUser(req.user.user_id);
+        let user_id;
+        if (req.body.user_id !== req.user.user_id && !req.user.admin)
+            throw { status: 403, error: "Insufficient permissions" }
+        else if (req.body.user_id !== req.user.user_id && req.user.admin)
+            user_id = req.body.user_id;
+        else
+            user_id = req.user.user_id;
+
+        await deleteUser(user_id);
         respond(res, 200);
     } catch (e) {
         handleError(res, e);
