@@ -58,14 +58,14 @@ async function token(req, res) {
 
 async function revoke(req, res) {
     try {
-        if (req.body.access_token === undefined && req.body.refresh_token === undefined || req.client.client_id !== req.body.client_id)
+        if (!req.body.access_token && !req.body.refresh_token)
             throw { status: 400, error: "Invalid arguments" };
 
-        if (req.body.access_token !== undefined) //revoke access_token
-            await dbInterface.query(`DELETE FROM access_token WHERE access_token = '${req.body.access_token}' AND client_id = '${req.body.client_id}'`);
+        if (req.body.access_token) //revoke access_token
+            await dbInterface.query(`DELETE FROM access_token WHERE access_token = '${req.body.access_token}'`);
 
-        if (req.body.refresh_token !== undefined) //revoke refresh_token
-            await dbInterface.query(`DELETE FROM refresh_token WHERE refresh_token = '${req.body.refresh_token}' AND client_id = '${req.body.client_id}'`);
+        if (req.body.refresh_token) //revoke refresh_token
+            await dbInterface.query(`DELETE FROM refresh_token WHERE refresh_token = '${req.body.refresh_token}'`);
 
         respond(res, 200);
     } catch (e) {

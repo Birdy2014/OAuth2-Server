@@ -98,6 +98,24 @@ async function changeSettings(access_token, user_id, new_username, new_email, ne
     }
 }
 
+async function logout() {
+    try {
+        await request(`${url.protocol}//${url.host}/api/token`, "DELETE", `access_token=${global_access_token}&refresh_token=${window.localStorage.getItem("refresh_token")}`, global_access_token);
+        window.localStorage.removeItem("refresh_token");
+        location.reload();
+    } catch (e) {
+        console.error(e);
+        e = JSON.parse(e);
+        if (e.status === 403) {
+            global_access_token = await refreshToken(window.localStorage.getItem("refresh_token"));
+            await logout();
+        } else {
+            console.error(e);
+            return e;
+        }
+    }
+}
+
 const url = new URL(window.location);
 var global_access_token = "";
 var input_username;
