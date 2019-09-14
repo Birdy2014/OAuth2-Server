@@ -28,8 +28,8 @@ class ConfigReader {
         });
     }
 
-    mysqlConfig() {
-        return this.config.mysql;
+    dbConfig() {
+        return this.config.db;
     }
 
     port() {
@@ -72,13 +72,25 @@ class ConfigReader {
     }
 
     generateConfig(path) {
-        let config = {mysql: {}, emailWhitelist: [], email: {}};
+        let config = { db: {}, emailWhitelist: [], email: {} };
 
-        console.log("Mysql config");
-        config.mysql.host = readlineSync.question("host: ");
-        config.mysql.user = readlineSync.question("username: ");
-        config.mysql.password = readlineSync.question("password: ");
-        config.mysql.database = readlineSync.question("database name: ");
+        console.log("db config");
+        let dbconf = () => {
+            config.db.dbms = readlineSync.question("Which Database do you want to use? [mysql/sqlite]");
+            if (config.db.dbms === "mysql") {
+                config.db.host = readlineSync.question("host: ");
+                config.db.user = readlineSync.question("username: ");
+                config.db.password = readlineSync.question("password: ");
+                config.db.database = readlineSync.question("database name: ");
+                return true;
+            } else if (config.db.dbms === "sqlite") {
+                config.db.path = readlineSync.question("path: ");
+                return true;
+            } else {
+                return false;
+            }
+        }
+        while (!dbconf()) { }
         console.log("\nServer config");
         config.port = readlineSync.question("port [3000]: ") || 3000;
         config.accessTokenExpirationTime = readlineSync.question("Time until the access tokens expire in seconds [3600]: ") || 3600;

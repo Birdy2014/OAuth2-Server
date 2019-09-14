@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const uuid = require("uuid/v4");
 const DBInterface = require("../../DBInterface");
 const { generateToken, checkUsername, checkEmail, checkPassword } = require("../utils");
 const ConfigReader = require("../../ConfigReader");
@@ -25,16 +26,15 @@ async function createUser(email, username, password) {
     let password_hash = await bcrypt.hash(password, 12);
 
     //Create user
+    let user_id = uuid();
     try {
-        await dbInterface.query(`INSERT INTO user (user_id, email, username, password_hash) VALUES (uuid(), '${email}', '${username}', '${password_hash}')`);
+        await dbInterface.query(`INSERT INTO user (user_id, email, username, password_hash) VALUES ('${user_id}', '${email}', '${username}', '${password_hash}')`);
     } catch (e) {
-        if (e.code === "ER_DUP_ENTRY")
+        if (e.code === "ER_DUP_ENTRY" || e.code === "SQLITE_CONSTRAINT")
             throw { status: 409, error: "User already exists" };
         else
             throw e;
     }
-
-    let user_id = (await dbInterface.query(`SELECT user_id FROM user WHERE email = '${email}'`))[0].user_id;
 
     if (configReader.emailVerificationEnabled()) {
         let verification_code = generateToken(12);

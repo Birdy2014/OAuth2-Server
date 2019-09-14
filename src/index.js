@@ -1,7 +1,7 @@
 const ConfigReader = require("./ConfigReader");
 const DBInterface = require("./DBInterface");
 const configReader = new ConfigReader(__dirname + "/../config");
-const dbInterface = new DBInterface(configReader.mysqlConfig());
+const dbInterface = new DBInterface(configReader.dbConfig());
 const express = require("express");
 const es6Renderer = require('express-es6-template-engine');
 const apiRouter = require("./api/router");

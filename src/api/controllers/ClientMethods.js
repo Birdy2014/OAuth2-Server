@@ -1,6 +1,7 @@
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
 const { generateToken, respond, handleError } = require("../utils");
+const uuid = require("uuid/v4");
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 
 async function get(req, res) {
@@ -53,9 +54,8 @@ async function createClient(name, developer_id, redirect_uri) {
     let client_secret = generateToken(12);
 
     //Create the client
-    await dbInterface.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES (uuid(), '${client_secret}', '${name}', '${developer_id}')`);
-
-    let client_id = (await dbInterface.query(`SELECT client_id FROM client WHERE name='${name}' AND dev_id='${developer_id}'`))[0].client_id;
+    let client_id = uuid();
+    await dbInterface.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${client_id}', '${client_secret}', '${name}', '${developer_id}')`);
 
     await dbInterface.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${client_id}', '${redirect_uri}')`);
 

@@ -1,37 +1,46 @@
 const mysql = require("mysql");
+const sqlite3 = require("sqlite3");
 const util = require("util");
 const { generateToken } = require("./api/utils");
+const uuid = require("uuid/v4");
 
 class DBInterface {
     static instance;
 
-    constructor(mysqlConfig) {
+    constructor(dbConfig) {
         if (DBInterface.instance) return DBInterface.instance;
 
-        this.mysqlConfig = mysqlConfig;
+        this.dbConfig = dbConfig;
         this.connectDB();
 
         DBInterface.instance = this;
     }
 
     connectDB() {
-        this.connection = mysql.createConnection(this.mysqlConfig);
-        this.connection.connect(err => {
-            if (err) {
-                console.log("Can't connect to the Database");
-                process.exit(0);
-            }
-        });
-        this.query = util.promisify(this.connection.query).bind(this.connection);
+        if (this.dbConfig.dbms === "mysql") {
+            this.connection = mysql.createConnection(this.dbConfig);
+            this.connection.connect(err => {
+                if (err) {
+                    console.log("Can't connect to the Database");
+                    process.exit(0);
+                }
+            });
+            this.query = util.promisify(this.connection.query).bind(this.connection);
 
-        //Reconnect if the connection is closed
-        this.connection.on("error", (err) => {
-            if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-                this.connectDB();
-            } else {
-                throw err;
-            }
-        })
+            //Reconnect if the connection is closed
+            this.connection.on("error", (err) => {
+                if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+                    this.connectDB();
+                } else {
+                    throw err;
+                }
+            });
+        } else if (this.dbConfig.dbms === "sqlite") {
+            this.connection = new sqlite3.Database(this.dbConfig.path);
+            this.query = util.promisify(this.connection.all).bind(this.connection);
+        } else {
+            throw new Error("Invalid dbms");
+        }
     }
 
     /**
@@ -50,6 +59,7 @@ class DBInterface {
             await this.query("SELECT * FROM verification_code");
             return true;
         } catch (e) {
+            if (this.dbConfig.dbms === "sqlite") return false; //temporary workaround for sqlite
             if (e.code === "ER_NO_SUCH_TABLE")
                 return false;
             else
@@ -57,99 +67,227 @@ class DBInterface {
         }
     }
 
+    async createTable(name, columns) {
+        let mysql = this.dbConfig.dbms == "mysql";
+        let q = `CREATE TABLE IF NOT EXISTS ${name}(`;
+        let primary = "";
+        let unique = "";
+        for (const column of columns) {
+            if (column.primary) {
+                if (mysql && column.type === "TEXT")
+                    primary += `${column.name}(100), `;
+                else
+                    primary += `${column.name}, `;
+            } else if (column.unique) {
+                if (mysql && column.type === "TEXT")
+                    unique += `${column.name}(100), `;
+                else
+                    unique += `${column.name}, `;
+            }
+            q += `${column.name} ${column.type} ${column.options}, `;
+        }
+        if (primary)
+            q += "PRIMARY KEY (" + primary.substring(0, primary.length - 2) + ") ";
+        if (unique)
+            q += (mysql ? "UNIQUE KEY (" : "UNIQUE (") + unique.substring(0, unique.length - 2) + ") ";
+        q += ")";
+
+        await this.query(q);
+    }
+
     /**
      * Creates all the necessary tables of the database
      */
     async initDatabase(dashboard_uri) {
         //create client table
-        await this.query(`
-            CREATE TABLE IF NOT EXISTS client(
-                client_id TEXT NOT NULL,
-                client_secret TEXT NOT NULL,
-                name TEXT NOT NULL,
-                dev_id TEXT NOT NULL,
-                PRIMARY KEY (client_id(100)),
-                UNIQUE KEY (name(100))
-            ) ENGINE=INNODB
-        `);
+        await this.createTable("client", [
+            {
+                name: "client_id",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "client_secret",
+                type: "TEXT",
+                options: "NOT NULL"
+            },
+            {
+                name: "name",
+                type: "TEXT",
+                options: "NOT NULL",
+                unique: true
+            },
+            {
+                name: "dev_id",
+                type: "TEXT",
+                options: "NOT NULL"
+            }
+        ]);
 
         //create user table
-        await this.query(`
-            CREATE TABLE IF NOT EXISTS user(
-                user_id TEXT NOT NULL,
-                username TEXT NOT NULL,
-                email TEXT NOT NULL,
-                password_hash TEXT NOT NULL,
-                verified BOOLEAN NOT NULL DEFAULT FALSE,
-                PRIMARY KEY (user_id(100)),
-                UNIQUE KEY (email(100))
-            ) ENGINE=INNODB
-        `);
+        await this.createTable("user", [
+            {
+                name: "user_id",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "username",
+                type: "TEXT",
+                options: "NOT NULL"
+            },
+            {
+                name: "email",
+                type: "TEXT",
+                options: "NOT NULL",
+                unique: true
+            },
+            {
+                name: "password_hash",
+                type: "TEXT",
+                options: "NOT NULL"
+            },
+            {
+                name: "verified",
+                type: "BOOLEAN",
+                options: "NOT NULL DEFAULT FALSE"
+            }
+        ]);
 
         //create authorization_code table
-        await this.query(`
-            CREATE TABLE IF NOT EXISTS authorization_code(
-                authorization_code TEXT NOT NULL,
-                user_id TEXT NOT NULL,
-                client_id TEXT NOT NULL,
-                PRIMARY KEY (authorization_code(100))
-            )
-        `);
+        await this.createTable("authorization_code", [
+            {
+                name: "authorization_code",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "user_id",
+                type: "TEXT",
+                options: "NOT NULL"
+            },
+            {
+                name: "client_id",
+                type: "TEXT",
+                options: "NOT NULL"
+            }
+        ]);
 
         //create access_token table
-        await this.query(`
-            CREATE TABLE IF NOT EXISTS access_token(
-                access_token TEXT NOT NULL,
-                user_id TEXT NOT NULL,
-                client_id TEXT NOT NULL,
-                expires INT,
-                PRIMARY KEY (access_token(100))
-            )
-        `);
+        await this.createTable("access_token", [
+            {
+                name: "access_token",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "user_id",
+                type: "TEXT",
+                options: "NOT NULL"
+            },
+            {
+                name: "client_id",
+                type: "TEXT",
+                options: "NOT NULL"
+            },
+            {
+                name: "expires",
+                type: "INTEGER",
+                options: ""
+            }
+        ]);
 
         //create refresh_token table
-        await this.query(`
-            CREATE TABLE IF NOT EXISTS refresh_token(
-                refresh_token TEXT NOT NULL,
-                user_id TEXT NOT NULL,
-                client_id TEXT NOT NULL,
-                PRIMARY KEY (refresh_token(100))
-            )
-        `);
+        await this.createTable("refresh_token", [
+            {
+                name: "refresh_token",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "user_id",
+                type: "TEXT",
+                options: "NOT NULL"
+            },
+            {
+                name: "client_id",
+                type: "TEXT",
+                options: "NOT NULL"
+            }
+        ]);
 
         //create permissions table
-        await this.query(`
-            CREATE TABLE IF NOT EXISTS permissions(
-                user_id TEXT NOT NULL,
-                client_id TEXT NOT NULL,
-                permission TEXT NOT NULL,
-                PRIMARY KEY (user_id(100), client_id(100), permission(100))
-            )
-        `);
+        await this.createTable("permissions", [
+            {
+                name: "user_id",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "client_id",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "permission",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            }
+        ]);
 
         //create redirect_uri table
-        await this.query(`
-            CREATE TABLE IF NOT EXISTS redirect_uri(
-                client_id TEXT NOT NULL,
-                redirect_uri TEXT NOT NULL,
-                PRIMARY KEY (client_id(100), redirect_uri(100))
-            )
-        `);
+        await this.createTable("redirect_uri", [
+            {
+                name: "client_id",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "redirect_uri",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            }
+        ]);
 
         //create verification_code table for email verification, "email" for new email or empty for for registration
-        await this.query(`
-            CREATE TABLE IF NOT EXISTS verification_code(
-                user_id TEXT NOT NULL,
-                verification_code TEXT NOT NULL,
-                email TEXT,
-                change_password BOOLEAN NOT NULL DEFAULT FALSE,
-                PRIMARY KEY (user_id(100))
-            )
-        `);
+        await this.createTable("verification_code", [
+            {
+                name: "verification_code",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "user_id",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "email",
+                type: "TEXT",
+                options: "NOT NULL"
+            },
+            {
+                name: "change_password",
+                type: "BOOLEAN",
+                options: "NOT NULL DEFAULT FALSE"
+            }
+        ]);
 
         //add Dashboard client
         const dashboard_secret = generateToken(12);
-        this.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES (UUID(), '${dashboard_secret}', 'Dashboard', '')`);
+        this.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${uuid()}', '${dashboard_secret}', 'Dashboard', '')`);
         if (dashboard_uri) {
             const dashboard_id = await this.getDashboardId();
             this.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
