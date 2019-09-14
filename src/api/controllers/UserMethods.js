@@ -53,7 +53,7 @@ async function del(req, res) {
             throw { status: 400, error: "Invalid arguments" };
 
         let user_id;
-        if (req.body.user_id !== req.user.user_id && !req.user.admin)
+        if (req.body.user_id !== undefined && req.body.user_id !== req.user.user_id && !req.user.admin)
             throw { status: 403, error: "Insufficient permissions" }
         else if (req.body.user_id !== req.user.user_id && req.user.admin)
             user_id = req.body.user_id;
