@@ -1,3 +1,5 @@
+let verificationMessageShown = false;
+
 async function getAuthorizationCode(login, password, client_id, redirect_uri, state) {
     let domain = window.location.href.replace('http://', '').replace('https://', '').split(/[/?#]/)[0];
     let secure = window.location.href.includes("https://");
@@ -14,11 +16,19 @@ async function getAuthorizationCode(login, password, client_id, redirect_uri, st
             alert("Invalid username or password");
         else if (body.status === 403 && body.error === "Invalid Client credentials")
             alert("Invalid client_id or redirect_uri");
-        else if (body.status === 403 && body.error === "Email Address not verified")
-            alert("Email Address not verified");
+        else if (body.status === 400 && body.error === "Email not verified")
+            showVerificationMessage(login, password, client_id, redirect_uri, state);
         else
             alert("Unknown error: " + body.status + " " + body.error);
     }
+}
+
+function showVerificationMessage(login, password, client_id, redirect_uri, state) {
+    verificationMessageShown = true;
+    document.getElementById("interactionContainer").innerHTML = "Please verify your email address";
+    setInterval((login, password, client_id, redirect_uri, state) => {
+        getAuthorizationCode(login, password, client_id, redirect_uri, state);
+    }, 3000, login, password, client_id, redirect_uri, state);
 }
 
 function submitAuthorization() {
