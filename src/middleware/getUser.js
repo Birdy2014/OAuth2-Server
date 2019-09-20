@@ -45,9 +45,9 @@ async function getUser(req, res, next) {
     } else if (req.body.login && req.body.password) {
         let user_id = await validateUser(req.body.login, req.body.password);
         if (user_id) {
-            let results = await dbInterface.query(`SELECT username, email FROM user WHERE user_id = '${user_id}'`);
+            let results = await dbInterface.query(`SELECT username, email, verified FROM user WHERE user_id = '${user_id}'`);
             if (results.length === 1)
-                req.user = { user_id: user_id, username: results[0].username, email: results[0].email, admin: await hasPermission(results[0].user_id, await dbInterface.getDashboardId(), "admin"), origin: "basic" }
+                req.user = { user_id: user_id, username: results[0].username, email: results[0].email, admin: await hasPermission(results[0].user_id, await dbInterface.getDashboardId(), "admin"), verified: results[0].verified, origin: "basic" }
         } else {
             respond(res, 403, undefined, "Invalid user credentials");
             return;
