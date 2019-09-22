@@ -9,14 +9,9 @@ async function tokenInfo(req, res) {
         if (!req.client || req.client.origin !== "secret" || !req.user)
             throw { status: 400, error: "Invalid arguments" };
 
-        let tokenInfoResponse = {
-            active: true,
-            user_id: req.user.user_id,
-            username: req.user.username,
-            email: req.user.email,
-            permissions: req.user.permissions,
-            options: req.user.options
-        }
+        let tokenInfoResponse = req.user;
+        tokenInfoResponse.active = true;
+        tokenInfoResponse.origin = undefined;
 
         respond(res, 200, tokenInfoResponse);
     } catch (e) {

@@ -109,8 +109,8 @@ async function getUserInfo(user_id) {
         throw { status: 400, error: "Invalid arguments" }
     let { username, email, verified } = results[0];
     let admin = await hasPermission(user_id, await dbInterface.getDashboardId(), "admin");
-    let options = await getValues(user_id);
-    return { user_id, username, email, verified: verified === 1, admin, options }
+    let user_info = await getValues(user_id);
+    return Object.assign(user_info, { user_id, username, email, verified: verified === 1, admin });
 }
 
 /**
@@ -187,7 +187,7 @@ async function getValue(user_id, name) {
 /**
  * Get all additional user information
  * @param {string} user_id 
- * @returns {Promise<string>}
+ * @returns {Promise<Object>}
  */
 async function getValues(user_id) {
     let results = await dbInterface.query(`SELECT name, value FROM user_info WHERE user_id = '${user_id}'`);
@@ -195,6 +195,7 @@ async function getValues(user_id) {
     for (const result of results) {
         values[result.name] = result.value;
     }
+    return values
 }
 
 async function setValue(user_id, name, value) {
