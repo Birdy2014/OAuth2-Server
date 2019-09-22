@@ -201,7 +201,7 @@ async function setValue(user_id, name, value) {
     let user_info = configReader.config.user_info[name];
     if (user_info === undefined)
         throw { status: 400, error: "Invalid option name" };
-    else if (user_info.length > 0 && !user_info.includes(value)) {
+    else if (user_info !== [] && user_info.length > 0 && !user_info.includes(value)) {
         throw { status: 400, error: "Invalid option value" };
     } else if (await getValue(user_id, name)) {
         await dbInterface.query(`UPDATE user_info SET value = '${value}' WHERE user_id = '${user_id}' AND name = '${name}'`);
