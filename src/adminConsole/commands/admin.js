@@ -1,4 +1,4 @@
-const PermissionMethods = require("../../api/controllers/PermissionMethods");
+const { addPermission, removePermission } = require("../../api/services/permission.service");
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
 const { getUserId } = require("../../api/services/user.service");
@@ -10,7 +10,7 @@ module.exports.run = async args => {
             for (const login of args) {
                 try {
                     await getUserId(login, async user_id => {
-                        await PermissionMethods.addPermission(user_id, await dbInterface.getDashboardId(), "admin");
+                        await addPermission(user_id, await dbInterface.getDashboardId(), "admin");
                         console.log(`${user_id} is now admin`);
                     });
                 } catch (e) {
@@ -40,7 +40,7 @@ module.exports.run = async args => {
             for (const login of args) {
                 try {
                     await getUserId(login, async user_id => {
-                        await PermissionMethods.removePermission(user_id, await dbInterface.getDashboardId(), "admin");
+                        await removePermission(user_id, await dbInterface.getDashboardId(), "admin");
                         console.log(`${user_id} is no admin anymore`);
                     });
                 } catch (e) {

@@ -1,7 +1,7 @@
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
 const { respond, handleError } = require("../utils");
-const { hasPermission } = require("./PermissionMethods");
+const { hasPermission } = require("../services/permission.service");
 
 async function post(req, res) {
     try {

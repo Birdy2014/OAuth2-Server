@@ -1,4 +1,4 @@
-const PermissionMethods = require("../../api/controllers/PermissionMethods");
+const { getPermissions, addPermission, removePermission } = require("../../api/services/permission.service");
 const { getUserId } = require("../../api/services/user.service");
 const { getClientId } = require("../../api/controllers/ClientMethods");
 
@@ -11,7 +11,7 @@ module.exports.run = async args => {
                     console.log("Usage: permissions list <email, username or user ID>");
                 } else {
                     await getUserId(args[0], async user_id => {
-                        let permissions = await PermissionMethods.getPermissions(user_id);
+                        let permissions = await getPermissions(user_id);
                         if (permissions.length === 0) {
                             console.log(`User ${user_id} has no permissions`);
                         } else {
@@ -40,7 +40,7 @@ module.exports.run = async args => {
                     await getUserId(login, async user_id => {
                         await getClientId(client_login, async client_id => {
                             for (const permission of args) {
-                                await PermissionMethods.addPermission(user_id, client_id, permission);
+                                await addPermission(user_id, client_id, permission);
                                 console.log(`User ${user_id} has now the Permission ${permission} on client ${client_id}`);
                             }
                         });
@@ -63,7 +63,7 @@ module.exports.run = async args => {
                     await getUserId(login, async user_id => {
                         await getClientId(client_login, async client_id => {
                             for (const permission of args) {
-                                await PermissionMethods.removePermission(user_id, client_id, permission);
+                                await removePermission(user_id, client_id, permission);
                                 console.log(`Removed Permission ${permission} from user ${user_id} on client ${client_id}`);
                             }
                         });

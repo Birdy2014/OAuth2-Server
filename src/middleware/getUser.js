@@ -2,7 +2,7 @@ const DBInterface = require("../DBInterface");
 const dbInterface = new DBInterface();
 const { validateUser } = require("../api/services/user.service");
 const { respond, currentUnixTime } = require("../api/utils");
-const { getPermissions, hasPermission } = require("../api/controllers/PermissionMethods");
+const { getPermissions, hasPermission } = require("../api/services/permission.service");
 
 //get information about the current user and client from the access_token, refresh_token, authorization_code or username/password and attach it (including wether the access_token, refresh_token etc was send) to req
 async function getUser(req, res, next) {
