@@ -9,18 +9,13 @@ async function tokenInfo(req, res) {
         if (!req.client || req.client.origin !== "secret" || !req.user)
             throw { status: 400, error: "Invalid arguments" };
 
-        //Validate access token
-        let permissionsResult = await dbInterface.query(`SELECT permission FROM permissions WHERE user_id = '${req.user.user_id}'`);
-        let permissions = [];
-        for (let i = 0; i < permissionsResult.length; i++) {
-            permissions[i] = permissionsResult[i].permission;
-        }
         let tokenInfoResponse = {
             active: true,
             user_id: req.user.user_id,
             username: req.user.username,
             email: req.user.email,
-            permissions: permissions
+            permissions: req.user.permissions,
+            options: req.user.options
         }
 
         respond(res, 200, tokenInfoResponse);

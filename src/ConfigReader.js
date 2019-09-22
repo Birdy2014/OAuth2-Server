@@ -72,7 +72,7 @@ class ConfigReader {
     }
 
     generateConfig(path) {
-        let config = { db: {}, emailWhitelist: [], email: {} };
+        let config = { db: {}, emailWhitelist: [], email: {}, user_info: {} };
 
         console.log("db config");
         let dbconf = () => {

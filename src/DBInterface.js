@@ -57,6 +57,7 @@ class DBInterface {
             await this.query("SELECT * FROM refresh_token");
             await this.query("SELECT * FROM user");
             await this.query("SELECT * FROM verification_code");
+            await this.query("SELECT * FROM user_info");
             return true;
         } catch (e) {
             if (this.dbConfig.dbms === "sqlite") return false; //temporary workaround for sqlite
@@ -87,7 +88,7 @@ class DBInterface {
             q += `${column.name} ${column.type} ${column.options}, `;
         }
         if (primary)
-            q += "PRIMARY KEY (" + primary.substring(0, primary.length - 2) + ") ";
+            q += "PRIMARY KEY (" + primary.substring(0, primary.length - 2) + ")" + (unique ? ", " : " ");
         if (unique)
             q += (mysql ? "UNIQUE KEY (" : "UNIQUE (") + unique.substring(0, unique.length - 2) + ") ";
         q += ")";
@@ -282,6 +283,27 @@ class DBInterface {
                 name: "change_password",
                 type: "BOOLEAN",
                 options: "NOT NULL DEFAULT FALSE"
+            }
+        ]);
+
+        //create user_info table for extra user information
+        await this.createTable("user_info", [
+            {
+                name: "user_id",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "name",
+                type: "TEXT",
+                options: "NOT NULL",
+                primary: true
+            },
+            {
+                name: "value",
+                type: "TEXT",
+                options: "NOT NULL"
             }
         ]);
 

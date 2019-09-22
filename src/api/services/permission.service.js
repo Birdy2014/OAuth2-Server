@@ -4,7 +4,7 @@ const dbInterface = new (require("../../DBInterface"))();
  * Get all permissions of the user
  * @param {string} user_id 
  * @param {string} [client_id]
- * @returns {Array.string} Permissions
+ * @returns {Array.string|Array.Object} Permissions
  */
 async function getPermissions(user_id, client_id) {
     let query;
@@ -15,10 +15,13 @@ async function getPermissions(user_id, client_id) {
     let permissionsRaw = await dbInterface.query(query);
     let permissions = [];
     for (let i = 0; i < permissionsRaw.length; i++) {
-        permissions[i] = {
-            client_id: permissionsRaw[i].client_id,
-            permission: permissionsRaw[i].permission
-        };
+        if (client_id)
+            permissions[i] = permissionsRaw[i].permission;
+        else
+            permissions[i] = {
+                client_id: permissionsRaw[i].client_id,
+                permission: permissionsRaw[i].permission
+            };
     }
     return permissions;
 }

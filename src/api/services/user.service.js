@@ -4,6 +4,7 @@ const DBInterface = require("../../DBInterface");
 const { generateToken, checkUsername, checkEmail, checkPassword } = require("../utils");
 const ConfigReader = require("../../ConfigReader");
 const { sendVerificationEmail } = require("../services/verification.service");
+const { hasPermission } = require("./permission.service");
 const dbInterface = new DBInterface();
 const configReader = new ConfigReader();
 
@@ -17,7 +18,7 @@ const emailRegEx = /^\S+@\S+\.\S+$/;
  * @param {string} password 
  * @returns {string} user_id
  */
-async function createUser(email, username, password) {
+async function createUser(email, username, password, user_info) {
     if (!await checkEmail(email)) throw { status: 400, error: "Invalid Username" };
     if (!await checkEmail(email)) throw { status: 400, error: "Invalid email address" };
     if (!await checkPassword(password)) throw { status: 400, error: "Invalid Password" };
@@ -44,6 +45,10 @@ async function createUser(email, username, password) {
         await dbInterface.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);
     }
 
+    //set user_info
+    if (user_info)
+        await setValues(user_id, user_info);
+
     return user_id;
 }
 
@@ -53,6 +58,7 @@ async function deleteUser(user_id) {
     await dbInterface.query(`DELETE FROM refresh_token WHERE user_id = '${user_id}'`);
     await dbInterface.query(`DELETE FROM user WHERE user_id = '${user_id}'`);
     await dbInterface.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`);
+    await dbInterface.query(`DELETE FROM user_info WHERE user_id = '${user_id}'`);
 }
 
 async function changeUsername(user_id, username) {
@@ -97,8 +103,14 @@ async function getAllUsers() {
     return users;
 }
 
-async function getUserInfo() {
-
+async function getUserInfo(user_id) {
+    let results = await dbInterface.query(`SELECT username, email, verified FROM user WHERE user_id = '${user_id}'`);
+    if (results.length === 0)
+        throw { status: 400, error: "Invalid arguments" }
+    let { username, email, verified } = results[0];
+    let admin = await hasPermission(user_id, await dbInterface.getDashboardId(), "admin");
+    let options = await getValues(user_id);
+    return { user_id, username, email, verified: verified === 1, admin, options }
 }
 
 /**
@@ -156,4 +168,52 @@ async function getUserId(login, callback) {
     }
 }
 
-module.exports = { validateUser, createUser, deleteUser, changeUsername, changePassword, changeEmail, getUserId, getAllUsers };
+/* Additional user information */
+
+/**
+ * Get a pice of additional user information
+ * @param {string} user_id 
+ * @param {string} name 
+ * @returns {Promise<string>}
+ */
+async function getValue(user_id, name) {
+    let result = await dbInterface.query(`SELECT value FROM user_info WHERE user_id = '${user_id}' AND name = '${name}'`);
+    if (result.length === 0)
+        return undefined;
+    else
+        return result[0].value;
+}
+
+/**
+ * Get all additional user information
+ * @param {string} user_id 
+ * @returns {Promise<string>}
+ */
+async function getValues(user_id) {
+    let results = await dbInterface.query(`SELECT name, value FROM user_info WHERE user_id = '${user_id}'`);
+    let values = {};
+    for (const result of results) {
+        values[result.name] = result.value;
+    }
+}
+
+async function setValue(user_id, name, value) {
+    let user_info = configReader.config.user_info[name];
+    if (user_info === undefined)
+        throw { status: 400, error: "Invalid option name" };
+    else if (user_info.length > 0 && !user_info.includes(value)) {
+        throw { status: 400, error: "Invalid option value" };
+    } else if (await getValue(user_id, name)) {
+        await dbInterface.query(`UPDATE user_info SET value = '${value}' WHERE user_id = '${user_id}' AND name = '${name}'`);
+    } else {
+        await dbInterface.query(`INSERT INTO user_info (user_id, name, value) VALUES ('${user_id}', '${name}', '${value}')`);
+    }
+}
+
+async function setValues(user_id, user_info) {
+    for (const name in user_info) {
+        await setValue(user_id, name, user_info[name]);
+    }
+}
+
+module.exports = { validateUser, createUser, deleteUser, changeUsername, changePassword, changeEmail, getUserId, getAllUsers, getUserInfo, setValues };
