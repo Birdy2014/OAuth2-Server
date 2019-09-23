@@ -29,7 +29,7 @@ async function login() {
         window.localStorage.setItem("refresh_token", tokens.data.refresh_token);
         window.localStorage.setItem("client_id", client_id);
         window.history.replaceState({}, document.title, "/dashboard");
-        return tokens.access_token;
+        return tokens.data.access_token;
     } else {
         //Redirect to Login
         state = Math.random().toString(36).substring(7);
@@ -53,22 +53,25 @@ async function loadData(access_token) {
         input_email.placeholder = email;
 
         //admin settings
-        if (admin) document.getElementById("menu_item_admin_settings").style.display = "inline";
-        let users = JSON.parse(await request(`${url.protocol}//${url.host}/api/user`, "GET", "", access_token)).data;
-        users.forEach(user => {
-            let user_element = document.createElement("li");
-            user_element.innerHTML = `user_id: ${user.user_id}, username: <input type="text" placeholder="${user.username}" id="input_username_${user.user_id}"/>, email: <input type="email" placeholder="${user.email}" id="input_email_${user.user_id}"/>, Password: <input type="password" id="input_password_${user.user_id}"/>, verified: ${user.verified}, admin: ${user.admin} <a href="javascript:void(0)" onclick="changeSettings(global_access_token, '${user.user_id}', document.getElementById('input_username_${user.user_id}').value, document.getElementById('input_email_${user.user_id}').value, document.getElementById('input_password_${user.user_id}').value)">Submit</a>`;
-            user_list.appendChild(user_element);
-        });
-        let clients = JSON.parse(await request(`${url.protocol}//${url.host}/api/client`, "GET", "", access_token)).data;
-        clients.forEach(client => {
-            let client_element = document.createElement("li");
-            client_element.innerHTML = `client_id: ${client.client_id}, name: ${client.name}, dev_id: ${client.dev_id}`;
-            client_list.appendChild(client_element);
-        });
+        if (admin) {
+            document.getElementById("menu_item_admin_settings").style.display = "inline";
+            let users = JSON.parse(await request(`${url.protocol}//${url.host}/api/user`, "GET", "", access_token)).data;
+            users.forEach(user => {
+                let user_element = document.createElement("li");
+                user_element.innerHTML = `user_id: ${user.user_id}, username: <input type="text" placeholder="${user.username}" id="input_username_${user.user_id}"/>, email: <input type="email" placeholder="${user.email}" id="input_email_${user.user_id}"/>, Password: <input type="password" id="input_password_${user.user_id}"/>, verified: ${user.verified}, admin: ${user.admin} <a href="javascript:void(0)" onclick="changeSettings(global_access_token, '${user.user_id}', document.getElementById('input_username_${user.user_id}').value, document.getElementById('input_email_${user.user_id}').value, document.getElementById('input_password_${user.user_id}').value)">Submit</a>`;
+                user_list.appendChild(user_element);
+            });
+            let clients = JSON.parse(await request(`${url.protocol}//${url.host}/api/client`, "GET", "", access_token)).data;
+            clients.forEach(client => {
+                let client_element = document.createElement("li");
+                client_element.innerHTML = `client_id: ${client.client_id}, name: ${client.name}, dev_id: ${client.dev_id}`;
+                client_list.appendChild(client_element);
+            });
+        }
     } catch (e) {
         if (JSON.parse(e).status === 403) {
-            await loadData(await refreshToken(window.localStorage.getItem("refresh_token")));
+            global_access_token = await refreshToken(window.localStorage.getItem("refresh_token"));
+            await loadData(global_access_token);
         } else {
             console.error(e);
         }
