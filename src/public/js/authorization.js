@@ -86,3 +86,7 @@ function request(url, method, body, authorization) {
         xhr.send(body);
     });
 }
+
+function redirect(target) {
+    window.location.href = target + window.location.search;    
+}
