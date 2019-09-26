@@ -1,4 +1,4 @@
-const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getUserId } = require("../../api/services/user.service");
+const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getUserId, getUserInfo } = require("../../api/services/user.service");
 const DBInterface = require("../../DBInterface");
 const dbInterface = new DBInterface();
 
@@ -59,8 +59,12 @@ module.exports.run = async args => {
                     console.log("Usage: user get <email, username or user ID>");
                 } else {
                     await getUserId(args[0], async user_id => {
-                        let results = await dbInterface.query(`SELECT username, email, verified FROM user WHERE user_id = '${user_id}'`);
-                        console.log(`id: ${user_id} name: ${results[0].username} email: ${results[0].email} verified: ${results[0].verified}`);
+                        let user = await getUserInfo(user_id);
+                        let output = "";
+                        for (const key in user) {
+                            output += `${key}: ${user[key]} `;
+                        }
+                        console.log(output);
                     });
                 }
             } catch (e) {
@@ -71,8 +75,8 @@ module.exports.run = async args => {
         case "edit": {
             args.shift();
             try {
-                if (args.length < 3 || !(args[1] === "username" || args[1] === "password" || args[1] === "email")) {
-                    console.log("Usage: user edit <email, username or user ID> username/password/email <new username, password or email>");
+                if (args.length < 3 || !(args[1] === "username" || args[1] === "password" || args[1] === "email" || args[1] === "verified")) {
+                    console.log("Usage: user edit <email, username or user ID> username/password/email/verified <new value>");
                 } else {
                     await getUserId(args[0], async user_id => {
                         switch (args[1]) {
@@ -84,6 +88,12 @@ module.exports.run = async args => {
                                 break;
                             case "email":
                                 await changeEmail(user_id, args[2]);
+                                break;
+                            case "verified":
+                                if (["0", "1", "false", "true"].includes(args[2]))
+                                    await dbInterface.query(`UPDATE user SET verified = ${args[2]} WHERE user_id = '${user_id}'`);
+                                else
+                                    console.log("Invalid value: " + args[2]);
                         }
                     });
                 }
