@@ -61,6 +61,8 @@ async function main() {
     //delete old access tokens, run once every day
     setInterval(() => {
         dbInterface.query(`DELETE FROM access_token WHERE expires < ${currentUnixTime()}`);
+        dbInterface.query(`DELETE FROM refresh_token WHERE expires < ${currentUnixTime()}`);
+        dbInterface.query(`DELETE FROM authorization_code WHERE expires < ${currentUnixTime()}`);
     }, 86400000);
 
     app.listen(configReader.port());

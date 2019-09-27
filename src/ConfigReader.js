@@ -94,6 +94,8 @@ class ConfigReader {
         console.log("\nServer config");
         config.port = readlineSync.question("port [3000]: ") || 3000;
         config.accessTokenExpirationTime = readlineSync.question("Time until the access tokens expire in seconds [3600]: ") || 3600;
+        config.refreshTokenExpirationTime = readlineSync.question("Time until the refresh tokens expire in seconds [2592000]: ") || 2592000;
+        config.authorizationCodeExpirationTime = readlineSync.question("Time until the authorization codes expire in seconds [86400]: ") || 86400;
         config.accessTokenLength = readlineSync.question("Length of the access tokens [40]: ") || 40;
         config.refreshTokenLength = readlineSync.question("Length of the refresh tokens [40]: ") || 40;
         let emails = readlineSync.question("email address domains on whitelist separated by commas [empty]: ") || "";

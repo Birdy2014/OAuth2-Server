@@ -174,6 +174,11 @@ class DBInterface {
                 name: "client_id",
                 type: "TEXT",
                 options: "NOT NULL"
+            },
+            {
+                name: "expires",
+                type: "INTEGER",
+                options: "NOT NULL"
             }
         ]);
 
@@ -218,6 +223,11 @@ class DBInterface {
             {
                 name: "client_id",
                 type: "TEXT",
+                options: "NOT NULL"
+            },
+            {
+                name: "expires",
+                type: "INTEGER",
                 options: "NOT NULL"
             }
         ]);

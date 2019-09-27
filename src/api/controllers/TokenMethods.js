@@ -26,7 +26,7 @@ async function token(req, res) {
                 if (req.user.origin !== "authorization_code" || req.client.client_id !== req.body.client_id)
                     throw { status: 400, error: "Invalid arguments" };
 
-                let response = await generateRefreshToken(req.body.authorization_code, req.body.client_id);
+                let response = await generateRefreshToken(req.user.user_id, req.client.client_id);
                 respond(res, 201, response);
                 break;
             }
@@ -65,26 +65,18 @@ async function revoke(req, res) {
 
 /**
  * Use the authorization_code to generate an access_token and refresh_token
- * @param {string} authorization_code 
+ * @param {string} user_id 
  * @param {string} client_id 
  * @returns {Promise<(string|string|number)>} access_token, refresh_token, expires
  */
-async function generateRefreshToken(authorization_code, client_id) {
-    //Check if authorization code exists
-    let results = await dbInterface.query(`SELECT user_id FROM authorization_code WHERE authorization_code = '${authorization_code}' AND client_id = '${client_id}'`);
-    if (results.length === 0) throw 404;
-    let { user_id } = results[0];
-
-    //Delete authorization code
-    await dbInterface.query(`DELETE FROM authorization_code WHERE authorization_code = '${authorization_code}' AND client_id = '${client_id}'`);
-
+async function generateRefreshToken(user_id, client_id) {
     //create unique refresh_token
     let refresh_token;
     let error = true;
     while (error) {
         refresh_token = generateToken(configReader.refreshTokenLength());
         try {
-            await dbInterface.query(`INSERT INTO refresh_token (refresh_token, user_id, client_id) VALUES ('${refresh_token}', '${user_id}', '${client_id}')`);
+            await dbInterface.query(`INSERT INTO refresh_token (refresh_token, user_id, client_id, expires) VALUES ('${refresh_token}', '${user_id}', '${client_id}', '${currentUnixTime() + configReader.config.refreshTokenExpirationTime}')`);
             error = false;
         } catch (e) {
             continue;
@@ -92,18 +84,7 @@ async function generateRefreshToken(authorization_code, client_id) {
     }
 
     //create unique access_token
-    let expires = currentUnixTime() + configReader.accessTokenExpirationTime();
-    let access_token;
-    error = true;
-    while (error) {
-        access_token = generateToken(configReader.accessTokenLength());
-        try {
-            await dbInterface.query(`INSERT INTO access_token (access_token, user_id, client_id, expires) VALUES ('${access_token}', '${user_id}', '${client_id}', '${expires}')`);
-            error = false;
-        } catch (e) {
-            continue;
-        }
-    }
+    let { access_token, expires } = await generateAccessToken(user_id, client_id);
 
     return { access_token, refresh_token, expires };
 }
@@ -124,7 +105,7 @@ async function validateAccessToken(access_token, client_id) {
 
 /**
  * Generate a new access_token
- * @param {string} refresh_token 
+ * @param {string} user_id 
  * @param {string} client_id 
  * @returns {Promise<(string|number)>} access_token, expires
  */

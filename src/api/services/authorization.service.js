@@ -1,5 +1,6 @@
-const { generateToken } = require("../utils");
+const { generateToken, currentUnixTime } = require("../utils");
 const dbInterface = new (require("../../DBInterface"))();
+const configReader = new (require("../../ConfigReader"))();
 
 /**
  * Create an authorization code for user
@@ -13,7 +14,7 @@ async function createAuthorizationCode(client_id, user_id) {
     while (error) {
         try {
             authorization_code = generateToken(30);
-            await dbInterface.query(`INSERT INTO authorization_code (authorization_code, user_id, client_id) VALUES ('${authorization_code}', '${user_id}', '${client_id}')`);
+            await dbInterface.query(`INSERT INTO authorization_code (authorization_code, user_id, client_id, expires) VALUES ('${authorization_code}', '${user_id}', '${client_id}', '${currentUnixTime() + configReader.config.authorizationCodeExpirationTime}')`);
             error = false;
         } catch (e) {
             continue;
