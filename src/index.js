@@ -1,7 +1,6 @@
-const ConfigReader = require("./ConfigReader");
-const DBInterface = require("./DBInterface");
-const configReader = new ConfigReader(__dirname + "/../config");
-const dbInterface = new DBInterface(configReader.dbConfig());
+const configReader = require("./configReader");
+configReader.load(__dirname + "/../config");
+const db = require("./db");
 const express = require("express");
 const es6Renderer = require('express-es6-template-engine');
 const apiRouter = require("./api/router");
@@ -13,10 +12,8 @@ var app = express();
 
 async function main() {
     //create tables if they don't exist
-    if (!(await dbInterface.checkDatabase())) {
-        await dbInterface.initDatabase(configReader.url());
+    if (await db.init(configReader.config.db, configReader.config.url))
         console.log("Tables created");
-    }
 
     app.use(cors());
     app.use(express.json());
@@ -42,7 +39,7 @@ async function main() {
     //Backend
     app.use("/api", apiRouter);
     app.get("/api/dashboard_id", async (req, res) => {
-        let client_id = (await dbInterface.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
+        let client_id = (await db.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
         respond(res, 200, { client_id: client_id });
     });
 
@@ -60,12 +57,12 @@ async function main() {
 
     //delete old access tokens, run once every day
     setInterval(() => {
-        dbInterface.query(`DELETE FROM access_token WHERE expires < ${currentUnixTime()}`);
-        dbInterface.query(`DELETE FROM refresh_token WHERE expires < ${currentUnixTime()}`);
-        dbInterface.query(`DELETE FROM authorization_code WHERE expires < ${currentUnixTime()}`);
+        db.query(`DELETE FROM access_token WHERE expires < ${currentUnixTime()}`);
+        db.query(`DELETE FROM refresh_token WHERE expires < ${currentUnixTime()}`);
+        db.query(`DELETE FROM authorization_code WHERE expires < ${currentUnixTime()}`);
     }, 86400000);
 
-    app.listen(configReader.port());
+    app.listen(configReader.config.port);
 
     //start console
     adminConsole.start();

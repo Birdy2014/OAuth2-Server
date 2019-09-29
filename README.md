@@ -7,14 +7,13 @@ A simple OAuth2 Server written in JavaScript. It currently supports the authoriz
 Requirements:
 
 - Node.JS
-- A mysql or mariadb server
+- A mysql or mariadb server (optional, SQLite supported)
 
-download source, install dependencies and build:
+download source and install dependencies:
 ```bash
 git clone https://github.com/Birdy2014/OAuth2-Server
 cd ./OAuth2-Server
 npm install
-npm run build
 ```
 
 Run the server:

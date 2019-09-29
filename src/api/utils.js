@@ -1,4 +1,4 @@
-const configReader = new (require("../ConfigReader"))();
+const configReader = require("../configReader");
 
 /**
  * Generates an Object for a api response
@@ -84,8 +84,8 @@ async function checkEmail(email) {
     const forbiddenChars = ["'", ";", "\"", "&", "="];
     if (forbiddenChars.some(i => email.includes(i))) return false;
     if (!emailRegEx.test(email)) return false;
-    if (!configReader.emailWhitelist() || configReader.emailWhitelist().length === 0) return true;
-    for (const whitelistDomain of configReader.emailWhitelist()) {
+    if (!configReader.config.emailWhitelist || configReader.config.emailWhitelist.length === 0) return true;
+    for (const whitelistDomain of configReader.config.emailWhitelist) {
         if (email.endsWith(whitelistDomain)) return true;
     }
     return false;

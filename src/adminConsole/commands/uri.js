@@ -1,13 +1,12 @@
 const { getClientId } = require("../../api/controllers/ClientMethods");
-const DBInterface = require("../../DBInterface");
-const dbInterface = new DBInterface();
+const db = require("../../db");
 const UriMethods = require("../../api/controllers/UriMethods");
 
 module.exports.run = async args => {
     switch (args[0]) {
         case "list": {
             try {
-                let results = await dbInterface.query("SELECT redirect_uri.client_id AS client_id, redirect_uri.redirect_uri AS redirect_uri, client.name AS name FROM redirect_uri JOIN client ON redirect_uri.client_id = client.client_id");
+                let results = await db.query("SELECT redirect_uri.client_id AS client_id, redirect_uri.redirect_uri AS redirect_uri, client.name AS name FROM redirect_uri JOIN client ON redirect_uri.client_id = client.client_id");
                 if (results.length === 0) {
                     console.log("There are no redirect_uris");
                 } else {
@@ -61,7 +60,7 @@ module.exports.run = async args => {
                     console.log("Usage: uri get <client name or ID>");
                 } else {
                     await getClientId(args[0], async client_id => {
-                        let results = await dbInterface.query(`SELECT redirect_uri.redirect_uri AS redirect_uri, client.name AS name, user.email AS email, user.username AS username FROM redirect_uri JOIN client ON redirect_uri.client_id = client.client_id JOIN user ON client.dev_id = user.user_id WHERE redirect_uri.client_id = '${client_id}'`);
+                        let results = await db.query(`SELECT redirect_uri.redirect_uri AS redirect_uri, client.name AS name, user.email AS email, user.username AS username FROM redirect_uri JOIN client ON redirect_uri.client_id = client.client_id JOIN user ON client.dev_id = user.user_id WHERE redirect_uri.client_id = '${client_id}'`);
                         let output = "";
                         for (const result of results) {
                             output += `client_id: ${client_id} client_name: ${result.name} redirect_uri: ${result.redirect_uri} dev_email: ${result.email} dev_name: ${result.username}\n`;

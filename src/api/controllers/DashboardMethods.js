@@ -1,5 +1,5 @@
 const { respond, handleError } = require("../utils");
-const configReader = new (require("../../ConfigReader"))();
+const configReader = require("../../configReader");
 
 function get(req, res) {
     try {

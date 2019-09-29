@@ -1,12 +1,11 @@
 const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getUserId, getUserInfo } = require("../../api/services/user.service");
-const DBInterface = require("../../DBInterface");
-const dbInterface = new DBInterface();
+const db = require("../../db");
 
 module.exports.run = async args => {
     switch (args[0]) {
         case "list": {
             try {
-                let results = await dbInterface.query("SELECT user_id, username, email, verified FROM user");
+                let results = await db.query("SELECT user_id, username, email, verified FROM user");
                 if (results.length === 0) {
                     console.log("There are no users");
                 } else {
@@ -91,7 +90,7 @@ module.exports.run = async args => {
                                 break;
                             case "verified":
                                 if (["0", "1", "false", "true"].includes(args[2]))
-                                    await dbInterface.query(`UPDATE user SET verified = ${args[2]} WHERE user_id = '${user_id}'`);
+                                    await db.query(`UPDATE user SET verified = ${args[2]} WHERE user_id = '${user_id}'`);
                                 else
                                     console.log("Invalid value: " + args[2]);
                         }

@@ -1,5 +1,4 @@
-const DBInterface = require("../../DBInterface");
-const dbInterface = new DBInterface();
+const db = require("../../db");
 const { respond, handleError } = require("../utils");
 const { hasPermission } = require("../services/permission.service");
 
@@ -37,9 +36,9 @@ async function del(req, res) {
 
 async function addUri(client_id, redirect_uri) {
     try {
-        let results = await dbInterface.query(`SELECT client_id FROM client WHERE client_id = '${client_id}'`);
+        let results = await db.query(`SELECT client_id FROM client WHERE client_id = '${client_id}'`);
         if (results.length === 1)
-            await dbInterface.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${client_id}', '${redirect_uri}')`);
+            await db.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${client_id}', '${redirect_uri}')`);
         else
             throw { status: 404, error: "Client not found" };
     } catch (e) {
@@ -48,7 +47,7 @@ async function addUri(client_id, redirect_uri) {
 }
 
 async function removeUri(client_id, redirect_uri) {
-    await dbInterface.query(`DELETE FROM redirect_uri WHERE client_id = '${client_id}' AND redirect_uri = '${redirect_uri}'`);
+    await db.query(`DELETE FROM redirect_uri WHERE client_id = '${client_id}' AND redirect_uri = '${redirect_uri}'`);
 }
 
 module.exports = { post, del, addUri, removeUri };

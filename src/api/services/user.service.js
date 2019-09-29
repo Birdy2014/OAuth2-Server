@@ -1,12 +1,10 @@
 const bcrypt = require("bcrypt");
 const uuid = require("uuid/v4");
-const DBInterface = require("../../DBInterface");
+const db = require("../../db");
 const { generateToken, checkUsername, checkEmail, checkPassword } = require("../utils");
-const ConfigReader = require("../../ConfigReader");
+const configReader = require("../../configReader");
 const { sendVerificationEmail } = require("../services/verification.service");
 const { hasPermission } = require("./permission.service");
-const dbInterface = new DBInterface();
-const configReader = new ConfigReader();
 
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 const emailRegEx = /^\S+@\S+\.\S+$/;
@@ -29,7 +27,7 @@ async function createUser(email, username, password, user_info) {
     //Create user
     let user_id = uuid();
     try {
-        await dbInterface.query(`INSERT INTO user (user_id, email, username, password_hash) VALUES ('${user_id}', '${email}', '${username}', '${password_hash}')`);
+        await db.query(`INSERT INTO user (user_id, email, username, password_hash) VALUES ('${user_id}', '${email}', '${username}', '${password_hash}')`);
     } catch (e) {
         if (e.code === "ER_DUP_ENTRY" || e.code === "SQLITE_CONSTRAINT")
             throw { status: 409, error: "User already exists" };
@@ -37,12 +35,12 @@ async function createUser(email, username, password, user_info) {
             throw e;
     }
 
-    if (configReader.emailVerificationEnabled()) {
+    if (configReader.config.email.enabled) {
         let verification_code = generateToken(12);
-        await dbInterface.query(`INSERT INTO verification_code (user_id, email, verification_code) VALUES ('${user_id}', '${email}', '${verification_code}')`);
+        await db.query(`INSERT INTO verification_code (user_id, email, verification_code) VALUES ('${user_id}', '${email}', '${verification_code}')`);
         sendVerificationEmail(username, email, verification_code, 0);
     } else {
-        await dbInterface.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);
+        await db.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);
     }
 
     //set user_info
@@ -53,35 +51,35 @@ async function createUser(email, username, password, user_info) {
 }
 
 async function deleteUser(user_id) {
-    await dbInterface.query(`DELETE FROM authorization_code WHERE user_id = '${user_id}'`);
-    await dbInterface.query(`DELETE FROM access_token WHERE user_id = '${user_id}'`);
-    await dbInterface.query(`DELETE FROM refresh_token WHERE user_id = '${user_id}'`);
-    await dbInterface.query(`DELETE FROM user WHERE user_id = '${user_id}'`);
-    await dbInterface.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`);
-    await dbInterface.query(`DELETE FROM user_info WHERE user_id = '${user_id}'`);
+    await db.query(`DELETE FROM authorization_code WHERE user_id = '${user_id}'`);
+    await db.query(`DELETE FROM access_token WHERE user_id = '${user_id}'`);
+    await db.query(`DELETE FROM refresh_token WHERE user_id = '${user_id}'`);
+    await db.query(`DELETE FROM user WHERE user_id = '${user_id}'`);
+    await db.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`);
+    await db.query(`DELETE FROM user_info WHERE user_id = '${user_id}'`);
 }
 
 async function changeUsername(user_id, username) {
     if (!await checkUsername(username)) throw { status: 400, error: "Invalid Username" };
-    await dbInterface.query(`UPDATE user SET username = '${username}' WHERE user_id = '${user_id}'`);
+    await db.query(`UPDATE user SET username = '${username}' WHERE user_id = '${user_id}'`);
 }
 
 async function changePassword(user_id, password) {
     if (!await checkPassword(password)) throw { status: 400, error: "Invalid Password" };
     let password_hash = await bcrypt.hash(password, 12);
-    await dbInterface.query(`UPDATE user SET password_hash = '${password_hash}' WHERE user_id = '${user_id}'`);
+    await db.query(`UPDATE user SET password_hash = '${password_hash}' WHERE user_id = '${user_id}'`);
 }
 
 async function changeEmail(user_id, email) {
     if (!await checkEmail(email)) throw { status: 400, error: "Invalid email address" };
-    if (configReader.emailVerificationEnabled()) {
+    if (configReader.config.email.enabled) {
         let verification_code = generateToken(12);
-        await dbInterface.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //Delete old verification codes
-        await dbInterface.query(`INSERT INTO verification_code (user_id, verification_code, email) VALUES ('${user_id}', '${verification_code}', '${email}')`);
-        let username = (await dbInterface.query(`SELECT username FROM user WHERE user_id = '${user_id}'`))[0].username;
+        await db.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //Delete old verification codes
+        await db.query(`INSERT INTO verification_code (user_id, verification_code, email) VALUES ('${user_id}', '${verification_code}', '${email}')`);
+        let username = (await db.query(`SELECT username FROM user WHERE user_id = '${user_id}'`))[0].username;
         sendVerificationEmail(username, email, verification_code, 1);
     } else {
-        await dbInterface.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
+        await db.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
     }
 }
 
@@ -89,7 +87,7 @@ async function changeEmail(user_id, email) {
  * Get all users. admin only
  */
 async function getAllUsers() {
-    let results = await dbInterface.query(`SELECT user.user_id AS user_id, user.username AS username, user.email AS email, user.verified AS verified, admins.permission AS permission FROM user LEFT JOIN (SELECT * FROM permissions WHERE client_id = '${await dbInterface.getDashboardId()}' AND permission = 'admin') admins ON user.user_id = admins.user_id`);
+    let results = await db.query(`SELECT user.user_id AS user_id, user.username AS username, user.email AS email, user.verified AS verified, admins.permission AS permission FROM user LEFT JOIN (SELECT * FROM permissions WHERE client_id = '${await db.getDashboardId()}' AND permission = 'admin') admins ON user.user_id = admins.user_id`);
     let users = [];
     await results.forEach(user => {
         users.push({
@@ -104,11 +102,11 @@ async function getAllUsers() {
 }
 
 async function getUserInfo(user_id) {
-    let results = await dbInterface.query(`SELECT username, email, verified FROM user WHERE user_id = '${user_id}'`);
+    let results = await db.query(`SELECT username, email, verified FROM user WHERE user_id = '${user_id}'`);
     if (results.length === 0)
         throw { status: 400, error: "Invalid arguments" }
     let { username, email, verified } = results[0];
-    let admin = await hasPermission(user_id, await dbInterface.getDashboardId(), "admin");
+    let admin = await hasPermission(user_id, await db.getDashboardId(), "admin");
     let user_info = await getValues(user_id);
     return Object.assign(user_info, { user_id, username, email, verified: verified === 1, admin });
 }
@@ -129,7 +127,7 @@ async function validateUser(login, password) {
         query = `SELECT password_hash, user_id FROM user WHERE username = '${login}'`;
 
     try {
-        let { password_hash, user_id } = (await dbInterface.query(query))[0];
+        let { password_hash, user_id } = (await db.query(query))[0];
         if (await bcrypt.compare(password, password_hash))
             return user_id;
         else
@@ -153,7 +151,7 @@ async function getUserId(login, callback) {
     else
         query = `SELECT user_id FROM user WHERE username = '${login}'`;
 
-    let result = await dbInterface.query(query);
+    let result = await db.query(query);
     if (result.length === 1 && !callback) {
         return result[0].user_id;
     } else if (result.length !== 1 && !callback) {
@@ -177,7 +175,7 @@ async function getUserId(login, callback) {
  * @returns {Promise<string>}
  */
 async function getValue(user_id, name) {
-    let result = await dbInterface.query(`SELECT value FROM user_info WHERE user_id = '${user_id}' AND name = '${name}'`);
+    let result = await db.query(`SELECT value FROM user_info WHERE user_id = '${user_id}' AND name = '${name}'`);
     if (result.length === 0)
         return undefined;
     else
@@ -190,7 +188,7 @@ async function getValue(user_id, name) {
  * @returns {Promise<Object>}
  */
 async function getValues(user_id) {
-    let results = await dbInterface.query(`SELECT name, value FROM user_info WHERE user_id = '${user_id}'`);
+    let results = await db.query(`SELECT name, value FROM user_info WHERE user_id = '${user_id}'`);
     let values = {};
     for (const result of results) {
         values[result.name] = result.value;
@@ -205,9 +203,9 @@ async function setValue(user_id, name, value) {
     else if (user_info !== [] && user_info.length > 0 && !user_info.includes(value)) {
         throw { status: 400, error: "Invalid option value" };
     } else if (await getValue(user_id, name)) {
-        await dbInterface.query(`UPDATE user_info SET value = '${value}' WHERE user_id = '${user_id}' AND name = '${name}'`);
+        await db.query(`UPDATE user_info SET value = '${value}' WHERE user_id = '${user_id}' AND name = '${name}'`);
     } else {
-        await dbInterface.query(`INSERT INTO user_info (user_id, name, value) VALUES ('${user_id}', '${name}', '${value}')`);
+        await db.query(`INSERT INTO user_info (user_id, name, value) VALUES ('${user_id}', '${name}', '${value}')`);
     }
 }
 

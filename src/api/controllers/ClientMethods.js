@@ -1,5 +1,4 @@
-const DBInterface = require("../../DBInterface");
-const dbInterface = new DBInterface();
+const db = require("../../db");
 const { generateToken, respond, handleError } = require("../utils");
 const uuid = require("uuid/v4");
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
@@ -48,16 +47,16 @@ async function del(req, res) {
  */
 async function createClient(name, developer_id, redirect_uri) {
     //Does a client with the same name already exist?
-    if ((await dbInterface.query(`SELECT * FROM client WHERE name='${name}'`)).length === 1) throw { status: 409, error: "Client already exists" };
+    if ((await db.query(`SELECT * FROM client WHERE name='${name}'`)).length === 1) throw { status: 409, error: "Client already exists" };
 
     //Generate the client_secret
     let client_secret = generateToken(12);
 
     //Create the client
     let client_id = uuid();
-    await dbInterface.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${client_id}', '${client_secret}', '${name}', '${developer_id}')`);
+    await db.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${client_id}', '${client_secret}', '${name}', '${developer_id}')`);
 
-    await dbInterface.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${client_id}', '${redirect_uri}')`);
+    await db.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${client_id}', '${redirect_uri}')`);
 
     return { client_id, client_secret };
 }
@@ -68,13 +67,13 @@ async function createClient(name, developer_id, redirect_uri) {
  * @param {number} developer_id
  */
 async function deleteClient(client_id) {
-    if ((await dbInterface.query(`SELECT * FROM client WHERE client_id='${client_id}'`)).length !== 1) throw { status: 404, error: "Client not found" };
+    if ((await db.query(`SELECT * FROM client WHERE client_id='${client_id}'`)).length !== 1) throw { status: 404, error: "Client not found" };
 
-    await dbInterface.query(`DELETE FROM authorization_code WHERE client_id = '${client_id}'`);
-    await dbInterface.query(`DELETE FROM access_token WHERE client_id = '${client_id}'`);
-    await dbInterface.query(`DELETE FROM refresh_token WHERE client_id = '${client_id}'`);
-    await dbInterface.query(`DELETE FROM client WHERE client_id = '${client_id}'`);
-    await dbInterface.query(`DELETE FROM redirect_uri WHERE client_id = '${client_id}'`);
+    await db.query(`DELETE FROM authorization_code WHERE client_id = '${client_id}'`);
+    await db.query(`DELETE FROM access_token WHERE client_id = '${client_id}'`);
+    await db.query(`DELETE FROM refresh_token WHERE client_id = '${client_id}'`);
+    await db.query(`DELETE FROM client WHERE client_id = '${client_id}'`);
+    await db.query(`DELETE FROM redirect_uri WHERE client_id = '${client_id}'`);
 }
 
 /**
@@ -89,7 +88,7 @@ async function getClientId(identifier, callback) {
     else
         query = `SELECT client_id FROM client WHERE name = '${identifier}'`;
 
-    let result = await dbInterface.query(query);
+    let result = await db.query(query);
     if (result.length === 1) {
         let client_id = result[0].client_id;
         await callback(client_id);
@@ -101,7 +100,7 @@ async function getClientId(identifier, callback) {
 }
 
 async function getClients() {
-    let results = await dbInterface.query("SELECT client_id, name, dev_id FROM client");
+    let results = await db.query("SELECT client_id, name, dev_id FROM client");
     let clients = [];
     results.forEach(client => {
         clients.push({

@@ -1,6 +1,6 @@
 const { respond, handleError } = require("../utils");
 const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getAllUsers, setValues } = require("../services/user.service");
-const configReader = new (require("../../ConfigReader"))();
+const configReader = require("../../configReader");
 
 async function get(req, res) {
     try {

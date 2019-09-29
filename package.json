@@ -5,11 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node build/index.js",
-    "build": "babel src -d build --copy-files",
-    "debug": "DEBUG=1 babel-node src/index.js",
-    "clean": "rm -rf ./build",
-    "prepack": "npm run clean && npm run build"
+    "start": "node src/index.js",
+    "debug": "DEBUG=1 node src/index.js"
   },
   "author": "Moritz Vogel",
   "license": "MIT",
@@ -23,12 +20,5 @@
     "readline-sync": "^1.4.9",
     "sqlite3": "^4.1.0",
     "uuid": "^3.3.3"
-  },
-  "devDependencies": {
-    "@babel/cli": "^7.5.0",
-    "@babel/core": "^7.5.4",
-    "@babel/node": "^7.5.0",
-    "@babel/plugin-proposal-class-properties": "^7.5.0",
-    "@babel/preset-env": "^7.5.4"
   }
 }

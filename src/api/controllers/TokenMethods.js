@@ -1,8 +1,6 @@
 const { generateToken, currentUnixTime, respond, handleError } = require("../utils");
-const DBInterface = require("../../DBInterface");
-const ConfigReader = require("../../ConfigReader");
-const dbInterface = new DBInterface();
-const configReader = new ConfigReader();
+const db = require("../../db");
+const configReader = require("../../configReader");
 
 async function tokenInfo(req, res) {
     try {
@@ -52,10 +50,10 @@ async function revoke(req, res) {
             throw { status: 400, error: "Invalid arguments" };
 
         if (req.body.access_token) //revoke access_token
-            await dbInterface.query(`DELETE FROM access_token WHERE access_token = '${req.body.access_token}'`);
+            await db.query(`DELETE FROM access_token WHERE access_token = '${req.body.access_token}'`);
 
         if (req.body.refresh_token) //revoke refresh_token
-            await dbInterface.query(`DELETE FROM refresh_token WHERE refresh_token = '${req.body.refresh_token}'`);
+            await db.query(`DELETE FROM refresh_token WHERE refresh_token = '${req.body.refresh_token}'`);
 
         respond(res, 200);
     } catch (e) {
@@ -74,9 +72,9 @@ async function generateRefreshToken(user_id, client_id) {
     let refresh_token;
     let error = true;
     while (error) {
-        refresh_token = generateToken(configReader.refreshTokenLength());
+        refresh_token = generateToken(configReader.config.refreshTokenLength);
         try {
-            await dbInterface.query(`INSERT INTO refresh_token (refresh_token, user_id, client_id, expires) VALUES ('${refresh_token}', '${user_id}', '${client_id}', '${currentUnixTime() + configReader.config.refreshTokenExpirationTime}')`);
+            await db.query(`INSERT INTO refresh_token (refresh_token, user_id, client_id, expires) VALUES ('${refresh_token}', '${user_id}', '${client_id}', '${currentUnixTime() + configReader.config.refreshTokenExpirationTime}')`);
             error = false;
         } catch (e) {
             continue;
@@ -95,7 +93,7 @@ async function generateRefreshToken(user_id, client_id) {
  * @returns {(boolean|number|string|string)} An object containing wether it is active, user_id, username, email
  */
 async function validateAccessToken(access_token, client_id) {
-    let results = await dbInterface.query(`SELECT access_token.user_id AS user_id, access_token.expires AS expires, user.username AS username, user.email AS email FROM access_token JOIN user ON access_token.user_id = user.user_id WHERE access_token.access_token = '${access_token}' AND access_token.client_id = '${client_id}'`);
+    let results = await db.query(`SELECT access_token.user_id AS user_id, access_token.expires AS expires, user.username AS username, user.email AS email FROM access_token JOIN user ON access_token.user_id = user.user_id WHERE access_token.access_token = '${access_token}' AND access_token.client_id = '${client_id}'`);
     let active = results.length === 1 && results[0].expires > currentUnixTime();
     if (active)
         return { active: true, user_id: results[0].user_id, username: results[0].username, email: results[0].email };
@@ -110,13 +108,13 @@ async function validateAccessToken(access_token, client_id) {
  * @returns {Promise<(string|number)>} access_token, expires
  */
 async function generateAccessToken(user_id, client_id) {
-    let expires = currentUnixTime() + configReader.accessTokenExpirationTime();
+    let expires = currentUnixTime() + configReader.config.accessTokenExpirationTime;
     let access_token;
     let error = true;
     while (error) {
-        access_token = generateToken(configReader.accessTokenLength());
+        access_token = generateToken(configReader.config.accessTokenLength);
         try {
-            await dbInterface.query(`INSERT INTO access_token (access_token, user_id, client_id, expires) VALUES ('${access_token}', '${user_id}', '${client_id}', '${expires}')`);
+            await db.query(`INSERT INTO access_token (access_token, user_id, client_id, expires) VALUES ('${access_token}', '${user_id}', '${client_id}', '${expires}')`);
             error = false;
         } catch (e) {
             console.error(e);

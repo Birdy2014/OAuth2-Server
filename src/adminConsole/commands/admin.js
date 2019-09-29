@@ -1,6 +1,5 @@
 const { addPermission, removePermission } = require("../../api/services/permission.service");
-const DBInterface = require("../../DBInterface");
-const dbInterface = new DBInterface();
+const db = require("../../db");
 const { getUserId } = require("../../api/services/user.service");
 
 module.exports.run = async args => {
@@ -10,7 +9,7 @@ module.exports.run = async args => {
             for (const login of args) {
                 try {
                     await getUserId(login, async user_id => {
-                        await addPermission(user_id, await dbInterface.getDashboardId(), "admin");
+                        await addPermission(user_id, await db.getDashboardId(), "admin");
                         console.log(`${user_id} is now admin`);
                     });
                 } catch (e) {
@@ -21,7 +20,7 @@ module.exports.run = async args => {
         }
         case "list": {
             try {
-                let result = await dbInterface.query("SELECT permissions.user_id AS user_id, user.email AS email, user.username AS username FROM permissions JOIN user ON permissions.user_id = user.user_id WHERE permission = 'admin'");
+                let result = await db.query("SELECT permissions.user_id AS user_id, user.email AS email, user.username AS username FROM permissions JOIN user ON permissions.user_id = user.user_id WHERE permission = 'admin'");
                 if (result.length === 0) {
                     console.log("There are no admins");
                 } else {
@@ -40,7 +39,7 @@ module.exports.run = async args => {
             for (const login of args) {
                 try {
                     await getUserId(login, async user_id => {
-                        await removePermission(user_id, await dbInterface.getDashboardId(), "admin");
+                        await removePermission(user_id, await db.getDashboardId(), "admin");
                         console.log(`${user_id} is no admin anymore`);
                     });
                 } catch (e) {
