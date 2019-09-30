@@ -27,6 +27,7 @@ async function put(req, res) {
         let { username, email } = (await db.query(`SELECT username, email FROM user WHERE user_id = '${user_id}'`))[0];
         await db.query(`INSERT INTO verification_code (user_id, verification_code, change_password) VALUES ('${user_id}', '${verification_code}', '1')`);
         await sendVerificationEmail(username, email, verification_code, 2);
+        respond(res, 200);
     } catch (e) {
         handleError(res, e);
     }

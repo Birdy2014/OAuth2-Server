@@ -289,7 +289,7 @@ async function initDatabase(config, dashboard_uri) {
         {
             name: "email",
             type: "TEXT",
-            options: "NOT NULL"
+            options: ""
         },
         {
             name: "change_password",

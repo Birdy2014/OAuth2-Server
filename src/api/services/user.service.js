@@ -16,10 +16,10 @@ const emailRegEx = /^\S+@\S+\.\S+$/;
  * @param {string} password 
  * @returns {string} user_id
  */
-async function createUser(email, username, password, user_info) {
-    if (!await checkEmail(email)) throw { status: 400, error: "Invalid Username" };
-    if (!await checkEmail(email)) throw { status: 400, error: "Invalid email address" };
-    if (!await checkPassword(password)) throw { status: 400, error: "Invalid Password" };
+exports.createUser = async (email, username, password, user_info) => {
+    if (!checkEmail(email)) throw { status: 400, error: "Invalid Username" };
+    if (!checkEmail(email)) throw { status: 400, error: "Invalid email address" };
+    if (!checkPassword(password)) throw { status: 400, error: "Invalid Password" };
 
     //Create password hash
     let password_hash = await bcrypt.hash(password, 12);
@@ -45,12 +45,12 @@ async function createUser(email, username, password, user_info) {
 
     //set user_info
     if (user_info)
-        await setValues(user_id, user_info);
+        await exports.setValues(user_id, user_info);
 
     return user_id;
 }
 
-async function deleteUser(user_id) {
+exports.deleteUser = async user_id => {
     await db.query(`DELETE FROM authorization_code WHERE user_id = '${user_id}'`);
     await db.query(`DELETE FROM access_token WHERE user_id = '${user_id}'`);
     await db.query(`DELETE FROM refresh_token WHERE user_id = '${user_id}'`);
@@ -59,19 +59,19 @@ async function deleteUser(user_id) {
     await db.query(`DELETE FROM user_info WHERE user_id = '${user_id}'`);
 }
 
-async function changeUsername(user_id, username) {
-    if (!await checkUsername(username)) throw { status: 400, error: "Invalid Username" };
+exports.changeUsername = async (user_id, username) => {
+    if (!checkUsername(username)) throw { status: 400, error: "Invalid Username" };
     await db.query(`UPDATE user SET username = '${username}' WHERE user_id = '${user_id}'`);
 }
 
-async function changePassword(user_id, password) {
-    if (!await checkPassword(password)) throw { status: 400, error: "Invalid Password" };
+exports.changePassword = async (user_id, password) => {
+    if (!checkPassword(password)) throw { status: 400, error: "Invalid Password" };
     let password_hash = await bcrypt.hash(password, 12);
     await db.query(`UPDATE user SET password_hash = '${password_hash}' WHERE user_id = '${user_id}'`);
 }
 
-async function changeEmail(user_id, email) {
-    if (!await checkEmail(email)) throw { status: 400, error: "Invalid email address" };
+exports.changeEmail = async (user_id, email) => {
+    if (!checkEmail(email)) throw { status: 400, error: "Invalid email address" };
     if (configReader.config.email.enabled) {
         let verification_code = generateToken(12);
         await db.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //Delete old verification codes
@@ -86,7 +86,7 @@ async function changeEmail(user_id, email) {
 /**
  * Get all users. admin only
  */
-async function getAllUsers() {
+exports.getAllUsers = async () => {
     let results = await db.query(`SELECT user.user_id AS user_id, user.username AS username, user.email AS email, user.verified AS verified, admins.permission AS permission FROM user LEFT JOIN (SELECT * FROM permissions WHERE client_id = '${await db.getDashboardId()}' AND permission = 'admin') admins ON user.user_id = admins.user_id`);
     let users = [];
     await results.forEach(user => {
@@ -101,13 +101,13 @@ async function getAllUsers() {
     return users;
 }
 
-async function getUserInfo(user_id) {
+exports.getUserInfo = async user_id => {
     let results = await db.query(`SELECT username, email, verified FROM user WHERE user_id = '${user_id}'`);
     if (results.length === 0)
         throw { status: 400, error: "Invalid arguments" }
     let { username, email, verified } = results[0];
     let admin = await hasPermission(user_id, await db.getDashboardId(), "admin");
-    let user_info = await getValues(user_id);
+    let user_info = await exports.getValues(user_id);
     return Object.assign(user_info, { user_id, username, email, verified: verified === 1, admin });
 }
 
@@ -117,7 +117,7 @@ async function getUserInfo(user_id) {
  * @param {string} password
  * @returns {string} user_id or empty string
  */
-async function validateUser(login, password) {
+exports.validateUser = async (login, password) => {
     let query;
     if (uuidRegEx.test(login))
         query = `SELECT password_hash, user_id FROM user WHERE user_id = '${login}'`;
@@ -142,7 +142,7 @@ async function validateUser(login, password) {
  * @param {string} login - email, username or user_id
  * @param {function(string)} - async callback with user_id as param
  */
-async function getUserId(login, callback) {
+exports.getUserId = async (login, callback) => {
     let query;
     if (uuidRegEx.test(login))
         query = `SELECT user_id FROM user WHERE user_id = '${login}'`;
@@ -174,7 +174,7 @@ async function getUserId(login, callback) {
  * @param {string} name 
  * @returns {Promise<string>}
  */
-async function getValue(user_id, name) {
+exports.getValue = async (user_id, name) => {
     let result = await db.query(`SELECT value FROM user_info WHERE user_id = '${user_id}' AND name = '${name}'`);
     if (result.length === 0)
         return undefined;
@@ -187,7 +187,7 @@ async function getValue(user_id, name) {
  * @param {string} user_id 
  * @returns {Promise<Object>}
  */
-async function getValues(user_id) {
+exports.getValues = async user_id => {
     let results = await db.query(`SELECT name, value FROM user_info WHERE user_id = '${user_id}'`);
     let values = {};
     for (const result of results) {
@@ -196,23 +196,21 @@ async function getValues(user_id) {
     return values
 }
 
-async function setValue(user_id, name, value) {
+exports.setValue = async (user_id, name, value) => {
     let user_info = configReader.config.user_info[name];
     if (user_info === undefined)
         throw { status: 400, error: "Invalid option name" };
     else if (user_info !== [] && user_info.length > 0 && !user_info.includes(value)) {
         throw { status: 400, error: "Invalid option value" };
-    } else if (await getValue(user_id, name)) {
+    } else if (await exports.getValue(user_id, name)) {
         await db.query(`UPDATE user_info SET value = '${value}' WHERE user_id = '${user_id}' AND name = '${name}'`);
     } else {
         await db.query(`INSERT INTO user_info (user_id, name, value) VALUES ('${user_id}', '${name}', '${value}')`);
     }
 }
 
-async function setValues(user_id, user_info) {
+exports.setValues = async (user_id, user_info) => {
     for (const name in user_info) {
-        await setValue(user_id, name, user_info[name]);
+        await exports.setValue(user_id, name, user_info[name]);
     }
 }
-
-module.exports = { validateUser, createUser, deleteUser, changeUsername, changePassword, changeEmail, getUserId, getAllUsers, getUserInfo, setValues };

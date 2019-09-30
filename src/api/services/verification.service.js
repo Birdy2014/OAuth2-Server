@@ -1,6 +1,6 @@
 const es6Renderer = require('express-es6-template-engine');
 const fs = require("fs");
-const { changePassword } = require("./user.service");
+const userService = require("./user.service");
 const configReader = require("../../configReader");
 const db = require("../../db");
 const verificationEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/verification.html"), "username, url");
@@ -13,7 +13,7 @@ const passwordResetEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views
  * @param {string} [password] 
  * @returns {Promise<string>}
  */
-async function validateVerificationCode(verification_code, password) {
+exports.validateVerificationCode = async (verification_code, password) => {
     let result = await db.query(`SELECT user_id, email, change_password FROM verification_code WHERE verification_code = '${verification_code}'`);
     if (result.length === 0) throw { status: 403, error: "Invalid verification_code" };
     let { user_id, email, change_password } = result[0];
@@ -22,12 +22,13 @@ async function validateVerificationCode(verification_code, password) {
     await db.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);
     if (email) {
         //change email
-        await db.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
+        if (!email) throw { status: 400, error: "Invalid arguments" };
+        await userService.changeEmail(user_id, email);
         return email;
     } else if (change_password) {
         //forgot password
         if (!password) throw { status: 400, error: "Invalid arguments" };
-        await changePassword(user_id, password);
+        await userService.changePassword(user_id, password);
         return "";
     } else {
         //user registered
@@ -42,7 +43,7 @@ async function validateVerificationCode(verification_code, password) {
  * @param {string} verification_code 
  * @param {number} action - 0 for initial email verification, 1 for change email, 2 for forgot password
  */
-async function sendVerificationEmail(username, email, verification_code, action) {
+exports.sendVerificationEmail = async (username, email, verification_code, action) => {
     const emailConfig = configReader.config.email;
     let html;
     let text;
@@ -76,5 +77,3 @@ async function sendVerificationEmail(username, email, verification_code, action)
         html: html
     });
 }
-
-module.exports = { sendVerificationEmail, validateVerificationCode };

@@ -67,9 +67,9 @@ function handleError(res, e) {
 /**
  * Checks whether the username contains illegal characters
  * @param {string} username 
- * @returns {Promise<boolean>}
+ * @returns {boolean}
  */
-async function checkUsername(username) {
+function checkUsername(username) {
     const forbiddenChars = ["'", ";", "\"", "&", "="];
     return !forbiddenChars.some(i => username.includes(i));
 }
@@ -77,9 +77,9 @@ async function checkUsername(username) {
 /**
  * Checks if email address matches the whitelist of the config file
  * @param {string} email 
- * @returns {Promise<boolean>}
+ * @returns {boolean}
  */
-async function checkEmail(email) {
+function checkEmail(email) {
     const emailRegEx = /^\S+@\S+\.\S+$/;
     const forbiddenChars = ["'", ";", "\"", "&", "="];
     if (forbiddenChars.some(i => email.includes(i))) return false;
@@ -94,9 +94,9 @@ async function checkEmail(email) {
 /**
  * Checks if the password length is ok
  * @param {string} password 
- * @returns {Promise<boolean>}
+ * @returns {boolean}
  */
-async function checkPassword(password) {
+function checkPassword(password) {
     if (password.length >= 8)
         return true;
 }
