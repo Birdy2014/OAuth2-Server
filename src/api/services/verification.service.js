@@ -23,7 +23,7 @@ exports.validateVerificationCode = async (verification_code, password) => {
     if (email) {
         //change email
         if (!email) throw { status: 400, error: "Invalid arguments" };
-        await userService.changeEmail(user_id, email);
+        await db.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
         return email;
     } else if (change_password) {
         //forgot password
