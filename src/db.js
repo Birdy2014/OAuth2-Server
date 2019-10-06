@@ -321,10 +321,10 @@ async function initDatabase(config, dashboard_uri) {
 
     //add Dashboard client
     const dashboard_secret = generateToken(12);
-    exports.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${uuid()}', '${dashboard_secret}', 'Dashboard', '')`);
+    await exports.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${uuid()}', '${dashboard_secret}', 'Dashboard', '')`);
     if (dashboard_uri) {
         const dashboard_id = await exports.getDashboardId();
-        exports.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
+        await exports.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
     }
 }
 
