@@ -18,7 +18,7 @@ function connect(config) {
     return new Promise((resolve, reject) => {
         if (config.dbms === "mysql") {
             exports.connection = mysql.createConnection(config);
-            exports.query = util.promisify(this.connection.query).bind(exports.connection);
+            exports.query = util.promisify(exports.connection.query).bind(exports.connection);
 
             //Reconnect if the connection is closed
             exports.connection.on("error", (err) => {
