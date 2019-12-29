@@ -3,6 +3,7 @@ const sqlite3 = require("sqlite3");
 const util = require("util");
 const { generateToken } = require("./api/utils");
 const uuid = require("uuid/v4");
+const logger = require("./logger");
 
 exports.init = async (config, dashboard_uri) => {
     await connect(config);
@@ -16,12 +17,14 @@ exports.init = async (config, dashboard_uri) => {
 
 function connect(config) {
     return new Promise((resolve, reject) => {
+        logger.info("Connecting to db");
         if (config.dbms === "mysql") {
             exports.connection = mysql.createConnection(config);
             exports.query = util.promisify(exports.connection.query).bind(exports.connection);
 
             //Reconnect if the connection is closed
             exports.connection.on("error", (err) => {
+                logger.warn("MySQL error. Code " + err.code);
                 if (err.code === 'PROTOCOL_CONNECTION_LOST') {
                     connect();
                 } else {

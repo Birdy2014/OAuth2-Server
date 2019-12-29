@@ -3,6 +3,7 @@ const fs = require("fs");
 const userService = require("./user.service");
 const configReader = require("../../configReader");
 const db = require("../../db");
+const logger = require("../../logger");
 const verificationEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/verification.html"), "username, url");
 const emailChangeEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/change.html"), "username, url");
 const passwordResetEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/reset.html"), "username, url");
@@ -44,6 +45,7 @@ exports.validateVerificationCode = async (verification_code, password) => {
  * @param {number} action - 0 for initial email verification, 1 for change email, 2 for forgot password
  */
 exports.sendVerificationEmail = async (username, email, verification_code, action) => {
+    logger.info("Sending verification email to " + email + "; action: " + action);
     const emailConfig = configReader.config.email;
     let html;
     let text;

@@ -117,7 +117,6 @@ async function generateAccessToken(user_id, client_id) {
             await db.query(`INSERT INTO access_token (access_token, user_id, client_id, expires) VALUES ('${access_token}', '${user_id}', '${client_id}', '${expires}')`);
             error = false;
         } catch (e) {
-            console.error(e);
             continue;
         }
     }

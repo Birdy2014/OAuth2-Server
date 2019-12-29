@@ -8,12 +8,15 @@ const { currentUnixTime, respond } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
 const cors = require("cors");
 const getUser = require("./middleware/getUser");
+const logger = require("./logger");
 var app = express();
 
 async function main() {
+    logger.init(configReader.config.logpath);
+
     //create tables if they don't exist
     if (await db.init(configReader.config.db, configReader.config.url))
-        console.log("Tables created");
+        logger.info("Tables created");
 
     app.use(cors());
     app.use(express.json());
@@ -57,9 +60,11 @@ async function main() {
 
     //delete old access tokens, run once every day
     setInterval(() => {
+        logger.info("cleaning db...");
         db.query(`DELETE FROM access_token WHERE expires < ${currentUnixTime()}`);
         db.query(`DELETE FROM refresh_token WHERE expires < ${currentUnixTime()}`);
         db.query(`DELETE FROM authorization_code WHERE expires < ${currentUnixTime()}`);
+        logger.info("cleaning complete");
     }, 86400000);
 
     app.listen(configReader.config.port);
@@ -68,4 +73,4 @@ async function main() {
     adminConsole.start();
 }
 
-main().catch(e => console.error(e));
+main().catch(e => logger.error(e));
