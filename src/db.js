@@ -19,25 +19,8 @@ function connect(config) {
     return new Promise((resolve, reject) => {
         logger.info("Connecting to db");
         if (config.dbms === "mysql") {
-            exports.connection = mysql.createConnection(config);
-            exports.query = util.promisify(exports.connection.query).bind(exports.connection);
-
-            //Reconnect if the connection is closed
-            exports.connection.on("error", (err) => {
-                logger.warn("MySQL error. Code " + err.code);
-                if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-                    connect();
-                } else {
-                    reject(err);
-                }
-            });
-
-            exports.connection.connect(err => {
-                if (err) {
-                    reject("Can't connect to the Database");
-                }
-                resolve();
-            });
+            exports.pool = mysql.createPool(config);
+            exports.query = util.promisify(exports.pool.query).bind(exports.pool);
         } else if (config.dbms === "sqlite") {
             exports.connection = new sqlite3.Database(config.path);
             exports.query = util.promisify(exports.connection.all).bind(exports.connection);
