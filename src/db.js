@@ -21,6 +21,7 @@ function connect(config) {
         if (config.dbms === "mysql") {
             exports.pool = mysql.createPool(config);
             exports.query = util.promisify(exports.pool.query).bind(exports.pool);
+            resolve();
         } else if (config.dbms === "sqlite") {
             exports.connection = new sqlite3.Database(config.path);
             exports.query = util.promisify(exports.connection.all).bind(exports.connection);
