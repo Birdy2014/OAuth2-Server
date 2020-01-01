@@ -214,3 +214,7 @@ exports.setValues = async (user_id, user_info) => {
         await exports.setValue(user_id, name, user_info[name]);
     }
 }
+
+exports.setVerified = async (user_id, verified) => {
+    db.query(`UPDATE user SET verified = '${verified ? "1" : "0"}' WHERE user_id = '${user_id}'`);
+}

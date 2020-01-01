@@ -1,5 +1,5 @@
 const { respond, handleError } = require("../utils");
-const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getAllUsers, setValues } = require("../services/user.service");
+const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getAllUsers, setValues, setVerified } = require("../services/user.service");
 const configReader = require("../../configReader");
 
 async function get(req, res) {
@@ -53,6 +53,7 @@ async function put(req, res) {
         if (req.body.username) await changeUsername(user_id, req.body.username);
         if (req.body.password) await changePassword(user_id, req.body.password);
         if (req.body.email) await changeEmail(user_id, req.body.email);
+        if (req.body.verified && req.user.admin) await setVerified(user_id, req.body.verified == "true");
         if (user_info !== {}) await setValues(user_id, user_info);
         respond(res, 200);
     } catch (e) {

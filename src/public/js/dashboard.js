@@ -112,11 +112,22 @@ async function loadData(access_token) {
 
         //admin settings
         if (admin) {
+            raw_user_list = {};
+            user_list.innerHTML = "";
+            client_list.innerHTML = "";
             document.getElementById("menu_item_admin_settings").style.display = "inline";
             let users = JSON.parse(await request(`${url.protocol}//${url.host}/api/user`, "GET", "", access_token)).data;
             users.forEach(user => {
+                raw_user_list[user.user_id] = user;
                 let user_element = document.createElement("li");
-                user_element.innerHTML = `user_id: ${user.user_id}, username: <input type="text" placeholder="${user.username}" id="input_username_${user.user_id}"/>, email: <input type="email" placeholder="${user.email}" id="input_email_${user.user_id}"/>, Password: <input type="password" id="input_password_${user.user_id}"/>, verified: ${user.verified}, admin: ${user.admin} <a href="javascript:void(0)" onclick="changeSettings(global_access_token, '${user.user_id}', { username: document.getElementById('input_username_${user.user_id}').value, email: document.getElementById('input_email_${user.user_id}').value, password: document.getElementById('input_password_${user.user_id}' }).value)">Submit</a>`;
+                user_element.innerHTML = `
+                    user_id: ${user.user_id}, 
+                    username: <input type="text" placeholder="${user.username}" id="input_username_${user.user_id}"/>, 
+                    email: <input type="email" placeholder="${user.email}" id="input_email_${user.user_id}"/>, 
+                    Password: <input type="password" id="input_password_${user.user_id}"/>, 
+                    verified: <input type="checkbox" ${user.verified ? "checked" : ""} id="input_verified_${user.user_id}" />, 
+                    admin: <input type="checkbox" ${user.admin ? "checked" : ""} id="input_admin_${user.user_id}" />
+                    <a href="javascript:void(0)" onclick="adminChangeUser('${user.user_id}');">Submit</a>`;
                 user_list.appendChild(user_element);
             });
             let clients = JSON.parse(await request(`${url.protocol}//${url.host}/api/client`, "GET", "", access_token)).data;
@@ -142,8 +153,7 @@ async function changeSettings(access_token, user_id, settings) {
         let data = "";
         if (user_id) data += `user_id=${user_id}&`;
         for (const setting in settings) {
-            if (settings[setting])
-                data += setting + "=" + settings[setting] + "&";
+            data += setting + "=" + settings[setting] + "&";
         }
         if (data === "") throw { status: 400, error: "Input missing" };
         data = data.substring(0, data.length - 1);
@@ -154,12 +164,55 @@ async function changeSettings(access_token, user_id, settings) {
         console.error(e);
         e = JSON.parse(e);
         if (e.status === 403) {
-            await changeSettings(await refreshToken(window.localStorage.getItem("refresh_token")), user_id, new_username, new_email, new_password);
+            global_access_token = await refreshToken(window.localStorage.getItem("refresh_token"));
+            await changeSettings(global_access_token, user_id, new_username, new_email, new_password);
         } else {
             console.error(e);
             return e;
         }
     }
+}
+
+async function changePermissions(access_token, user_id, permission, add) {
+    try {
+        let data = `client_id=${window.localStorage.getItem("client_id")}&permission=${permission}&user_id=${user_id}`;
+        await request(`${url.protocol}//${url.host}/api/permissions`, add ? "POST" : "DELETE", data, access_token);
+    } catch (e) {
+        e = JSON.parse(e);
+        if (e.status === 403) {
+            global_access_token = await refreshToken(window.localStorage.getItem("refresh_token"));
+            await changePermissions(global_access_token, user_id, permission, add);
+        } else {
+            console.error(e);
+        }
+    }
+}
+
+async function adminChangeUser(user_id) {
+    let username = document.getElementById(`input_username_${user_id}`).value;
+    let email = document.getElementById(`input_email_${user_id}`).value;
+    let password = document.getElementById(`input_password_${user_id}`).value;
+    let verified = document.getElementById(`input_verified_${user_id}`).checked;
+    let admin = document.getElementById(`input_admin_${user_id}`).checked;
+
+    let settings = {};
+    if (username && username !== raw_user_list[user_id].username)
+        settings.username = username;
+    if (email && email !== raw_user_list[user_id].email)
+        settings.email = email;
+    if (password)
+        settings.password = password;
+    if (verified !== raw_user_list[user_id].verified)
+        settings.verified = verified;
+
+    if (Object.keys(settings).length > 0)
+        await changeSettings(global_access_token, user_id, settings);
+
+    if (admin !== raw_user_list[user_id].admin) {
+        await changePermissions(global_access_token, user_id, "admin", admin);
+    }
+
+    loadData(global_access_token);
 }
 
 async function logout() {
@@ -180,6 +233,7 @@ async function logout() {
     }
 }
 
+let raw_user_list = {};
 const url = new URL(window.location);
 var global_access_token = "";
 var input_password;
