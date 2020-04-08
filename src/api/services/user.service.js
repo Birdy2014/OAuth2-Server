@@ -17,7 +17,7 @@ const emailRegEx = /^\S+@\S+\.\S+$/;
  * @returns {string} user_id
  */
 exports.createUser = async (email, username, password, user_info) => {
-    if (!checkEmail(email)) throw { status: 400, error: "Invalid Username" };
+    if (!checkUsername(username)) throw { status: 400, error: "Invalid Username" };
     if (!checkEmail(email)) throw { status: 400, error: "Invalid email address" };
     if (!checkPassword(password)) throw { status: 400, error: "Invalid Password" };
 
