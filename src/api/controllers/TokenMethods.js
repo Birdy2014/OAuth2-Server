@@ -1,6 +1,9 @@
 const { generateToken, currentUnixTime, respond, handleError } = require("../utils");
 const db = require("../../db");
 const configReader = require("../../configReader");
+const { getUserAndClientFromAuthorizationCode, checkPKCE } = require("../services/authorization.service");
+const { checkClientCredentials } = require("../services/client.service");
+const { getUserAndClientFromRefreshToken } = require("../services/token.service");
 
 async function tokenInfo(req, res) {
     try {
@@ -21,18 +24,30 @@ async function token(req, res) {
     try {
         switch (req.body.grant_type) {
             case "authorization_code": {
-                if (req.user.origin !== "authorization_code" || req.client.client_id !== req.body.client_id)
+                if (!req.body.code || !req.body.redirect_uri || !req.body.client_id || !req.body.code_verifier)
                     throw { status: 400, error: "Invalid arguments" };
 
-                let response = await generateRefreshToken(req.user.user_id, req.client.client_id);
+                let { user_id, client_id } = await getUserAndClientFromAuthorizationCode(req.body.code);
+                let validClient = await checkPKCE(req.body.code, req.body.code_verifier);
+                if (req.body.client_secret)
+                    validClient = validClient && (await checkClientCredentials(req.body.client_id, req.body.client_secret));
+
+                if (!validClient || client_id !== req.body.client_id)
+                    throw { status: 403, error: "Invalid authorization_code" };
+
+                let response = await generateRefreshToken(user_id, client_id);
                 respond(res, 201, response);
                 break;
             }
             case "refresh_token": {
-                if (req.user.origin !== "refresh_token" || req.client.client_id !== req.body.client_id)
+                if (!req.body.refresh_token || !req.body.client_id)
                     throw { status: 400, error: "Invalid arguments" };
 
-                let response = await generateAccessToken(req.user.user_id, req.client.client_id);
+                let { user_id, client_id } = await getUserAndClientFromRefreshToken(req.body.refresh_token);
+                if (client_id !== req.body.client_id)
+                    throw { status: 403, error: "Invalid refresh_token" };
+
+                let response = await generateAccessToken(user_id, client_id);
                 respond(res, 201, response);
                 break;
             }

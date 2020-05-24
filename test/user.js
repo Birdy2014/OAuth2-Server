@@ -1,7 +1,4 @@
-const fs = require("fs");
-const configReader = require("../src/configReader");
-configReader.load(__dirname + "/config");
-const db = require("../src/db");
+const { setup, cleanup } = require("./test-utils");
 const user = require("../src/api/services/user.service");
 
 const testUser = {
@@ -15,12 +12,11 @@ const testUser = {
 
 describe("User", () => {
     before((done) => {
-        db.init(configReader.config.db, configReader.config.url).then(() => done());
+        setup(() => done());
     });
 
     after(() => {
-        db.connection.close();
-        fs.unlinkSync(configReader.config.db.path);
+        cleanup();
     });
 
     describe("createUser", () => {

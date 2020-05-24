@@ -168,6 +168,11 @@ async function initDatabase(config, dashboard_uri) {
             name: "expires",
             type: "INTEGER",
             options: "NOT NULL"
+        },
+        {
+            name: "challenge",
+            type: "TEXT",
+            options: "NOT NULL"
         }
     ]);
 
