@@ -2,7 +2,7 @@ const mysql = require("mysql");
 const sqlite3 = require("sqlite3");
 const util = require("util");
 const { generateToken } = require("./api/utils");
-const uuid = require("uuid/v4");
+const uuid = require("uuid").v4;
 const logger = require("./logger");
 
 exports.init = async (config, dashboard_uri) => {

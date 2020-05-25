@@ -1,6 +1,6 @@
 const db = require("../../db");
 const { generateToken, respond, handleError } = require("../utils");
-const uuid = require("uuid/v4");
+const uuid = require("uuid").v4;
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 
 async function get(req, res) {
