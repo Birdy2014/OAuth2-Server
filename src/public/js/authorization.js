@@ -1,12 +1,12 @@
 let verificationMessageShown = false;
 
-async function getAuthorizationCode(login, password, client_id, redirect_uri, state) {
+async function getAuthorizationCode(login, password, client_id, redirect_uri, state, code_challenge, code_challenge_method) {
     let domain = window.location.href.replace('http://', '').replace('https://', '').split(/[/?#]/)[0];
     let secure = window.location.href.includes("https://");
     let url = `${secure ? "https://" : "http://"}${domain}/api/authorize`;
 
     try {
-        let body = await request(url, "POST", `login=${login}&password=${password}&client_id=${client_id}&redirect_uri=${redirect_uri}`);
+        let body = await request(url, "POST", `login=${login}&password=${password}&client_id=${client_id}&redirect_uri=${redirect_uri}&code_challenge=${code_challenge}&code_challenge_method=${code_challenge_method}`);
         let jsonObj = JSON.parse(body);
         window.location.href = `${redirect_uri}${redirect_uri.includes("?") ? "&" : "?"}authorization_code=${jsonObj.data.authorization_code}${state === null ? "" : "&state=" + state}`;
     } catch (e) {
@@ -38,8 +38,10 @@ function submitAuthorization() {
     let client_id = url.searchParams.get("client_id");
     let state = url.searchParams.get("state");
     let redirect_uri = url.searchParams.get("redirect_uri");
+    let code_challenge = url.searchParams.get("code_challenge");
+    let code_challenge_method = url.searchParams.get("code_challenge_method");
     if (login && password && client_id && redirect_uri)
-        getAuthorizationCode(login, password, client_id, redirect_uri, state);
+        getAuthorizationCode(login, password, client_id, redirect_uri, state, code_challenge, code_challenge_method);
     else
         alert("missing data");
 }

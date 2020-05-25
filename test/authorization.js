@@ -37,13 +37,24 @@ describe("authorization", () => {
     });
 
     describe("checkPKCE", () => {
-        it("should be successful", (done) => {
+        it("should be successful when correct code verifier is used", (done) => {
             authorization.checkPKCE(testUser.authorization_code, testUser.code_verifier)
                 .then((success) => {
                     if (success)
                         done();
                     else
                         done(new Error());
+                })
+                .catch((e) => done(new Error(e)));
+        });
+
+        it("should fail when incorrect code verifier is used", (done) => {
+            authorization.checkPKCE(testUser.authorization_code, "a")
+                .then((success) => {
+                    if (success)
+                        done(new Error());
+                    else
+                        done();
                 })
                 .catch((e) => done(new Error(e)));
         });

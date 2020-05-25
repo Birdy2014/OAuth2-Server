@@ -27,8 +27,8 @@ router.route("/permissions")
     .delete(isLoggedIn, PermissionMethods.del);
 
 router.route("/token")
-    .post(isLoggedIn, TokenMethods.token)
-    .delete(isLoggedIn, TokenMethods.revoke);
+    .post(TokenMethods.token)
+    .delete(TokenMethods.revoke);
 
 router.route("/token_info")
     .post(TokenMethods.tokenInfo);

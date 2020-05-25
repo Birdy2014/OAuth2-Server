@@ -1,5 +1,7 @@
 const { respond, handleError } = require("../utils");
 const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getAllUsers, setValues, setVerified } = require("../services/user.service");
+const { generateRefreshToken } = require("./TokenMethods");
+const db = require("../../db");
 const configReader = require("../../configReader");
 
 async function get(req, res) {
@@ -25,7 +27,8 @@ async function post(req, res) {
                 user_info[key] = req.body[key];
         }
         let user_id = await createUser(req.body.email, req.body.username, req.body.password, user_info);
-        respond(res, 201, { user_id });
+        let { access_token, refresh_token, expires } = await generateRefreshToken(user_id, await db.getDashboardId());
+        respond(res, 201, { user_id, access_token, refresh_token, expires });
     } catch (e) {
         handleError(res, e);
     }

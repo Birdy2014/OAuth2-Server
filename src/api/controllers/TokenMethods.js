@@ -24,7 +24,7 @@ async function token(req, res) {
     try {
         switch (req.body.grant_type) {
             case "authorization_code": {
-                if (!req.body.code || !req.body.redirect_uri || !req.body.client_id || !req.body.code_verifier)
+                if (!req.body.code || !req.body.client_id || !req.body.code_verifier)
                     throw { status: 400, error: "Invalid arguments" };
 
                 let { user_id, client_id } = await getUserAndClientFromAuthorizationCode(req.body.code);
@@ -139,4 +139,4 @@ async function generateAccessToken(user_id, client_id) {
     return { access_token, expires };
 }
 
-module.exports = { validateAccessToken, tokenInfo, token, revoke };
+module.exports = { validateAccessToken, tokenInfo, token, revoke, generateRefreshToken };

@@ -5,8 +5,16 @@ async function register(username, email, password, client_id, redirect_uri, stat
 
     try {
         let body = await request(requestUrl, "POST", `username=${username}&email=${email}&password=${password}`);
-        let user_id = JSON.parse(body).data.user_id;
-        getAuthorizationCode(user_id, password, client_id, redirect_uri || `${secure ? "https://" : "http://"}${domain}/dashboard`, state);
+        let { user_id, access_token, refresh_token, expires } = JSON.parse(body).data;
+        if (!user_id) {
+            alert("ERROR");
+            return;
+        }
+        window.localStorage.setItem("refresh_token", refresh_token);
+        window.localStorage.setItem("access_token", access_token);
+        window.localStorage.setItem("user_id", user_id);
+        window.localStorage.setItem("client_id", await getDashboardId());
+        window.location.href = `${secure ? "https://" : "http://"}${domain}/dashboard`;
     } catch (e) {
         e = JSON.parse(e);
         alert("Error: " + e.error);

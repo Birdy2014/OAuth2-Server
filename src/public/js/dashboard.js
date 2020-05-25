@@ -1,3 +1,16 @@
+/**
+ * Generate a random string
+ * @param {number} length
+ * @returns {string} Random string
+ */
+function generateToken(length) {
+    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+    let text = "";
+    for (let i = 0; i < length; i++)
+        text += chars.charAt(Math.floor(Math.random() * chars.length));
+    return text;
+}
+
 function navigate(tab) {
     let tabs = document.getElementsByClassName("active");
     for (let tab of tabs) {
@@ -11,9 +24,11 @@ function navigate(tab) {
  * @returns {string} access_token
  */
 async function login() {
-    if (window.localStorage.getItem("refresh_token")) {
+    if (window.localStorage.getItem("access_token")) {
+        return window.localStorage.getItem("access_token");
+    } else if (window.localStorage.getItem("refresh_token") && window.localStorage.getItem("client_id")) {
         try {
-            return await refreshToken(window.localStorage.getItem("refresh_token"));
+            return await refreshToken(window.localStorage.getItem("refresh_token"), window.localStorage.getItem("client_id"));
         } catch (e) {
             window.localStorage.removeItem("refresh_token");
             window.localStorage.removeItem("client_id");
@@ -23,24 +38,48 @@ async function login() {
     let client_id = await getDashboardId();
     let authorization_code = url.searchParams.get("authorization_code");
     let state = url.searchParams.get("state");
-    if (authorization_code && state === window.sessionStorage.getItem("state")) {
+    if (authorization_code && state === window.sessionStorage.getItem("state") && window.sessionStorage.getItem("code_verifier")) {
         //Get tokens
-        let tokens = JSON.parse(await request(`${url.protocol}//${url.host}/api/token`, "POST", `grant_type=authorization_code&client_id=${client_id}&authorization_code=${authorization_code}`));
+        let tokens = JSON.parse(await request(`${url.protocol}//${url.host}/api/token`, "POST", `grant_type=authorization_code&client_id=${client_id}&code=${authorization_code}&code_verifier=${window.sessionStorage.getItem("code_verifier")}`));
         window.localStorage.setItem("refresh_token", tokens.data.refresh_token);
         window.localStorage.setItem("client_id", client_id);
+        window.sessionStorage.removeItem("code_verifier");
+        window.sessionStorage.removeItem("state");
         window.history.replaceState({}, document.title, "/dashboard");
         return tokens.data.access_token;
     } else {
+        //Create challenge
+        let code_verifier = generateToken(10);
+        let code_challenge = await genPKCEChallenge(code_verifier);
+        if (!code_challenge) {
+            alert("ERROR: Context is not secure; Cannot generate PKCE challenge");
+            debugger;
+        }
+        let code_challenge_method = "S256";
+        window.sessionStorage.setItem("code_verifier", code_verifier);
         //Redirect to Login
         state = Math.random().toString(36).substring(7);
         window.sessionStorage.setItem("state", state);
-        window.location.href = `${url.protocol}//${url.host}/authorize?client_id=${client_id}&redirect_uri=${url}&state=${state}`;
+        window.location.href = `${url.protocol}//${url.host}/authorize?client_id=${client_id}&redirect_uri=${url}&state=${state}&code_challenge=${code_challenge}&code_challenge_method=${code_challenge_method}`;
     }
 }
 
-async function refreshToken(refresh_token) {
-    let tokens = JSON.parse(await request(`${url.protocol}//${url.host}/api/token`, "POST", `grant_type=refresh_token&client_id=${window.localStorage.getItem("client_id")}&refresh_token=${refresh_token}`));
-    return tokens.data.access_token;
+async function genPKCEChallenge(code_verifier) {
+    if (window.isSecureContext) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(code_verifier);
+        let arr = await window.crypto.subtle.digest('SHA-256', data);
+        return btoa(String.fromCharCode.apply(null, new Uint8Array(arr)));
+    } else {
+        return undefined;
+    }
+}
+
+async function refreshToken(refresh_token, client_id) {
+    let tokens = JSON.parse(await request(`${url.protocol}//${url.host}/api/token`, "POST", `grant_type=refresh_token&client_id=${client_id}&refresh_token=${refresh_token}`));
+    let access_token = tokens.data.access_token;
+    window.localStorage.setItem("access_token", access_token);
+    return access_token;
 }
 
 function createInputField(name, text, options) {
@@ -219,6 +258,7 @@ async function logout() {
     try {
         await request(`${url.protocol}//${url.host}/api/token`, "DELETE", `access_token=${global_access_token}&refresh_token=${window.localStorage.getItem("refresh_token")}`, global_access_token);
         window.localStorage.removeItem("refresh_token");
+        window.localStorage.removeItem("access_token");
         location.reload();
     } catch (e) {
         console.error(e);
