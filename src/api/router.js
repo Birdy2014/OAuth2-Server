@@ -1,49 +1,49 @@
-const AuthMethods = require("./controllers/AuthMethods");
-const ClientMethods = require("./controllers/ClientMethods");
-const UriMethods = require("./controllers/UriMethods");
-const PermissionMethods = require("./controllers/PermissionMethods");
-const TokenMethods = require("./controllers/TokenMethods");
-const UserMethods = require("./controllers/UserMethods");
-const VerificationMethods = require("./controllers/VerificationMethods");
-const DashboardMethods = require("./controllers/DashboardMethods");
+const authorization = require("./controllers/authorization.controller");
+const client = require("./controllers/client.controller");
+const uri = require("./controllers/uri.controller");
+const permission = require("./controllers/permission.controller");
+const token = require("./controllers/token.controller");
+const user = require("./controllers/user.controller");
+const verification = require("./controllers/verification.controller");
+const dashboard = require("./controllers/dashboard.controller");
 const isLoggedIn = require("../middleware/isLoggedIn");
 const router = require("express").Router();
 
 router.route("/authorize")
-    .post(isLoggedIn, AuthMethods.post);
+    .post(isLoggedIn, authorization.post);
 
 router.route("/client")
-    .get(isLoggedIn, ClientMethods.get)
-    .post(isLoggedIn, ClientMethods.post)
-    .delete(isLoggedIn, ClientMethods.del);
+    .get(isLoggedIn, client.get)
+    .post(isLoggedIn, client.post)
+    .delete(isLoggedIn, client.del);
 
 router.route("/client/uri")
-    .post(isLoggedIn, UriMethods.post)
-    .delete(isLoggedIn, UriMethods.del);
+    .post(isLoggedIn, uri.post)
+    .delete(isLoggedIn, uri.del);
 
 router.route("/permissions")
-    .get(isLoggedIn, PermissionMethods.get)
-    .post(isLoggedIn, PermissionMethods.post)
-    .delete(isLoggedIn, PermissionMethods.del);
+    .get(isLoggedIn, permission.get)
+    .post(isLoggedIn, permission.post)
+    .delete(isLoggedIn, permission.del);
 
 router.route("/token")
-    .post(TokenMethods.token)
-    .delete(TokenMethods.revoke);
+    .post(token.token)
+    .delete(token.revoke);
 
 router.route("/token_info")
-    .post(TokenMethods.tokenInfo);
+    .post(token.tokenInfo);
 
 router.route("/user")
-    .get(isLoggedIn, UserMethods.get)
-    .post(UserMethods.post)
-    .put(UserMethods.put)
-    .delete(UserMethods.del);
+    .get(isLoggedIn, user.get)
+    .post(user.post)
+    .put(user.put)
+    .delete(user.del);
 
 router.route("/verification")
-    .post(VerificationMethods.post)
-    .put(VerificationMethods.put);
+    .post(verification.post)
+    .put(verification.put);
 
 router.route("/dashboard")
-    .get(isLoggedIn, DashboardMethods.get);
+    .get(isLoggedIn, dashboard.get);
 
 module.exports = router;

@@ -1,6 +1,7 @@
-const { getUserId } = require("../../api/services/user.service");
+const { getUserId } = require("../util/user");
 const db = require("../../db");
-const ClientMethods = require("../../api/controllers/ClientMethods");
+const clientService = require("../../api/services/client.service");
+const clientUtils = require("../util/client");
 
 module.exports.run = async args => {
     switch (args[0]) {
@@ -27,8 +28,8 @@ module.exports.run = async args => {
                 if (args.length < 3) {
                     console.log("Usage: client add <name> <developer id, username or email> <redirect uri>");
                 } else {
-                    await getUserId(args[1], async user_id => {
-                        let { client_id, client_secret } = await ClientMethods.createClient(args[0], user_id, args[2]);
+                    getUserId(args[1], async user_id => {
+                        let { client_id, client_secret } = await clientService.createClient(args[0], user_id, args[2]);
                         console.log(`Created client ${client_id} with client_secret ${client_secret}`);
                     });
                 }
@@ -44,8 +45,8 @@ module.exports.run = async args => {
                     console.log("Usage: client remove <client id or name>");
                 } else {
                     for (const client of args) {
-                        await ClientMethods.getClientId(client, async client_id => {
-                            await ClientMethods.deleteClient(client_id);
+                        clientUtils.getClientId(client, async client_id => {
+                            await clientService.deleteClient(client_id);
                             console.log(`Deleted client ${client_id}`);
                         });
                     }
@@ -61,8 +62,8 @@ module.exports.run = async args => {
                 if (args.length === 0) {
                     console.log("Usage: client get <client id or name>");
                 } else {
-                    await ClientMethods.getClientId(args[0], async client_id => {
-                        let results = await db.query(`SELECT client.name AS name, client.dev_id AS dev_id, client.client_secret AS client_secret, user.username AS username, user.email AS email FROM client JOIN user ON user.user_id = client.dev_id WHERE client_id = '${client_id}'`);
+                    clientUtils.getClientId(args[0], async client_id => {
+                        let results = await db.query(`SELECT client.name AS name, client.dev_id AS dev_id, client.client_secret AS client_secret, user.username AS username, user.email AS email FROM client LEFT JOIN user ON user.user_id = client.dev_id WHERE client.client_id = '${client_id}'`);
                         console.log(`id: ${client_id} name: ${results[0].name} client_secret: ${results[0].client_secret} dev_id: ${results[0].dev_id} dev_email: ${results[0].email} dev_username: ${results[0].username}`);
                     });
                 }

@@ -1,7 +1,7 @@
 const { addPermission, removePermission, getPermissions, hasPermission } = require("../services/permission.service");
 const { respond, handleError } = require("../utils");
 
-async function get(req, res) {
+exports.get = async (req, res) => {
     try {
         if (req.user.origin !== "access_token" || req.client.name !== "Dashboard")
             throw { status: 400, error: "Invalid arguments" };
@@ -18,7 +18,7 @@ async function get(req, res) {
 
 }
 
-async function post(req, res) {
+exports.post = async (req, res) => {
     try {
         if (req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !req.body.user_id || !req.body.client_id || !req.body.permission)
             throw { status: 400, error: "Invalid arguments" };
@@ -35,7 +35,7 @@ async function post(req, res) {
     }
 }
 
-async function del(req, res) {
+exports.del = async (req, res) => {
     try {
         if (req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !req.body.permission || !req.body.client_id)
             throw { status: 400, error: "Invalid arguments" };
@@ -51,5 +51,3 @@ async function del(req, res) {
         handleError(res, e);
     }
 }
-
-module.exports = { get, post, del };

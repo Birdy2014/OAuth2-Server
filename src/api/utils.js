@@ -29,7 +29,7 @@ function respondJSON(status, data, error) {
  * @param {Object} [data] - Additional data
  * @param {string} [error] - error description
  */
-function respond(res, status, data, error) {
+exports.respond = (res, status, data, error) => {
     res.status(status);
     res.json(respondJSON(status, data, error));
 }
@@ -39,7 +39,7 @@ function respond(res, status, data, error) {
  * @param {number} length
  * @returns {string} Random string
  */
-function generateToken(length) {
+exports.generateToken = (length) => {
     let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
     let text = "";
     for (let i = 0; i < length; i++)
@@ -47,7 +47,7 @@ function generateToken(length) {
     return text;
 }
 
-function currentUnixTime() {
+exports.currentUnixTime = () => {
     return Math.floor(Date.now() / 1000);
 }
 
@@ -56,11 +56,11 @@ function currentUnixTime() {
  * @param {*} res 
  * @param {Object} e - Error
  */
-function handleError(res, e) {
+exports.handleError = (res, e) => {
     if (typeof e.status === "number") {
-        respond(res, e.status, undefined, e.error);
+        exports.respond(res, e.status, undefined, e.error);
     } else {
-        respond(res, 500, undefined, "Internal Server Error");
+        exports.respond(res, 500, undefined, "Internal Server Error");
         logger.error("Server Error: " + e);
     }
 }
@@ -70,7 +70,7 @@ function handleError(res, e) {
  * @param {string} username 
  * @returns {boolean}
  */
-function checkUsername(username) {
+exports.checkUsername = (username) => {
     const forbiddenChars = ["'", ";", "\"", "&", "="];
     return !forbiddenChars.some(i => username.includes(i));
 }
@@ -80,7 +80,7 @@ function checkUsername(username) {
  * @param {string} email 
  * @returns {boolean}
  */
-function checkEmail(email) {
+exports.checkEmail = (email) => {
     const emailRegEx = /^\S+@\S+\.\S+$/;
     const forbiddenChars = ["'", ";", "\"", "&", "="];
     if (forbiddenChars.some(i => email.includes(i))) return false;
@@ -97,9 +97,7 @@ function checkEmail(email) {
  * @param {string} password 
  * @returns {boolean}
  */
-function checkPassword(password) {
+exports.checkPassword = (password) => {
     if (password.length >= 8)
         return true;
 }
-
-module.exports = { generateToken, currentUnixTime, respond, handleError, checkUsername, checkEmail, checkPassword };

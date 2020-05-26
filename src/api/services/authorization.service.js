@@ -10,7 +10,7 @@ const configReader = require("../../configReader");
  * @param {string} challenge
  * @returns {Promise<string>} authorization_code
  */
-async function createAuthorizationCode(client_id, user_id, challenge) {
+exports.createAuthorizationCode = async (client_id, user_id, challenge) => {
     let authorization_code = generateToken(30);
     await db.query(`INSERT INTO authorization_code (authorization_code, user_id, client_id, expires, challenge) VALUES ('${authorization_code}', '${user_id}', '${client_id}', '${currentUnixTime() + configReader.config.authorizationCodeExpirationTime}', '${challenge}')`);
     return authorization_code;
@@ -21,7 +21,7 @@ async function createAuthorizationCode(client_id, user_id, challenge) {
  * @param {string} authorization_code 
  * @returns {Promise<(string|string)>}
  */
-async function getUserAndClientFromAuthorizationCode(code) {
+exports.getUserAndClientFromAuthorizationCode = async (code) => {
     let result = await db.query(`SELECT user_id, client_id FROM authorization_code WHERE authorization_code = '${code}'`);
     return result[0] || {};
 }
@@ -32,10 +32,8 @@ async function getUserAndClientFromAuthorizationCode(code) {
  * @param {string} code_verifier
  * @returns {Promise<boolean>}
  */
-async function checkPKCE(code, code_verifier) {
+exports.checkPKCE = async (code, code_verifier) => {
     let challenge = (await db.query(`SELECT challenge FROM authorization_code WHERE authorization_code = '${code}'`))[0].challenge;
     let hash = crypto.createHash("sha256").update(code_verifier).digest("base64").replace(/\+/g, "_");
     return hash === challenge;
 }
-
-module.exports = { createAuthorizationCode, getUserAndClientFromAuthorizationCode, checkPKCE };

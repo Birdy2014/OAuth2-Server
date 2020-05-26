@@ -3,7 +3,7 @@ const readline = require("readline");
 const path = require("path");
 const appDir = path.dirname(require.main.filename);
 
-function start() {
+exports.start = () => {
     const commands = new Map();
     fs.readdir(`${appDir}/adminConsole/commands`, "utf8", (err, files) => {
         if (err) return console.error(err);
@@ -37,5 +37,3 @@ function start() {
     console.log("OAuth2-Server is running. Type in 'help' for help or 'stop' to stop the server.");
     rl.prompt();
 }
-
-module.exports.start = start;

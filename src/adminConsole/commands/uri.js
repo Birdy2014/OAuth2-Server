@@ -1,6 +1,6 @@
-const { getClientId } = require("../../api/controllers/ClientMethods");
+const { getClientId } = require("../util/client");
 const db = require("../../db");
-const UriMethods = require("../../api/controllers/UriMethods");
+const UriMethods = require("../../api/controllers/uri.controller");
 
 module.exports.run = async args => {
     switch (args[0]) {
@@ -43,7 +43,7 @@ module.exports.run = async args => {
                 if (args.length < 2) {
                     console.log("Usage: uri remove <client name or ID> <redirect_uri>");
                 } else {
-                    await getClientId(args[0], async client_uri => {
+                    getClientId(args[0], async client_uri => {
                         await UriMethods.removeUri(client_uri, args[1]);
                         console.log("Removed redirect_uri");
                     });                  
@@ -59,8 +59,8 @@ module.exports.run = async args => {
                 if (args.length === 0) {
                     console.log("Usage: uri get <client name or ID>");
                 } else {
-                    await getClientId(args[0], async client_id => {
-                        let results = await db.query(`SELECT redirect_uri.redirect_uri AS redirect_uri, client.name AS name, user.email AS email, user.username AS username FROM redirect_uri JOIN client ON redirect_uri.client_id = client.client_id JOIN user ON client.dev_id = user.user_id WHERE redirect_uri.client_id = '${client_id}'`);
+                    getClientId(args[0], async client_id => {
+                        let results = await db.query(`SELECT redirect_uri.redirect_uri AS redirect_uri, client.name AS name, user.email AS email, user.username AS username FROM redirect_uri JOIN client ON redirect_uri.client_id = client.client_id LEFT JOIN user ON client.dev_id = user.user_id WHERE redirect_uri.client_id = '${client_id}'`);
                         let output = "";
                         for (const result of results) {
                             output += `client_id: ${client_id} client_name: ${result.name} redirect_uri: ${result.redirect_uri} dev_email: ${result.email} dev_name: ${result.username}\n`;

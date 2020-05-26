@@ -6,7 +6,7 @@ const db = require("../../db");
  * @param {string} [client_id]
  * @returns {Array.string|Array.Object} Permissions
  */
-async function getPermissions(user_id, client_id) {
+exports.getPermissions = async (user_id, client_id) => {
     let query;
     if (client_id)
         query = `SELECT client_id, permission FROM permissions WHERE user_id = '${user_id}' AND client_id = '${client_id}'`;
@@ -26,7 +26,7 @@ async function getPermissions(user_id, client_id) {
     return permissions;
 }
 
-async function addPermission(user_id, client_id, permission) {
+exports.addPermission = async (user_id, client_id, permission) => {
     try {
         await db.query(`INSERT INTO permissions (user_id, client_id, permission) VALUES ('${user_id}', '${client_id}', '${permission}')`);
     } catch (e) {
@@ -34,11 +34,11 @@ async function addPermission(user_id, client_id, permission) {
     }
 }
 
-async function removePermission(user_id, client_id, permission) {
+exports.removePermission = async (user_id, client_id, permission) => {
     await db.query(`DELETE FROM permissions WHERE user_id = '${user_id}' AND permission = '${permission}' AND client_id = '${client_id}'`);
 }
 
-async function hasPermission(user_id, client_id, permission) {
+exports.hasPermission = async (user_id, client_id, permission) => {
     let permissions = await db.query(`SELECT permission FROM permissions WHERE user_id = '${user_id}' AND client_id = '${client_id}'`);
     for (const permissionObj of permissions) {
         if (permissionObj.permission === permission)
@@ -46,5 +46,3 @@ async function hasPermission(user_id, client_id, permission) {
     }
     return false;
 }
-
-module.exports = { addPermission, removePermission, getPermissions, hasPermission };

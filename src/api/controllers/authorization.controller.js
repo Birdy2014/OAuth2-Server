@@ -1,7 +1,7 @@
 const { respond, handleError } = require("../utils");
 const { createAuthorizationCode } = require("../services/authorization.service");
 
-async function post(req, res) {
+exports.post = async (req, res) => {
     try {
         if (!req.client || req.client.origin !== "redirect_uri" || req.user.origin !== "basic" || !req.body.code_challenge)
             throw { status: 400, error: "Invalid arguments" };
@@ -15,5 +15,3 @@ async function post(req, res) {
         handleError(res, e);
     }
 }
-
-module.exports = { post: post };

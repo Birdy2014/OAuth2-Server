@@ -3,7 +3,7 @@ const { getUserId } = require("../services/user.service");
 const { sendVerificationEmail, validateVerificationCode } = require("../services/verification.service");
 const db = require("../../db");
 
-async function post(req, res) {
+exports.post = async (req, res) => {
     try {
         if (!req.body.verification_code)
             throw { status: 400, error: "Invalid arguments" };
@@ -16,7 +16,7 @@ async function post(req, res) {
 }
 
 //forgot password
-async function put(req, res) {
+exports.put = async (req, res) => {
     try {
         if (!req.body.login)
             throw { status: 400, error: "Invalid arguments" };
@@ -32,5 +32,3 @@ async function put(req, res) {
         handleError(res, e);
     }
 }
-
-module.exports = { post, put }

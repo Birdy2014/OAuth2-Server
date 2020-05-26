@@ -1,7 +1,7 @@
 const { respond, handleError } = require("../utils");
 const configReader = require("../../configReader");
 
-function get(req, res) {
+exports.get = async (req, res) => {
     try {
         if (req.client.name !== "Dashboard" || req.client.origin !== "access_token")
             throw { status: 400, error: "Invalid arguments" };
@@ -15,5 +15,3 @@ function get(req, res) {
         handleError(res, e);
     }
 }
-
-module.exports = { get };

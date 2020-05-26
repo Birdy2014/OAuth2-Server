@@ -115,7 +115,7 @@ exports.getUserInfo = async user_id => {
  * Checks if user exists and returns it's user_id
  * @param {string} login - user_id, email or username
  * @param {string} password
- * @returns {string} user_id or empty string
+ * @returns {Promise<string>} user_id or empty string
  */
 exports.validateUser = async (login, password) => {
     let query;
@@ -140,9 +140,9 @@ exports.validateUser = async (login, password) => {
 /**
  * Get the user id from the login
  * @param {string} login - email, username or user_id
- * @param {function(string)} - async callback with user_id as param
+ * @returns {Promise<string>} user_id
  */
-exports.getUserId = async (login, callback) => {
+exports.getUserId = async (login) => {
     let query;
     if (uuidRegEx.test(login))
         query = `SELECT user_id FROM user WHERE user_id = '${login}'`;
@@ -151,18 +151,11 @@ exports.getUserId = async (login, callback) => {
     else
         query = `SELECT user_id FROM user WHERE username = '${login}'`;
 
-    let result = await db.query(query);
-    if (result.length === 1 && !callback) {
-        return result[0].user_id;
-    } else if (result.length !== 1 && !callback) {
-        throw { status: 404, error: "Cannot find User" };
-    } else if (result.length === 1) {
-        let user_id = result[0].user_id;
-        await callback(user_id);
-    } else if (result.length === 0) {
-        console.log(`Can't find user ${login}`);
-    } else {
-        console.log(`Found ${result.length} users with name ${login}`);
+    try {
+        let { user_id } = (await db.query(query))[0];
+        return user_id;
+    } catch (e) {
+        return "";
     }
 }
 

@@ -1,10 +1,10 @@
 const { respond, handleError } = require("../utils");
 const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getAllUsers, setValues, setVerified } = require("../services/user.service");
-const { generateRefreshToken } = require("./TokenMethods");
+const { generateRefreshToken } = require("../services/token.service");
 const db = require("../../db");
 const configReader = require("../../configReader");
 
-async function get(req, res) {
+exports.get = async (req, res) => {
     try {
         if (!req.user.admin || req.client.name !== "Dashboard")
             throw { status: 403, error: "Insufficient permissions" };
@@ -16,7 +16,7 @@ async function get(req, res) {
     }
 }
 
-async function post(req, res) {
+exports.post = async (req, res) => {
     try {
         if (!req.body.email || !req.body.username || !req.body.password)
             throw { status: 400, error: "Invalid arguments" };
@@ -34,7 +34,7 @@ async function post(req, res) {
     }
 }
 
-async function put(req, res) {
+exports.put = async (req, res) => {
     try {
         if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard" || req.body.length === 0)
             throw { status: 400, error: "Invalid arguments" };
@@ -64,7 +64,7 @@ async function put(req, res) {
     }
 }
 
-async function del(req, res) {
+exports.del = async (req, res) => {
     try {
         if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
             throw { status: 400, error: "Invalid arguments" };
@@ -83,5 +83,3 @@ async function del(req, res) {
         handleError(res, e);
     }
 }
-
-module.exports = { get, post, put, del };

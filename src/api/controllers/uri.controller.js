@@ -2,7 +2,7 @@ const db = require("../../db");
 const { respond, handleError } = require("../utils");
 const { hasPermission } = require("../services/permission.service");
 
-async function post(req, res) {
+exports.post = async (req, res) => {
     try {
         if (!req.body.client_id || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
             throw { status: 400, error: "Invalid arguments" };
@@ -18,7 +18,7 @@ async function post(req, res) {
     }
 }
 
-async function del(req, res) {
+exports.del = async (req, res) => {
     try {
         if (!req.body.client_id || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
             throw { status: 400, error: "Invalid arguments" };
@@ -34,7 +34,7 @@ async function del(req, res) {
     }
 }
 
-async function addUri(client_id, redirect_uri) {
+exports.addUri = async (client_id, redirect_uri) => {
     try {
         let results = await db.query(`SELECT client_id FROM client WHERE client_id = '${client_id}'`);
         if (results.length === 1)
@@ -46,8 +46,6 @@ async function addUri(client_id, redirect_uri) {
     }
 }
 
-async function removeUri(client_id, redirect_uri) {
+exports.removeUri = async (client_id, redirect_uri) => {
     await db.query(`DELETE FROM redirect_uri WHERE client_id = '${client_id}' AND redirect_uri = '${redirect_uri}'`);
 }
-
-module.exports = { post, del, addUri, removeUri };
