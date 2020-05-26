@@ -34,7 +34,7 @@ async function getUserAndClientFromAuthorizationCode(code) {
  */
 async function checkPKCE(code, code_verifier) {
     let challenge = (await db.query(`SELECT challenge FROM authorization_code WHERE authorization_code = '${code}'`))[0].challenge;
-    let hash = crypto.createHash("sha256").update(code_verifier).digest("base64");
+    let hash = crypto.createHash("sha256").update(code_verifier).digest("base64").replace(/\+/g, "_");
     return hash === challenge;
 }
 

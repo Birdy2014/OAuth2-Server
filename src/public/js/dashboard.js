@@ -69,7 +69,7 @@ async function genPKCEChallenge(code_verifier) {
         const encoder = new TextEncoder();
         const data = encoder.encode(code_verifier);
         let arr = await window.crypto.subtle.digest('SHA-256', data);
-        return btoa(String.fromCharCode.apply(null, new Uint8Array(arr)));
+        return btoa(String.fromCharCode.apply(null, new Uint8Array(arr))).replace(/\+/g, "_");
     } else {
         return undefined;
     }
