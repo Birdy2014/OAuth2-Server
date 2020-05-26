@@ -9,6 +9,7 @@ const adminConsole = require("./adminConsole/adminConsole");
 const cors = require("cors");
 const getUser = require("./middleware/getUser");
 const logger = require("./logger");
+const translationProvider = require("./i18n/translationProvider");
 var app = express();
 
 async function main() {
@@ -27,15 +28,26 @@ async function main() {
     app.set("view engine", "html");
 
     //Frontend
-    app.use("/authorize", (req, res) => res.render("authorization"));
-    app.use("/register", (req, res) => res.render("register"));
-    app.use("/verification", (req, res) => res.render("verification"));
-    app.use("/reset_password", (req, res) => res.render("reset_password"));
+    app.use("/authorize", (req, res) => res.render("authorization", {
+        locals: { lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages())) }
+    }));
+    app.use("/register", (req, res) => res.render("register", {
+        locals: { lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages())) }
+    }));
+    app.use("/verification", (req, res) => res.render("verification", {
+        locals: { lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages())) }
+    }));
+    app.use("/reset_password", (req, res) => res.render("reset_password", {
+        locals: { lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages())) }
+    }));
     app.use("/dashboard", (req, res) => res.render("dashboard/template", {
         partials: {
             clients: "dashboard/clients",
             settings: "dashboard/settings",
             admin_settings: "dashboard/admin_settings"
+        },
+        locals: {
+            lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
         }
     }));
 
@@ -53,7 +65,9 @@ async function main() {
     app.use((req, res) => {
         res.status(404);
         if (req.accepts('html'))
-            res.render("404");
+            res.render("404", {
+                locals: { lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages())) }
+            });
         else
             res.send({ status: 404 });
     });

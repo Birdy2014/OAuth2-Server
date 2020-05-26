@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8" >
     <link href="../css/register.css" rel="stylesheet">
-    <title>Registrierung</title>
+    <title>${lang("register")}</title>
     <script src="../js/register.js"></script>
     <script src="../js/authorization.js"></script>
 </head>
 <body>
 <div id="interactionContainer">
     <!--Logo-->
-    <h1 id="interactionHeader">Registrieren</h1>
+    <h1 id="interactionHeader">${lang("register")}</h1>
     <label>
-        <input id="usernameInput" type="text" placeholder="Nutzername">
+        <input id="usernameInput" type="text" placeholder="${lang("username")}">
         <br>
-        <input id="emailInput" type="text" placeholder="E-Mail">
+        <input id="emailInput" type="text" placeholder="${lang("email")}">
         <br>
-        <input id="passwordInput" type="password" placeholder="Passwort">
+        <input id="passwordInput" type="password" placeholder="${lang("password")}">
         <br>
-        <input id="passwordVerification" type="password" placeholder="Passwort bestätigen">
+        <input id="passwordVerification" type="password" placeholder="${lang("confirmPassword")}">
     </label>
-    <a id="loginButton" href="javascript:void(0)" onclick="redirect('../authorize')">Anmelden</a>
-    <button id="registerButton" onclick="submitRegister()">Weiter</button>
+    <a id="loginButton" href="javascript:void(0)" onclick="redirect('../authorize')">${lang("login")}</a>
+    <button id="registerButton" onclick="submitRegister()">${lang("continue")}</button>
 </div>
 </body>
 </html>

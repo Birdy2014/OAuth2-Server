@@ -52,6 +52,7 @@ function generateConfig(path) {
     let emails = readlineSync.question("email address domains on whitelist separated by commas [empty]: ") || "";
     config.emailWhitelist = emails.split(",");
     config.url = readlineSync.question("url of the Server (e.g. https://example.com/oauth): ");
+    config.language = readlineSync.question("default website language [en]: ") || "en";
     console.log("\nEmail config");
     let emailEnabled = readlineSync.question("Do you want to send email address verification emails? [y/n] ");
     if (emailEnabled.toLowerCase() === "y") {

@@ -1,0 +1,18 @@
+{
+    "missingTranslation": "Übersetzung fehlt",
+    "clients": "Clients",
+    "users": "Benutzer",
+    "settings": "Einstellungen",
+    "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "submit": "Submit",
+    "adminSettings": "Administratoreinstellungen",
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "forgotPassword": "Passwort vergessen",
+    "continue": "Weiter",
+    "resetPassword": "Passwort zurücksetzen",
+    "change": "Ändern",
+    "username": "Nutzername",
+    "email": "E-Mail"
+}
