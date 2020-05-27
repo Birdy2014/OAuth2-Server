@@ -1,0 +1,24 @@
+{
+    "db": {
+        "dbms": "sqlite",
+        "path": "test.db"
+    },
+    "emailWhitelist": [
+        ""
+    ],
+    "email": {
+        "enabled": false
+    },
+    "user_info": {
+        "key": ""
+    },
+    "port": 3000,
+    "accessTokenExpirationTime": 3600,
+    "refreshTokenExpirationTime": 2592000,
+    "authorizationCodeExpirationTime": 86400,
+    "accessTokenLength": 40,
+    "refreshTokenLength": 40,
+    "url": "http://localhost:3000",
+    "logpath": "./logs",
+    "language": "en"
+}
