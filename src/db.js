@@ -323,20 +323,3 @@ async function initDatabase(config, dashboard_uri) {
 exports.getDashboardId = async () => {
     return (await exports.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
 }
-
-//check if client exists and is valid
-exports.validateClient = async (client_id, client_secret, redirect_uri) => {
-    //Normal Client
-    if (redirect_uri) {
-        let results = await exports.query(`SELECT redirect_uri, name FROM redirect_uri JOIN client ON redirect_uri.client_id = client.client_id WHERE redirect_uri.client_id = '${client_id}'`);
-        for (const item of results) {
-            if (redirect_uri.startsWith(item.redirect_uri)) {
-                return item.name;
-            }
-        }
-        return false;
-    } else if (client_secret) {
-        let results = await exports.query(`SELECT * FROM client WHERE client_id='${client_id}' AND client_secret='${client_secret}'`);
-        return results.length === 1 ? results[0].name : false;
-    }
-}

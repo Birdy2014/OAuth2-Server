@@ -10,7 +10,7 @@ const isLoggedIn = require("../middleware/isLoggedIn");
 const router = require("express").Router();
 
 router.route("/authorize")
-    .post(isLoggedIn, authorization.post);
+    .post(authorization.post);
 
 router.route("/client")
     .get(isLoggedIn, client.get)

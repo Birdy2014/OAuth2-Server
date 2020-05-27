@@ -1,5 +1,5 @@
 const { respond, handleError, generateToken } = require("../utils");
-const { getUserId } = require("../services/user.service");
+const { getUserFromLogin } = require("../services/user.service");
 const { sendVerificationEmail, validateVerificationCode } = require("../services/verification.service");
 const db = require("../../db");
 
@@ -21,7 +21,7 @@ exports.put = async (req, res) => {
         if (!req.body.login)
             throw { status: 400, error: "Invalid arguments" };
 
-        let user_id = await getUserId(req.body.login);
+        let { user_id } = await getUserFromLogin(req.body.login);
         await db.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //delete old verification codes
         let verification_code = generateToken(12);
         let { username, email } = (await db.query(`SELECT username, email FROM user WHERE user_id = '${user_id}'`))[0];

@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const uuid = require("uuid").v4;
 const db = require("../../db");
-const { generateToken, checkUsername, checkEmail, checkPassword } = require("../utils");
+const { generateToken, checkUsername, checkEmail, checkPassword, currentUnixTime } = require("../utils");
 const configReader = require("../../configReader");
 const { sendVerificationEmail } = require("../services/verification.service");
 const { hasPermission } = require("./permission.service");
@@ -115,47 +115,63 @@ exports.getUserInfo = async user_id => {
  * Checks if user exists and returns it's user_id
  * @param {string} login - user_id, email or username
  * @param {string} password
- * @returns {Promise<string>} user_id or empty string
+ * @returns {Promise<Object>} user_id or empty string
  */
-exports.validateUser = async (login, password) => {
-    let query;
-    if (uuidRegEx.test(login))
-        query = `SELECT password_hash, user_id FROM user WHERE user_id = '${login}'`;
-    else if (emailRegEx.test(login))
-        query = `SELECT password_hash, user_id FROM user WHERE email = '${login}'`;
-    else
-        query = `SELECT password_hash, user_id FROM user WHERE username = '${login}'`;
+exports.getUserFromLoginPassword = async (login, password) => {
+    let user = await exports.getUserFromLogin(login);
 
+    let authorized;
     try {
-        let { password_hash, user_id } = (await db.query(query))[0];
-        if (await bcrypt.compare(password, password_hash))
-            return user_id;
-        else
-            return "";
+        authorized = await bcrypt.compare(password, user.password_hash);
     } catch (e) {
-        return "";
+        throw { status: 500, error: "Internal Server Error" };
     }
+    if (authorized)
+        return user;
+    else
+        throw { status: 403, error: "Invalid user credentials" };
 }
 
 /**
  * Get the user id from the login
  * @param {string} login - email, username or user_id
- * @returns {Promise<string>} user_id
+ * @returns {Promise<Object>} user_id
  */
-exports.getUserId = async (login) => {
+exports.getUserFromLogin = async (login) => {
     let query;
     if (uuidRegEx.test(login))
-        query = `SELECT user_id FROM user WHERE user_id = '${login}'`;
+        query = `SELECT * FROM user WHERE user_id = '${login}'`;
     else if (emailRegEx.test(login))
-        query = `SELECT user_id FROM user WHERE email = '${login}'`;
+        query = `SELECT * FROM user WHERE email = '${login}'`;
     else
-        query = `SELECT user_id FROM user WHERE username = '${login}'`;
+        query = `SELECT * FROM user WHERE username = '${login}'`;
 
+    let user;
     try {
-        let { user_id } = (await db.query(query))[0];
-        return user_id;
+        user = (await db.query(query))[0];
     } catch (e) {
-        return "";
+        throw { status: 500, error: "Internal Server Error" };
+    }
+    if (user)
+        return user;
+    else
+        throw { status: 404, error: "User " + login + " not found" };
+}
+
+/**
+ * 
+ * @param {string} access_token
+ * @returns {Promise<Object>}
+ */
+exports.getUserFromAccessToken = async (access_token) => {
+    if (access_token.startsWith("Bearer ")) access_token = access_token.substring("Bearer ".length);
+    let results = await db.query(`SELECT user_id AS user_id, expires AS expires, client_id AS client_id FROM access_token WHERE access_token = '${access_token}'`);
+    if (results.length > 0 && results[0].expires > currentUnixTime()) {
+        let user = await exports.getUserInfo(results[0].user_id);
+        Object.assign(user, { client_id: results[0].client_id });
+        return user;
+    } else {
+        throw { status: 403, error: "Invalid access_token" };
     }
 }
 

@@ -2,18 +2,32 @@ const tokenService = require("../services/token.service");
 const { respond, handleError } = require("../utils");
 const db = require("../../db");
 const { getUserAndClientFromAuthorizationCode, checkPKCE } = require("../services/authorization.service");
-const { checkClientCredentials } = require("../services/client.service");
+const { checkClientCredentials, getClientFromSecret } = require("../services/client.service");
+const { getUserFromAccessToken } = require("../services/user.service");
 
 exports.tokenInfo = async (req, res) => {
     try {
-        if (!req.client || req.client.origin !== "secret" || !req.user)
+        if (!(req.header("Authorization") || (req.body.client_id && req.body.client_secret)) || !req.body.access_token)
             throw { status: 400, error: "Invalid arguments" };
 
-        let tokenInfoResponse = req.user;
-        tokenInfoResponse.active = true;
-        tokenInfoResponse.origin = undefined;
+        let client_id, client_secret;
+        if (req.header("Authorization")) {
+            let access_token_raw = req.header("Authorization");
+            if (access_token_raw.startsWith("Basic "))
+                access_token_raw = access_token_raw.substring("Basic ".length);
+            [client_id, client_secret] = Buffer.from(access_token_raw, "base64").toString().split(":");
+        } else {
+            client_id = req.body.client_id;
+            client_secret = req.body.client_secret;
+        }
+        let client = await getClientFromSecret(client_id, client_secret);
+        let user = await getUserFromAccessToken(req.body.access_token);
+        if (client.client_id !== user.client_id)
+            throw { status: 403, error: "Invalid access_token" };
 
-        respond(res, 200, tokenInfoResponse);
+        user.access_token = undefined;
+        user.active = true;
+        respond(res, 200, user);
     } catch (e) {
         handleError(res, e);
     }
