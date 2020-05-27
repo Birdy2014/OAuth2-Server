@@ -42,7 +42,7 @@ exports.put = async (req, res) => {
         let user_id;
         if (req.body.user_id && req.body.user_id !== req.user.user_id && !req.user.admin)
             throw { status: 403, error: "Insufficient permissions" }
-        else if (req.body.user_id !== req.user.user_id && req.user.admin)
+        else if (req.body.user_id && req.body.user_id !== req.user.user_id && req.user.admin)
             user_id = req.body.user_id;
         else
             user_id = req.user.user_id;
