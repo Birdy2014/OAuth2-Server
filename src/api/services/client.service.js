@@ -37,7 +37,7 @@ exports.checkClientCredentials = async (client_id, client_secret) => {
  * @param {number} developer_id - The id of the developer
  * @returns {Promise<(string|string)>} client_id and client_secret
  */
-exports.createClient = async (name, developer_id, redirect_uri) => {
+exports.createClient = async (name, dev_id, redirect_uri) => {
     //Does a client with the same name already exist?
     if ((await db.query(`SELECT * FROM client WHERE name='${name}'`)).length === 1) throw { status: 409, error: "Client already exists" };
 
@@ -46,9 +46,9 @@ exports.createClient = async (name, developer_id, redirect_uri) => {
 
     //Create the client
     let client_id = uuid();
-    await db.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${client_id}', '${client_secret}', '${name}', '${developer_id}')`);
+    await db.insert("client", { client_id, client_secret, name, dev_id });
 
-    await db.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${client_id}', '${redirect_uri}')`);
+    await db.insert("redirect_uri", { client_id, redirect_uri });
 
     return { client_id, client_secret };
 }

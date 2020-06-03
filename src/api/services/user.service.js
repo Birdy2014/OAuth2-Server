@@ -27,7 +27,7 @@ exports.createUser = async (email, username, password, user_info) => {
     //Create user
     let user_id = uuid();
     try {
-        await db.query(`INSERT INTO user (user_id, email, username, password_hash) VALUES ('${user_id}', '${email}', '${username}', '${password_hash}')`);
+        await db.insert("user", { user_id, email, username, password_hash });
     } catch (e) {
         if (e.code === "ER_DUP_ENTRY" || e.code === "SQLITE_CONSTRAINT")
             throw { status: 409, error: "User already exists" };
@@ -37,7 +37,7 @@ exports.createUser = async (email, username, password, user_info) => {
 
     if (configReader.config.email.enabled) {
         let verification_code = generateToken(12);
-        await db.query(`INSERT INTO verification_code (user_id, email, verification_code) VALUES ('${user_id}', '${email}', '${verification_code}')`);
+        await db.insert("verification_code", { user_id, email, verification_code });
         sendVerificationEmail(username, email, verification_code, 0);
     } else {
         await db.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);
@@ -75,7 +75,7 @@ exports.changeEmail = async (user_id, email) => {
     if (configReader.config.email.enabled) {
         let verification_code = generateToken(12);
         await db.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //Delete old verification codes
-        await db.query(`INSERT INTO verification_code (user_id, verification_code, email) VALUES ('${user_id}', '${verification_code}', '${email}')`);
+        await db.insert("verification_code", { user_id, verification_code, email });
         let username = (await db.query(`SELECT username FROM user WHERE user_id = '${user_id}'`))[0].username;
         sendVerificationEmail(username, email, verification_code, 1);
     } else {
@@ -214,7 +214,7 @@ exports.setValue = async (user_id, name, value) => {
     } else if (await exports.getValue(user_id, name)) {
         await db.query(`UPDATE user_info SET value = '${value}' WHERE user_id = '${user_id}' AND name = '${name}'`);
     } else {
-        await db.query(`INSERT INTO user_info (user_id, name, value) VALUES ('${user_id}', '${name}', '${value}')`);
+        await db.insert("user_info", { user_id, name, value });
     }
 }
 

@@ -28,7 +28,7 @@ exports.getPermissions = async (user_id, client_id) => {
 
 exports.addPermission = async (user_id, client_id, permission) => {
     try {
-        await db.query(`INSERT INTO permissions (user_id, client_id, permission) VALUES ('${user_id}', '${client_id}', '${permission}')`);
+        await db.insert("permissions", { user_id, client_id, permission });
     } catch (e) {
         if (e.code != "ER_DUP_ENTRY") throw e; //Allow adding permission multiple times
     }

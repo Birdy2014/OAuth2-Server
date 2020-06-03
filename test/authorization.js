@@ -18,7 +18,7 @@ describe("authorization", () => {
     before((done) => {
         setup((_context) => {
             context = _context;
-            db.query(`INSERT INTO user (user_id, email, username, password_hash) VALUES ('$(testUser.user_id)', '$(testUser.email)', '$(testUser.username)', '$(testUser.password_hash)')`);
+            db.insert("user", { user_id: testUser.user_id, email: testUser.email, username: testUser.username, password_hash: testUser.password_hash });
             testUser.challenge = crypto.createHash("sha256").update(testUser.code_verifier).digest("base64").replace(/\+/g, "_");
             done();
         });

@@ -323,3 +323,18 @@ async function initDatabase(config, dashboard_uri) {
 exports.getDashboardId = async () => {
     return (await exports.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
 }
+
+/**
+ * Inserts a row into a table
+ * @param {string} table - Name of the table
+ * @param {Object} row - fields to be inserted
+ */
+exports.insert = async (table, row) => {
+    let keys = [];
+    let values = [];
+    for (let field in row) {
+        keys.push("\"" + field + "\"");
+        values.push("\"" + row[field] + "\"");
+    }
+    await exports.query(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${values.join(", ")})`);
+}

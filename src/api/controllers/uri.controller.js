@@ -38,7 +38,7 @@ exports.addUri = async (client_id, redirect_uri) => {
     try {
         let results = await db.query(`SELECT client_id FROM client WHERE client_id = '${client_id}'`);
         if (results.length === 1)
-            await db.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${client_id}', '${redirect_uri}')`);
+            await db.insert("redirect_uri", { client_id, redirect_uri });
         else
             throw { status: 404, error: "Client not found" };
     } catch (e) {

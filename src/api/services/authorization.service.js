@@ -12,7 +12,8 @@ const configReader = require("../../configReader");
  */
 exports.createAuthorizationCode = async (client_id, user_id, challenge) => {
     let authorization_code = generateToken(30);
-    await db.query(`INSERT INTO authorization_code (authorization_code, user_id, client_id, expires, challenge) VALUES ('${authorization_code}', '${user_id}', '${client_id}', '${currentUnixTime() + configReader.config.authorizationCodeExpirationTime}', '${challenge}')`);
+    let expires = currentUnixTime() + configReader.config.authorizationCodeExpirationTime;
+    await db.insert("authorization_code", { authorization_code, user_id, client_id, challenge, expires });
     return authorization_code;
 }
 

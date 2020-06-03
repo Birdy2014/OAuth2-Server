@@ -23,9 +23,10 @@ exports.generateRefreshToken = async (user_id, client_id) => {
     let refresh_token;
     let error = true;
     while (error) {
+        let expires = currentUnixTime() + configReader.config.refreshTokenExpirationTime;
         refresh_token = generateToken(configReader.config.refreshTokenLength);
         try {
-            await db.query(`INSERT INTO refresh_token (refresh_token, user_id, client_id, expires) VALUES ('${refresh_token}', '${user_id}', '${client_id}', '${currentUnixTime() + configReader.config.refreshTokenExpirationTime}')`);
+            await db.insert("refresh_token", { refresh_token, user_id, client_id, expires });
             error = false;
         } catch (e) {
             continue;
@@ -65,7 +66,7 @@ exports.generateAccessToken = async (user_id, client_id) => {
     while (error) {
         access_token = generateToken(configReader.config.accessTokenLength);
         try {
-            await db.query(`INSERT INTO access_token (access_token, user_id, client_id, expires) VALUES ('${access_token}', '${user_id}', '${client_id}', '${expires}')`);
+            await db.insert("access_token", { access_token, user_id, client_id, expires });
             error = false;
         } catch (e) {
             continue;
