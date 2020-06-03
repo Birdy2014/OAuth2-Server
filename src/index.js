@@ -81,10 +81,10 @@ async function main() {
         logger.info("cleaning complete");
     }, 86400000);
 
-    app.listen(configReader.config.port);
-
-    //start console
-    adminConsole.start();
+    app.listen(configReader.config.port, async () => {
+        await logger.info("Server listening on 0.0.0.0:" + configReader.config.port);
+        adminConsole.start();
+    });
 }
 
 main().catch(e => logger.error(e));
