@@ -333,7 +333,7 @@ exports.insert = async (table, row) => {
     let keys = [];
     let values = [];
     for (let field in row) {
-        keys.push("\"" + field + "\"");
+        keys.push(field);
         values.push("\"" + row[field] + "\"");
     }
     await exports.query(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${values.join(", ")})`);
