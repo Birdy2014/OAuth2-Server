@@ -4,6 +4,7 @@ const db = require("../../db");
 const { getUserAndClientFromAuthorizationCode, checkPKCE } = require("../services/authorization.service");
 const { checkClientCredentials, getClientFromSecret } = require("../services/client.service");
 const { getUserFromAccessToken } = require("../services/user.service");
+const { getPermissions } = require("../services/permission.service");
 
 exports.tokenInfo = async (req, res) => {
     try {
@@ -24,7 +25,7 @@ exports.tokenInfo = async (req, res) => {
         let user = await getUserFromAccessToken(req.body.access_token);
         if (client.client_id !== user.client_id)
             throw { status: 403, error: "Invalid access_token" };
-
+        user.permissions = await getPermissions(user.user_id, client_id);
         user.access_token = undefined;
         user.active = true;
         respond(res, 200, user);
