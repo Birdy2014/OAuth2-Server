@@ -87,7 +87,7 @@ module.exports.run = async args => {
                                 await changePassword(user_id, args[2]);
                                 break;
                             case "email":
-                                await changeEmail(user_id, args[2]);
+                                await changeEmail(user_id, args[2], true);
                                 break;
                             case "verified":
                                 if (["0", "1", "false", "true"].includes(args[2]))

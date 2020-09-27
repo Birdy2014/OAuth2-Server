@@ -70,9 +70,9 @@ exports.changePassword = async (user_id, password) => {
     await db.query(`UPDATE user SET password_hash = '${password_hash}' WHERE user_id = '${user_id}'`);
 }
 
-exports.changeEmail = async (user_id, email) => {
+exports.changeEmail = async (user_id, email, noVerification) => {
     if (!checkEmail(email)) throw { status: 400, error: "Invalid email address" };
-    if (configReader.config.email.enabled) {
+    if (configReader.config.email.enabled && !noVerification) {
         let verification_code = generateToken(12);
         await db.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //Delete old verification codes
         await db.insert("verification_code", { user_id, verification_code, email });
