@@ -1,0 +1,24 @@
+doctype html
+html
+    head
+        meta(charset="UTF-8")
+        title Dashboard
+        link(rel="stylesheet" href="../css/dashboard.css")
+        script(src="../js/authorization.js")
+        script(src="../js/register.js")
+        script(src="../js/dashboard.js")
+    body
+        nav
+            a(href="javascript:navigate('clients');")= lang("clients")
+            = " "
+            a(href="javascript:navigate('settings');")= lang("settings")
+            = " "
+            a#menu_item_admin_settings(href="javascript:navigate('admin_settings');" style="display: none")= lang("adminSettings")
+            = " "
+            a(href="javascript:logout();") Logout
+        div.content.active#clients
+            include clients.pug
+        div.content#settings
+            include settings.pug
+        div.content#admin_settings
+            include admin_settings.pug

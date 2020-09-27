@@ -1,0 +1,11 @@
+h1= lang("settings")
+div#settings_input_container
+div
+    =lang("password")
+    = " : "
+    input.inputs_user_info#input_password(type="password" name="password")
+div
+    =lang("confirmPassword")
+    = " : "
+    input#input_confirm_password(type="password")
+button#button_submit=lang("change")

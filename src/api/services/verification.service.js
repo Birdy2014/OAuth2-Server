@@ -1,12 +1,13 @@
-const es6Renderer = require('express-es6-template-engine');
-const fs = require("fs");
+const pug = require('pug');
 const userService = require("./user.service");
 const configReader = require("../../configReader");
 const db = require("../../db");
 const logger = require("../../logger");
-const verificationEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/verification.html"), "username, url");
-const emailChangeEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/change.html"), "username, url");
-const passwordResetEmail = es6Renderer(fs.readFileSync(__dirname + "/../../views/email/reset.html"), "username, url");
+const translationProvider = require("../../i18n/translationProvider");
+const verificationEmail = pug.compileFile(__dirname + "/../../views/email/verification.pug");
+const emailChangeEmail = pug.compileFile(__dirname + "/../../views/email/change.pug");
+const passwordResetEmail = pug.compileFile(__dirname + "/../../views/email/reset.pug");
+const lang = translationProvider.getLanguage(configReader.config.language);
 
 /**
  * 
@@ -51,23 +52,20 @@ exports.sendVerificationEmail = async (username, email, verification_code, actio
     let text;
     switch (action) {
         case 0:
-            html = verificationEmail(username, `${configReader.config.url}/verification?verification_code=${verification_code}`);
+            html = verificationEmail({ username, url: `${configReader.config.url}/verification?verification_code=${verification_code}`, lang });
             break;
         case 1:
-            html = emailChangeEmail(username, `${configReader.config.url}/verification?verification_code=${verification_code}`);
+            html = emailChangeEmail({ username, url: `${configReader.config.url}/verification?verification_code=${verification_code}`, lang });
             break;
         case 2:
-            html = passwordResetEmail(username, `${configReader.config.url}/reset_password?verification_code=${verification_code}`);
+            html = passwordResetEmail({ username, url: `${configReader.config.url}/reset_password?verification_code=${verification_code}`, lang });
             break;
         default:
-            html = verificationEmail(username, `${configReader.config.url}/verification?verification_code=${verification_code}`);
+            throw { status: 500, error: "Internal Server Error" };
     }
 
     if (process.env.DEBUG) {
-        if (action === 2)
-            console.log("Email Link: " + `${configReader.config.url}/reset_password?verification_code=${verification_code}`);
-        else
-            console.log("Email Link: " + `${configReader.config.url}/verification?verification_code=${verification_code}`);
+        console.log("Email html:\n" + html);
         return;
     }
 

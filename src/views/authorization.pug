@@ -1,0 +1,18 @@
+doctype html
+html(lang="en")
+head
+    meta(charset="UTF-8")
+    link(href="../css/authorization.css" rel="stylesheet")
+    title= lang("login")
+    script(src="../js/authorization.js")
+body
+    #interactionContainer
+        //- Logo
+        h1#interactionHeader= lang("login")
+        label
+            input#usernameInput(type="text" placeholder="Nutzername, ID oder E-Mail")
+            br
+            input#passwordInput(type="password" placeholder=lang("password"))
+        a#recoverLink(href="javascript:void(0)" onclick="submitPasswordReset()")= lang("forgotPassword")
+        a#registerButton(href="javascript:void(0)" onclick="redirect('../register')")= lang("register")
+        button#loginButton(onclick="submitAuthorization()")= lang("continue")

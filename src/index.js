@@ -2,7 +2,6 @@ const configReader = require("./configReader");
 configReader.load(__dirname + "/../config");
 const db = require("./db");
 const express = require("express");
-const es6Renderer = require('express-es6-template-engine');
 const apiRouter = require("./api/router");
 const { currentUnixTime, respond } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
@@ -23,32 +22,24 @@ async function main() {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(getUser);
-    app.engine("html", es6Renderer);
     app.set("views", __dirname + "/views");
-    app.set("view engine", "html");
+    app.set("view engine", "pug");
 
     //Frontend
     app.use("/authorize", (req, res) => res.render("authorization", {
-        locals: { lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages())) }
+        lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
     }));
     app.use("/register", (req, res) => res.render("register", {
-        locals: { lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages())) }
+        lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
     }));
     app.use("/verification", (req, res) => res.render("verification", {
-        locals: { lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages())) }
+        ang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
     }));
     app.use("/reset_password", (req, res) => res.render("reset_password", {
-        locals: { lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages())) }
+        lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
     }));
     app.use("/dashboard", (req, res) => res.render("dashboard/template", {
-        partials: {
-            clients: "dashboard/clients",
-            settings: "dashboard/settings",
-            admin_settings: "dashboard/admin_settings"
-        },
-        locals: {
-            lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
-        }
+        lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
     }));
 
     //Backend
