@@ -6,9 +6,13 @@ const apiRouter = require("./api/router");
 const { currentUnixTime, respond } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const getUser = require("./middleware/getUser");
 const logger = require("./logger");
 const translationProvider = require("./i18n/translationProvider");
+const { createAuthorizationCode } = require("./api/services/authorization.service");
+const { getAllUsers } = require("./api/services/user.service");
+const { getClients } = require("./api/services/client.service");
 var app = express();
 
 async function main() {
@@ -21,26 +25,45 @@ async function main() {
     app.use(cors());
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(cookieParser());
     app.use(getUser);
     app.set("views", __dirname + "/views");
     app.set("view engine", "pug");
 
     //Frontend
-    app.use("/authorize", (req, res) => res.render("authorization", {
-        lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
-    }));
+    app.use("/authorize", async (req, res) => {
+        if (req.user && req.body.redirect_uri && req.body.client_id && req.body.code_challenge) {
+            let authorization_code = await createAuthorizationCode(req.body.client_id, req.user.user_id, req.body.code_challenge);
+            res.redirect(`${req.body.redirect_uri}${req.body.redirect_uri.includes("?") ? "&" : "?"}authorization_code=${authorization_code}${req.body.state ? "&state=" + req.body.state : ""}`);
+        } else if (req.user) {
+            res.redirect("/dashboard");
+        } else {
+            res.render("authorization", {
+                lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
+            });
+        }
+    });
     app.use("/register", (req, res) => res.render("register", {
         lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
     }));
     app.use("/verification", (req, res) => res.render("verification", {
-        ang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
+        lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
     }));
     app.use("/reset_password", (req, res) => res.render("reset_password", {
         lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
     }));
-    app.use("/dashboard", (req, res) => res.render("dashboard/template", {
-        lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
-    }));
+    app.use("/dashboard", async (req, res) => {
+        if (!req.user)
+            res.redirect("/authorize");
+        else
+            res.render("dashboard/template", {
+                lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages())),
+                user: req.user,
+                user_info: configReader.config.user_info,
+                all_users: req.user.admin ? await getAllUsers() : [],
+                all_clients: req.user.admin ? await getClients() : []
+            });
+    });
 
     //Backend
     app.use("/api", apiRouter);

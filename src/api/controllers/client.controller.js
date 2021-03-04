@@ -15,7 +15,7 @@ exports.get = async (req, res) => {
 
 exports.post = async (req, res) => {
     try {
-        if (!req.body.name || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+        if (!req.body.name || !req.body.redirect_uri || req.client.name !== "Dashboard")
             throw { status: 400, error: "Invalid arguments" };
 
         let { client_id, client_secret } = await client.createClient(req.body.name, req.user.user_id, req.body.redirect_uri);
@@ -27,7 +27,7 @@ exports.post = async (req, res) => {
 
 exports.del = async (req, res) => {
     try {
-        if (!req.body.client_id || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+        if (!req.body.client_id || req.client.name !== "Dashboard")
             throw { status: 400, error: "Invalid arguments" };
 
         await client.deleteClient(req.body.client_id, req.user.user_id);

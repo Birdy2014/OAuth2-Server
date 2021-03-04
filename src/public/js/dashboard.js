@@ -1,85 +1,9 @@
-/**
- * Generate a random string
- * @param {number} length
- * @returns {string} Random string
- */
-function generateToken(length) {
-    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
-    let text = "";
-    for (let i = 0; i < length; i++)
-        text += chars.charAt(Math.floor(Math.random() * chars.length));
-    return text;
-}
-
 function navigate(tab) {
     let tabs = document.getElementsByClassName("active");
     for (let tab of tabs) {
         tab.classList.remove("active");
     }
     document.getElementById(tab).classList.add("active");
-}
-
-/**
- * Logs in and saves the refresh_token to the localStorage
- * @returns {string} access_token
- */
-async function login() {
-    if (window.localStorage.getItem("access_token")) {
-        return window.localStorage.getItem("access_token");
-    } else if (window.localStorage.getItem("refresh_token") && window.localStorage.getItem("client_id")) {
-        try {
-            return await refreshToken(window.localStorage.getItem("refresh_token"), window.localStorage.getItem("client_id"));
-        } catch (e) {
-            window.localStorage.removeItem("refresh_token");
-            window.localStorage.removeItem("client_id");
-            return await login();
-        }
-    }
-    let client_id = await getDashboardId();
-    let authorization_code = url.searchParams.get("authorization_code");
-    let state = url.searchParams.get("state");
-    if (authorization_code && state === window.sessionStorage.getItem("state") && window.sessionStorage.getItem("code_verifier")) {
-        //Get tokens
-        let tokens = JSON.parse(await request(`${url.protocol}//${url.host}/api/token`, "POST", `grant_type=authorization_code&client_id=${client_id}&code=${authorization_code}&code_verifier=${window.sessionStorage.getItem("code_verifier")}`));
-        window.localStorage.setItem("refresh_token", tokens.data.refresh_token);
-        window.localStorage.setItem("client_id", client_id);
-        window.sessionStorage.removeItem("code_verifier");
-        window.sessionStorage.removeItem("state");
-        window.history.replaceState({}, document.title, "/dashboard");
-        return tokens.data.access_token;
-    } else {
-        //Create challenge
-        let code_verifier = generateToken(10);
-        let code_challenge = await genPKCEChallenge(code_verifier);
-        if (!code_challenge) {
-            alert("ERROR: Context is not secure; Cannot generate PKCE challenge");
-            debugger;
-        }
-        let code_challenge_method = "S256";
-        window.sessionStorage.setItem("code_verifier", code_verifier);
-        //Redirect to Login
-        state = Math.random().toString(36).substring(7);
-        window.sessionStorage.setItem("state", state);
-        window.location.href = `${url.protocol}//${url.host}/authorize?client_id=${client_id}&redirect_uri=${url}&state=${state}&code_challenge=${code_challenge}&code_challenge_method=${code_challenge_method}`;
-    }
-}
-
-async function genPKCEChallenge(code_verifier) {
-    if (window.isSecureContext) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(code_verifier);
-        let arr = await window.crypto.subtle.digest('SHA-256', data);
-        return btoa(String.fromCharCode.apply(null, new Uint8Array(arr))).replace(/\+/g, "_");
-    } else {
-        return undefined;
-    }
-}
-
-async function refreshToken(refresh_token, client_id) {
-    let tokens = JSON.parse(await request(`${url.protocol}//${url.host}/api/token`, "POST", `grant_type=refresh_token&client_id=${client_id}&refresh_token=${refresh_token}`));
-    let access_token = tokens.data.access_token;
-    window.localStorage.setItem("access_token", access_token);
-    return access_token;
 }
 
 function createInputField(name, text, options) {
@@ -160,11 +84,11 @@ async function loadData(access_token) {
                 raw_user_list[user.user_id] = user;
                 let user_element = document.createElement("li");
                 user_element.innerHTML = `
-                    user_id: ${user.user_id}, 
-                    username: <input type="text" placeholder="${user.username}" id="input_username_${user.user_id}"/>, 
-                    email: <input type="email" placeholder="${user.email}" id="input_email_${user.user_id}"/>, 
-                    Password: <input type="password" id="input_password_${user.user_id}"/>, 
-                    verified: <input type="checkbox" ${user.verified ? "checked" : ""} id="input_verified_${user.user_id}" />, 
+                    user_id: ${user.user_id},
+                    username: <input type="text" placeholder="${user.username}" id="input_username_${user.user_id}"/>,
+                    email: <input type="email" placeholder="${user.email}" id="input_email_${user.user_id}"/>,
+                    Password: <input type="password" id="input_password_${user.user_id}"/>,
+                    verified: <input type="checkbox" ${user.verified ? "checked" : ""} id="input_verified_${user.user_id}" />,
                     admin: <input type="checkbox" ${user.admin ? "checked" : ""} id="input_admin_${user.user_id}" />
                     <a href="javascript:void(0)" onclick="adminChangeUser('${user.user_id}');">Submit</a>`;
                 user_list.appendChild(user_element);
@@ -187,7 +111,7 @@ async function loadData(access_token) {
     }
 }
 
-async function changeSettings(access_token, user_id, settings) {
+async function changeSettings(user_id, settings) {
     try {
         let data = "";
         if (user_id) data += `user_id=${user_id}&`;
@@ -197,34 +121,17 @@ async function changeSettings(access_token, user_id, settings) {
         if (data === "") throw { status: 400, error: "Input missing" };
         data = data.substring(0, data.length - 1);
 
-        let result = JSON.parse(await request(`${url.protocol}//${url.host}/api/user`, "PUT", data, access_token));
+        let result = JSON.parse(await request(`${url.protocol}//${url.host}/api/user`, "PUT", data));
         return result;
     } catch (e) {
         console.error(e);
-        e = JSON.parse(e);
-        if (e.status === 403) {
-            global_access_token = await refreshToken(window.localStorage.getItem("refresh_token"));
-            await changeSettings(global_access_token, user_id, new_username, new_email, new_password);
-        } else {
-            console.error(e);
-            return e;
-        }
+        return e;
     }
 }
 
-async function changePermissions(access_token, user_id, permission, add) {
-    try {
-        let data = `client_id=${window.localStorage.getItem("client_id")}&permission=${permission}&user_id=${user_id}`;
-        await request(`${url.protocol}//${url.host}/api/permissions`, add ? "POST" : "DELETE", data, access_token);
-    } catch (e) {
-        e = JSON.parse(e);
-        if (e.status === 403) {
-            global_access_token = await refreshToken(window.localStorage.getItem("refresh_token"));
-            await changePermissions(global_access_token, user_id, permission, add);
-        } else {
-            console.error(e);
-        }
-    }
+async function changePermissions(user_id, permission, add) {
+    let data = `client_id=${window.localStorage.getItem("client_id")}&permission=${permission}&user_id=${user_id}`;
+    await request(`${url.protocol}//${url.host}/api/permissions`, add ? "POST" : "DELETE", data);
 }
 
 async function adminChangeUser(user_id) {
@@ -235,23 +142,28 @@ async function adminChangeUser(user_id) {
     let admin = document.getElementById(`input_admin_${user_id}`).checked;
 
     let settings = {};
-    if (username && username !== raw_user_list[user_id].username)
+    if (username)
         settings.username = username;
-    if (email && email !== raw_user_list[user_id].email)
+    if (email)
         settings.email = email;
     if (password)
         settings.password = password;
-    if (verified !== raw_user_list[user_id].verified)
-        settings.verified = verified;
+    settings.verified = verified;
 
     if (Object.keys(settings).length > 0)
-        await changeSettings(global_access_token, user_id, settings);
+        await changeSettings(user_id, settings);
 
-    if (admin !== raw_user_list[user_id].admin) {
-        await changePermissions(global_access_token, user_id, "admin", admin);
+    if (settings.username) {
+        document.getElementById(`input_username_${user_id}`).value = "";
+        document.getElementById(`input_username_${user_id}`).placeholder = settings.username;
     }
 
-    loadData(global_access_token);
+    if (settings.email) {
+        document.getElementById(`input_email_${user_id}`).value = "";
+        document.getElementById(`input_email_${user_id}`).placeholder = settings.email;
+    }
+
+    await changePermissions(user_id, "admin", admin);
 }
 
 async function logout() {
@@ -275,10 +187,9 @@ async function logout() {
 
 let raw_user_list = {};
 const url = new URL(window.location);
-var global_access_token = "";
 var input_password;
 var input_confirm_password;
-var inputs_user_info = [];
+var inputs_user_info = {};
 var settings_input_container;
 var user_list;
 var client_list;
@@ -289,22 +200,35 @@ window.onload = () => {
     user_list = document.getElementById("user_list");
     client_list = document.getElementById("client_list");
 
-    login().then(access_token => { global_access_token = access_token; loadData(access_token) });
+    for (let element of Array.from(document.getElementsByClassName("inputs_user_info"))) {
+        inputs_user_info[element.name] = element;
+    }
 
     document.getElementById("button_submit").onclick = () => {
         if (input_password.value !== input_confirm_password.value) {
             alert("Passwords don't match");
         } else {
             let settings = {};
-            for (const input of inputs_user_info) {
-                if (input)
+            for (const name in inputs_user_info) {
+                let input = inputs_user_info[name]
+                if (input && input.value !== "")
                     settings[input.name] = input.value;
             }
-            changeSettings(global_access_token, undefined, settings).then(result => {
+            changeSettings(undefined, settings).then(result => {
                 if (result.status === 200) {
                     input_password.value = "";
                     input_confirm_password.value = "";
-                    loadData(global_access_token);
+                    for (let [setting, value] of Object.entries(settings)) {
+                        if (setting === "password")
+                            continue;
+                        let element = inputs_user_info[setting];
+                        if (element.tagName === "SELECT") {
+                            element.value = value;
+                        } else {
+                            element.value = "";
+                            element.placeholder = value;
+                        }
+                    }
                 } else {
                     alert(result.error);
                 }

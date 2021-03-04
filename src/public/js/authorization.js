@@ -6,9 +6,17 @@ async function getAuthorizationCode(login, password, client_id, redirect_uri, st
     let url = `${secure ? "https://" : "http://"}${domain}/api/authorize`;
 
     try {
-        let body = await request(url, "POST", `login=${login}&password=${password}&client_id=${client_id}&redirect_uri=${redirect_uri}&code_challenge=${code_challenge}&code_challenge_method=${code_challenge_method}`);
+        let body = await request(url, "POST", {
+            login,
+            password,
+            client_id,
+            redirect_uri,
+            code_challenge,
+            code_challenge_method,
+            state
+        });
         let jsonObj = JSON.parse(body);
-        window.location.href = `${redirect_uri}${redirect_uri.includes("?") ? "&" : "?"}authorization_code=${jsonObj.data.authorization_code}${state === null ? "" : "&state=" + state}`;
+        window.location.href = jsonObj.data.redirect;
     } catch (e) {
         let body = JSON.parse(e);
         console.log(e);
@@ -31,7 +39,8 @@ function showVerificationMessage(login, password, client_id, redirect_uri, state
     }, 3000, login, password, client_id, redirect_uri, state);
 }
 
-function submitAuthorization() {
+function submitAuthorization(event) {
+    event.preventDefault();
     let login = document.getElementById("usernameInput").value;
     let password = document.getElementById("passwordInput").value;
     let url = new URL(window.location.href);
@@ -40,7 +49,7 @@ function submitAuthorization() {
     let redirect_uri = url.searchParams.get("redirect_uri");
     let code_challenge = url.searchParams.get("code_challenge");
     let code_challenge_method = url.searchParams.get("code_challenge_method");
-    if (login && password && client_id && redirect_uri)
+    if (login && password)
         getAuthorizationCode(login, password, client_id, redirect_uri, state, code_challenge, code_challenge_method);
     else
         alert("missing data");
@@ -83,12 +92,12 @@ function request(url, method, body, authorization) {
                 statusText: xhr.statusText
             });
         };
-        if (body) xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        if (body) xhr.setRequestHeader("Content-Type", typeof body === "string" ? "application/x-www-form-urlencoded" : "application/json");
         if (authorization) xhr.setRequestHeader("Authorization", authorization);
-        xhr.send(body);
+        xhr.send(typeof body === "string" ? body : JSON.stringify(body));
     });
 }
 
 function redirect(target) {
-    window.location.href = target + window.location.search;    
+    window.location.href = target + window.location.search;
 }

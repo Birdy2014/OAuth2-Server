@@ -36,7 +36,7 @@ exports.post = async (req, res) => {
 
 exports.put = async (req, res) => {
     try {
-        if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard" || req.body.length === 0)
+        if (!req.user || req.client.name !== "Dashboard" || req.body.length === 0)
             throw { status: 400, error: "Invalid arguments" };
 
         let user_id;
@@ -66,7 +66,7 @@ exports.put = async (req, res) => {
 
 exports.del = async (req, res) => {
     try {
-        if (!req.user || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+        if (!req.user || req.client.name !== "Dashboard")
             throw { status: 400, error: "Invalid arguments" };
 
         let user_id;

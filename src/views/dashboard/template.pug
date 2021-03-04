@@ -13,8 +13,9 @@ html
             = " "
             a(href="javascript:navigate('settings');")= lang("settings")
             = " "
-            a#menu_item_admin_settings(href="javascript:navigate('admin_settings');" style="display: none")= lang("adminSettings")
-            = " "
+            if user.admin
+                a#menu_item_admin_settings(href="javascript:navigate('admin_settings');")= lang("adminSettings")
+                = " "
             a(href="javascript:logout();") Logout
         div.content.active#clients
             include clients.pug

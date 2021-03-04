@@ -1,11 +1,27 @@
 h1= lang("settings")
-div#settings_input_container
+#settings_input_container
+    div
+        label(for="username")= lang("username") + ": "
+        input.inputs_user_info(type="text" name="username" placeholder=user.username)
+    div
+        label(for="email")= lang("email") + ": "
+        input.inputs_user_info(type="text" name="email", placeholder=user.email)
+
+    each val, key in user_info
+        div
+            if typeof val === "object"
+                = key + ": "
+                select.inputs_user_info(style="display: inline;" name=key)
+                    each opt in val
+                        option(value=opt selected=user[key] === opt)= opt
+            else
+                label(for=key)= key + ": "
+                input.inputs_user_info(type=text name=key placeholder=user[key] || val)
+
 div
-    =lang("password")
-    = " : "
+    label(for="password")= lang("password") + ": "
     input.inputs_user_info#input_password(type="password" name="password")
 div
-    =lang("confirmPassword")
-    = " : "
-    input#input_confirm_password(type="password")
-button#button_submit=lang("change")
+    label(for="confirm_password")= lang("confirmPassword") + ": "
+    input#input_confirm_password(type="password" name="confirm_password")
+button#button_submit= lang("change")

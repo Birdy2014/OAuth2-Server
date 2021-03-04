@@ -11,9 +11,9 @@ const emailRegEx = /^\S+@\S+\.\S+$/;
 
 /**
  * Create a new user
- * @param {string} email 
- * @param {string} username 
- * @param {string} password 
+ * @param {string} email
+ * @param {string} username
+ * @param {string} password
  * @returns {string} user_id
  */
 exports.createUser = async (email, username, password, user_info) => {
@@ -159,7 +159,7 @@ exports.getUserFromLogin = async (login) => {
 }
 
 /**
- * 
+ *
  * @param {string} access_token
  * @returns {Promise<Object>}
  */
@@ -179,8 +179,8 @@ exports.getUserFromAccessToken = async (access_token) => {
 
 /**
  * Get a pice of additional user information
- * @param {string} user_id 
- * @param {string} name 
+ * @param {string} user_id
+ * @param {string} name
  * @returns {Promise<string>}
  */
 exports.getValue = async (user_id, name) => {
@@ -193,7 +193,7 @@ exports.getValue = async (user_id, name) => {
 
 /**
  * Get all additional user information
- * @param {string} user_id 
+ * @param {string} user_id
  * @returns {Promise<Object>}
  */
 exports.getValues = async user_id => {
@@ -211,7 +211,7 @@ exports.setValue = async (user_id, name, value) => {
         throw { status: 400, error: "Invalid option name" };
     else if (user_info !== [] && user_info.length > 0 && !user_info.includes(value)) {
         throw { status: 400, error: "Invalid option value" };
-    } else if (await exports.getValue(user_id, name)) {
+    } else if (await exports.getValue(user_id, name) !== undefined) {
         await db.query(`UPDATE user_info SET value = '${value}' WHERE user_id = '${user_id}' AND name = '${name}'`);
     } else {
         await db.insert("user_info", { user_id, name, value });

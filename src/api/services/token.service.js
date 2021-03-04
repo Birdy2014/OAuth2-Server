@@ -4,8 +4,8 @@ const db = require("../../db");
 
 /**
  * Get the user_id and client_id from a refresh_token
- * @param {string} refresh_token 
- * @returns {Promise<{string|string}>}
+ * @param {string} refresh_token
+ * @returns {Promise<{user_id: string, client_id: string}>}
  */
 exports.getUserAndClientFromRefreshToken = async (refresh_token) => {
     let result = await db.query(`SELECT user_id, client_id FROM refresh_token WHERE refresh_token = '${refresh_token}'`);
@@ -14,9 +14,9 @@ exports.getUserAndClientFromRefreshToken = async (refresh_token) => {
 
 /**
  * Use the authorization_code to generate an access_token and refresh_token
- * @param {string} user_id 
- * @param {string} client_id 
- * @returns {Promise<(string|string|number)>} access_token, refresh_token, expires
+ * @param {string} user_id
+ * @param {string} client_id
+ * @returns {Promise<{access_token: string, refresh_token: string, expires: number}>} access_token, refresh_token, expires
  */
 exports.generateRefreshToken = async (user_id, client_id) => {
     //create unique refresh_token
@@ -42,7 +42,7 @@ exports.generateRefreshToken = async (user_id, client_id) => {
 /**
  * Validates the access token
  * @param {string} access_token
- * @returns {(boolean|number|string|string)} An object containing wether it is active, user_id, username, email
+ * @returns {{active: boolean, user_id: number, username: string, email: string}} An object containing wether it is active, user_id, username, email
  */
 exports.validateAccessToken = async (access_token, client_id) => {
     let results = await db.query(`SELECT access_token.user_id AS user_id, access_token.expires AS expires, user.username AS username, user.email AS email FROM access_token JOIN user ON access_token.user_id = user.user_id WHERE access_token.access_token = '${access_token}' AND access_token.client_id = '${client_id}'`);
@@ -55,9 +55,9 @@ exports.validateAccessToken = async (access_token, client_id) => {
 
 /**
  * Generate a new access_token
- * @param {string} user_id 
- * @param {string} client_id 
- * @returns {Promise<(string|number)>} access_token, expires
+ * @param {string} user_id
+ * @param {string} client_id
+ * @returns {Promise<{access_token: string, expires: number}>} access_token, expires
  */
 exports.generateAccessToken = async (user_id, client_id) => {
     let expires = currentUnixTime() + configReader.config.accessTokenExpirationTime;

@@ -3,7 +3,7 @@ const { respond, handleError } = require("../utils");
 
 exports.get = async (req, res) => {
     try {
-        if (req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+        if (req.client.name !== "Dashboard")
             throw { status: 400, error: "Invalid arguments" };
 
         //Only Admin or the user
@@ -20,7 +20,7 @@ exports.get = async (req, res) => {
 
 exports.post = async (req, res) => {
     try {
-        if (req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !req.body.user_id || !req.body.client_id || !req.body.permission)
+        if (req.client.name !== "Dashboard" || !req.body.user_id || !req.body.client_id || !req.body.permission)
             throw { status: 400, error: "Invalid arguments" };
 
         //Only Admin
@@ -37,7 +37,7 @@ exports.post = async (req, res) => {
 
 exports.del = async (req, res) => {
     try {
-        if (req.user.origin !== "access_token" || req.client.name !== "Dashboard" || !req.body.permission || !req.body.client_id)
+        if (req.client.name !== "Dashboard" || !req.body.permission || !req.body.client_id)
             throw { status: 400, error: "Invalid arguments" };
 
         //Only Admin or the user

@@ -4,7 +4,7 @@ const { hasPermission } = require("../services/permission.service");
 
 exports.post = async (req, res) => {
     try {
-        if (!req.body.client_id || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+        if (!req.body.client_id || !req.body.redirect_uri || req.client.name !== "Dashboard")
             throw { status: 400, error: "Invalid arguments" };
 
         //Only Admin
@@ -20,7 +20,7 @@ exports.post = async (req, res) => {
 
 exports.del = async (req, res) => {
     try {
-        if (!req.body.client_id || !req.body.redirect_uri || req.user.origin !== "access_token" || req.client.name !== "Dashboard")
+        if (!req.body.client_id || !req.body.redirect_uri || req.client.name !== "Dashboard")
             throw { status: 400, error: "Invalid arguments" };
 
         //Only Admin
