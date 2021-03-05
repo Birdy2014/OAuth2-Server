@@ -8,10 +8,9 @@ module.exports.run = async args => {
             args.shift();
             for (const login of args) {
                 try {
-                    await getUserId(login, async user_id => {
-                        await addPermission(user_id, await db.getDashboardId(), "admin");
-                        console.log(`${user_id} is now admin`);
-                    });
+                    let user_id = await getUserId(login);
+                    await addPermission(user_id, await db.getDashboardId(), "admin");
+                    console.log(`${user_id} is now admin`);
                 } catch (e) {
                     console.error(e);
                 }
@@ -38,10 +37,9 @@ module.exports.run = async args => {
             args.shift();
             for (const login of args) {
                 try {
-                    await getUserId(login, async user_id => {
-                        await removePermission(user_id, await db.getDashboardId(), "admin");
-                        console.log(`${user_id} is no admin anymore`);
-                    });
+                    let user_id = await getUserId(login);
+                    await removePermission(user_id, await db.getDashboardId(), "admin");
+                    console.log(`${user_id} is no admin anymore`);
                 } catch (e) {
                     console.error(e);
                 }

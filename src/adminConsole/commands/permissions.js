@@ -10,18 +10,17 @@ module.exports.run = async args => {
                 if (args.length === 0) {
                     console.log("Usage: permissions list <email, username or user ID>");
                 } else {
-                    await getUserId(args[0], async user_id => {
-                        let permissions = await getPermissions(user_id);
-                        if (permissions.length === 0) {
-                            console.log(`User ${user_id} has no permissions`);
-                        } else {
-                            let output = "";
-                            for (const permission of permissions) {
-                                output += `client_id: ${permission.client_id} permission: ${permission.permission}\n`;
-                            }
-                            console.log(output.substring(0, output.length - 1));
+                    let user_id = await getUserId(args[0]);
+                    let permissions = await getPermissions(user_id);
+                    if (permissions.length === 0) {
+                        console.log(`User ${user_id} has no permissions`);
+                    } else {
+                        let output = "";
+                        for (const permission of permissions) {
+                            output += `client_id: ${permission.client_id} permission: ${permission.permission}\n`;
                         }
-                    });
+                        console.log(output.substring(0, output.length - 1));
+                    }
                 }
             } catch (e) {
                 console.error(e);
@@ -37,14 +36,12 @@ module.exports.run = async args => {
                     let login = args[0];
                     let client_login = args[1];
                     args.splice(0, 2);
-                    await getUserId(login, async user_id => {
-                        await getClientId(client_login, async client_id => {
-                            for (const permission of args) {
-                                await addPermission(user_id, client_id, permission);
-                                console.log(`User ${user_id} has now the Permission ${permission} on client ${client_id}`);
-                            }
-                        });
-                    });
+                    let user_id = await getUserId(login);
+                    let client_id = await getClientId(client_login);
+                    for (const permission of args) {
+                        await addPermission(user_id, client_id, permission);
+                        console.log(`User ${user_id} has now the Permission ${permission} on client ${client_id}`);
+                    }
                 }
             } catch (e) {
                 console.error(e);
@@ -60,14 +57,12 @@ module.exports.run = async args => {
                     let login = args[0];
                     let client_login = args[1];
                     args.splice(0, 2);
-                    await getUserId(login, async user_id => {
-                        await getClientId(client_login, async client_id => {
-                            for (const permission of args) {
-                                await removePermission(user_id, client_id, permission);
-                                console.log(`Removed Permission ${permission} from user ${user_id} on client ${client_id}`);
-                            }
-                        });
-                    });
+                    let user_id = await getUserId(login);
+                    let client_id = await getClientId(client_login);
+                    for (const permission of args) {
+                        await removePermission(user_id, client_id, permission);
+                        console.log(`Removed Permission ${permission} from user ${user_id} on client ${client_id}`);
+                    }
                 }
             } catch (e) {
                 console.error(e);
