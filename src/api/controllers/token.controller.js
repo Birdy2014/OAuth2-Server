@@ -88,11 +88,11 @@ exports.revoke = async (req, res) => {
         if (!access_token && !refresh_token)
             throw { status: 400, error: "Invalid arguments" };
 
-        if (req.body.access_token) //revoke access_token
-            await db.query(`DELETE FROM access_token WHERE access_token = '${req.body.access_token}'`);
+        if (access_token) //revoke access_token
+            await db.query(`DELETE FROM access_token WHERE access_token = '${access_token}'`);
 
-        if (req.body.refresh_token) //revoke refresh_token
-            await db.query(`DELETE FROM refresh_token WHERE refresh_token = '${req.body.refresh_token}'`);
+        if (refresh_token) //revoke refresh_token
+            await db.query(`DELETE FROM refresh_token WHERE refresh_token = '${refresh_token}'`);
 
         respond(res, 200);
     } catch (e) {

@@ -32,9 +32,9 @@ async function main() {
 
     //Frontend
     app.use("/authorize", async (req, res) => {
-        if (req.user && req.body.redirect_uri && req.body.client_id && req.body.code_challenge) {
-            let authorization_code = await createAuthorizationCode(req.body.client_id, req.user.user_id, req.body.code_challenge);
-            res.redirect(`${req.body.redirect_uri}${req.body.redirect_uri.includes("?") ? "&" : "?"}authorization_code=${authorization_code}${req.body.state ? "&state=" + req.body.state : ""}`);
+        if (req.user && req.query.redirect_uri && req.query.client_id && req.query.code_challenge) {
+            let authorization_code = await createAuthorizationCode(req.query.client_id, req.user.user_id, req.query.code_challenge);
+            res.redirect(`${req.query.redirect_uri}${req.query.redirect_uri.includes("?") ? "&" : "?"}authorization_code=${authorization_code}${req.query.state ? "&state=" + req.query.state : ""}`);
         } else if (req.user) {
             res.redirect("/dashboard");
         } else {
