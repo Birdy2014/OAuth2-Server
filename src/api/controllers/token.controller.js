@@ -75,7 +75,17 @@ exports.token = async (req, res) => {
 
 exports.revoke = async (req, res) => {
     try {
-        if (!req.body.access_token && !req.body.refresh_token)
+        let access_token = req.body.access_token;
+        let refresh_token = req.body.refresh_token;
+
+        if (!access_token && !refresh_token && (req.cookies.access_token || req.cookies.refresh_token)) {
+            access_token = req.cookies.access_token;
+            refresh_token = req.cookies.refresh_token;
+            res.clearCookie("access_token");
+            res.clearCookie("refresh_token");
+        }
+
+        if (!access_token && !refresh_token)
             throw { status: 400, error: "Invalid arguments" };
 
         if (req.body.access_token) //revoke access_token
