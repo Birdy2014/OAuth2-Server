@@ -2,7 +2,7 @@ const fs = require("fs");
 const configReader = require("../src/configReader");
 configReader.load(__dirname + "/config");
 const logger = require("../src/logger");
-const db = require("../src/db");
+const db = require("../src/db/db");
 
 exports.setup = (done) => {
     (async () => {

@@ -1,6 +1,6 @@
 const { setup, cleanup } = require("./test-utils");
-const crypto = require("crypto");
-const db = require("../src/db");
+import crypto from 'crypto';
+const db = require("../src/db/db");
 const authorization = require("../src/api/services/authorization.service");
 
 let context;
@@ -11,7 +11,8 @@ const testUser = {
     username: "Test",
     password_hash: "password",
     code_verifier: "1234",
-    challenge: ""
+    challenge: "",
+    authorization_code: ""
 }
 
 describe("authorization", () => {

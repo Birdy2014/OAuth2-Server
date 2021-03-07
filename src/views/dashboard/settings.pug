@@ -13,10 +13,10 @@ h1= lang("settings")
                 = key + ": "
                 select.inputs_user_info(style="display: inline;" name=key)
                     each opt in val
-                        option(value=opt selected=user[key] === opt)= opt
+                        option(value=opt selected=user.user_info[key] === opt)= opt
             else
                 label(for=key)= key + ": "
-                input.inputs_user_info(type=text name=key placeholder=user[key] || val)
+                input.inputs_user_info(type=text name=key placeholder=user.user_info[key] || val)
 
 div
     label(for="password")= lang("password") + ": "

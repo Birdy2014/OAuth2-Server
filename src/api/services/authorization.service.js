@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { generateToken, currentUnixTime } = require("../utils");
-const db = require("../../db");
+const db = require("../../db/db");
 const configReader = require("../../configReader");
 
 /**
@@ -39,6 +39,7 @@ exports.checkPKCE = async (code, code_verifier) => {
     return hash === challenge;
 }
 
+// TODO: 2FA
 /**
  *
  * @param {string} key

@@ -1,10 +1,10 @@
-const db = require("../../db");
+const db = require("../../db/db");
 const uuid = require("uuid").v4;
 const utils = require("../utils");
 
 /**
- * 
- * @param {string} client_id 
+ *
+ * @param {string} client_id
  * @returns {Promise<(string|string|string|string)>} - client_id, client_secret, name, dev_id
  */
 exports.getClientFromId = async (client_id) => {
@@ -21,9 +21,9 @@ exports.getClientFromId = async (client_id) => {
 }
 
 /**
- * 
- * @param {string} client_id 
- * @param {string} client_secret 
+ *
+ * @param {string} client_id
+ * @param {string} client_secret
  * @returns {Promise<boolean>}
  */
 exports.checkClientCredentials = async (client_id, client_secret) => {
@@ -55,7 +55,7 @@ exports.createClient = async (name, dev_id, redirect_uri) => {
 
 /**
  * Deletes a client
- * @param {string} client_id 
+ * @param {string} client_id
  * @param {number} developer_id
  */
 exports.deleteClient = async (client_id) => {
@@ -97,7 +97,7 @@ exports.getClientFromSecret = async (client_id, client_secret) => {
 }
 
 /**
- * 
+ *
  * @param {string} client_id
  * @param {string} redirect_uri
  * @returns {Promise<Object>}

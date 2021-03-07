@@ -1,5 +1,5 @@
 const { addPermission, removePermission } = require("../../api/services/permission.service");
-const db = require("../../db");
+const db = require("../../db/db");
 const { getUserId } = require("../util/user");
 
 module.exports.run = async args => {

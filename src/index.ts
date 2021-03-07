@@ -1,7 +1,7 @@
 const configReader = require("./configReader");
 configReader.load(__dirname + "/../config");
-const db = require("./db");
-const express = require("express");
+const db = require("./db/db");
+import express from 'express';
 const apiRouter = require("./api/router");
 const { currentUnixTime, respond } = require("./api/utils");
 const adminConsole = require("./adminConsole/adminConsole");
@@ -13,6 +13,7 @@ const translationProvider = require("./i18n/translationProvider");
 const { createAuthorizationCode } = require("./api/services/authorization.service");
 const { getAllUsers } = require("./api/services/user.service");
 const { getClients } = require("./api/services/client.service");
+import { ServerError } from './api/utils';
 var app = express();
 
 async function main() {
@@ -31,10 +32,10 @@ async function main() {
     app.set("view engine", "pug");
 
     //Frontend
-    app.use("/authorize", async (req, res) => {
+    app.use("/authorize", async (req: express.Request, res: express.Response) => {
         if (req.user && req.query.redirect_uri && req.query.client_id && req.query.code_challenge) {
             let authorization_code = await createAuthorizationCode(req.query.client_id, req.user.user_id, req.query.code_challenge);
-            res.redirect(`${req.query.redirect_uri}${req.query.redirect_uri.includes("?") ? "&" : "?"}authorization_code=${authorization_code}${req.query.state ? "&state=" + req.query.state : ""}`);
+            res.redirect(`${req.query.redirect_uri}${(req.query.redirect_uri as string).includes("?") ? "&" : "?"}authorization_code=${authorization_code}${req.query.state ? "&state=" + req.query.state : ""}`);
         } else if (req.user) {
             res.redirect("/dashboard");
         } else {
@@ -43,16 +44,16 @@ async function main() {
             });
         }
     });
-    app.use("/register", (req, res) => res.render("register", {
+    app.use("/register", (req: express.Request, res: express.Response) => res.render("register", {
         lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
     }));
-    app.use("/verification", (req, res) => res.render("verification", {
+    app.use("/verification", (req: express.Request, res: express.Response) => res.render("verification", {
         lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
     }));
-    app.use("/reset_password", (req, res) => res.render("reset_password", {
+    app.use("/reset_password", (req: express.Request, res: express.Response) => res.render("reset_password", {
         lang: translationProvider.getLanguage(req.acceptsLanguages(translationProvider.getLanguages()))
     }));
-    app.use("/dashboard", async (req, res) => {
+    app.use("/dashboard", async (req: express.Request, res: express.Response) => {
         if (!req.user)
             res.redirect("/authorize");
         else
@@ -67,7 +68,7 @@ async function main() {
 
     //Backend
     app.use("/api", apiRouter);
-    app.get("/api/dashboard_id", async (req, res) => {
+    app.get("/api/dashboard_id", async (req: express.Request, res: express.Response) => {
         let client_id = (await db.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
         respond(res, 200, { client_id: client_id });
     });
@@ -76,7 +77,7 @@ async function main() {
     app.use("/", express.static(__dirname + "/public"));
 
     //404
-    app.use((req, res) => {
+    app.use((req: express.Request, res: express.Response) => {
         res.status(404);
         if (req.accepts('html'))
             res.render("404", {
@@ -85,6 +86,15 @@ async function main() {
         else
             res.send({ status: 404 });
     });
+
+    // Other errors
+    app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+        logger.error(err);
+        if (err instanceof ServerError)
+            return res.status(err.status).json({ status: err.status, error: err.message });
+        res.status(500).json({ status: 500, error: 'Internal Server Error' });
+    });
+
 
     //delete old access tokens, run once every day
     setInterval(() => {

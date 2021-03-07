@@ -1,5 +1,5 @@
 const { getClientId } = require("../util/client");
-const db = require("../../db");
+const db = require("../../db/db");
 const UriMethods = require("../../api/controllers/uri.controller");
 
 module.exports.run = async args => {

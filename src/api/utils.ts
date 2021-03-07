@@ -1,14 +1,24 @@
 const configReader = require("../configReader");
 const logger = require("../logger");
 
+export class ServerError extends Error {
+    status: number;
+
+    constructor(status: number, message: string) {
+        super(message);
+        this.status = status;
+        this.name = "ServerError";
+    }
+}
+
 /**
  * Generates an Object for a api response
  * @param {number} status - The HTML status code
  * @param {Object} [data] - Additional data
  * @param {string} [error] - error description
- * @returns {(number|Object)} Object for api response
+ * @returns {{status: number, error?: object, data?: object}} Object for api response
  */
-function respondJSON(status, data, error) {
+function respondJSON(status: number, data: object|undefined, error: string|undefined) {
     if (!data) {
         return {
             status: status,
@@ -29,7 +39,7 @@ function respondJSON(status, data, error) {
  * @param {Object} [data] - Additional data
  * @param {string} [error] - error description
  */
-exports.respond = (res, status, data, error) => {
+export function respond(res, status: number, data: object|undefined, error?: string|undefined) {
     res.status(status);
     res.json(respondJSON(status, data, error));
 }
@@ -39,7 +49,7 @@ exports.respond = (res, status, data, error) => {
  * @param {number} length
  * @returns {string} Random string
  */
-exports.generateToken = (length) => {
+export function generateToken(length: number): string {
     let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
     let text = "";
     for (let i = 0; i < length; i++)
@@ -47,40 +57,42 @@ exports.generateToken = (length) => {
     return text;
 }
 
-exports.currentUnixTime = () => {
+export function currentUnixTime(): number {
     return Math.floor(Date.now() / 1000);
 }
 
 /**
- * 
- * @param {*} res 
+ *
+ * @param {*} res
  * @param {Object} e - Error
  */
-exports.handleError = (res, e) => {
-    if (typeof e.status === "number") {
-        exports.respond(res, e.status, undefined, e.error);
+export function handleError(res, error: Error) {
+    if (error instanceof ServerError) {
+        respond(res, error.status, undefined, error.message);
+    } else if (typeof (error as any).error === "string") {
+        respond(res, (error as any).status, undefined, (error as any).error);
     } else {
-        exports.respond(res, 500, undefined, "Internal Server Error");
-        logger.error("Server Error: " + e);
+        respond(res, 500, undefined, "Internal Server Error");
+        logger.error(error);
     }
 }
 
 /**
  * Checks whether the username contains illegal characters
- * @param {string} username 
+ * @param {string} username
  * @returns {boolean}
  */
-exports.checkUsername = (username) => {
+export function checkUsername(username: string): boolean {
     const forbiddenChars = ["'", ";", "\"", "&", "="];
     return !forbiddenChars.some(i => username.includes(i));
 }
 
 /**
  * Checks if email address matches the whitelist of the config file
- * @param {string} email 
+ * @param {string} email
  * @returns {boolean}
  */
-exports.checkEmail = (email) => {
+export function checkEmail(email: string): boolean {
     const emailRegEx = /^\S+@\S+\.\S+$/;
     const forbiddenChars = ["'", ";", "\"", "&", "="];
     if (forbiddenChars.some(i => email.includes(i))) return false;
@@ -94,10 +106,9 @@ exports.checkEmail = (email) => {
 
 /**
  * Checks if the password length is ok
- * @param {string} password 
+ * @param {string} password
  * @returns {boolean}
  */
-exports.checkPassword = (password) => {
-    if (password.length >= 8)
-        return true;
+export function checkPassword(password: string): boolean {
+    return password.length >= 8;
 }

@@ -5,7 +5,6 @@ const permission = require("./controllers/permission.controller");
 const token = require("./controllers/token.controller");
 const user = require("./controllers/user.controller");
 const verification = require("./controllers/verification.controller");
-const dashboard = require("./controllers/dashboard.controller");
 const isLoggedIn = require("../middleware/isLoggedIn");
 const router = require("express").Router();
 
@@ -42,8 +41,5 @@ router.route("/user")
 router.route("/verification")
     .post(verification.post)
     .put(verification.put);
-
-router.route("/dashboard")
-    .get(isLoggedIn, dashboard.get);
 
 module.exports = router;

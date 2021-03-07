@@ -1,5 +1,5 @@
 const { getUserId } = require("../util/user");
-const db = require("../../db");
+const db = require("../../db/db");
 const clientService = require("../../api/services/client.service");
 const clientUtils = require("../util/client");
 

@@ -1,6 +1,6 @@
 const tokenService = require("../services/token.service");
 const { respond, handleError } = require("../utils");
-const db = require("../../db");
+const db = require("../../db/db");
 const { getUserAndClientFromAuthorizationCode, checkPKCE } = require("../services/authorization.service");
 const { checkClientCredentials, getClientFromSecret } = require("../services/client.service");
 const { getUserFromAccessToken } = require("../services/user.service");

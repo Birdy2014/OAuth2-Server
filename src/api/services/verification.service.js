@@ -1,7 +1,7 @@
 const pug = require('pug');
 const userService = require("./user.service");
 const configReader = require("../../configReader");
-const db = require("../../db");
+const db = require("../../db/db");
 const logger = require("../../logger");
 const translationProvider = require("../../i18n/translationProvider");
 const verificationEmail = pug.compileFile(__dirname + "/../../views/email/verification.pug");
@@ -10,9 +10,9 @@ const passwordResetEmail = pug.compileFile(__dirname + "/../../views/email/reset
 const lang = translationProvider.getLanguage(configReader.config.language);
 
 /**
- * 
- * @param {string} verification_code 
- * @param {string} [password] 
+ *
+ * @param {string} verification_code
+ * @param {string} [password]
  * @returns {Promise<string>}
  */
 exports.validateVerificationCode = async (verification_code, password) => {
@@ -39,10 +39,10 @@ exports.validateVerificationCode = async (verification_code, password) => {
 }
 
 /**
- * 
- * @param {string} username 
- * @param {string} email 
- * @param {string} verification_code 
+ *
+ * @param {string} username
+ * @param {string} email
+ * @param {string} verification_code
  * @param {number} action - 0 for initial email verification, 1 for change email, 2 for forgot password
  */
 exports.sendVerificationEmail = async (username, email, verification_code, action) => {

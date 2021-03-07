@@ -1,8 +1,9 @@
 const { respond, handleError } = require("../utils");
 const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getAllUsers, setValues, setVerified } = require("../services/user.service");
 const { generateRefreshToken } = require("../services/token.service");
-const db = require("../../db");
+const db = require("../../db/db");
 const configReader = require("../../configReader");
+const { User } = require("../services/User");
 
 exports.get = async (req, res) => {
     try {
@@ -26,9 +27,10 @@ exports.post = async (req, res) => {
             if (configReader.config.user_info.hasOwnProperty(key))
                 user_info[key] = req.body[key];
         }
-        let user_id = await createUser(req.body.email, req.body.username, req.body.password, user_info);
-        let { access_token, refresh_token, expires } = await generateRefreshToken(user_id, await db.getDashboardId());
-        respond(res, 201, { user_id, access_token, refresh_token, expires });
+        let user = await User.create(req.body.username, req.body.email, req.body.password, user_info);
+        await user.save();
+        let { access_token, refresh_token, expires } = await generateRefreshToken(user.user_id, await db.getDashboardId());
+        respond(res, 201, { user_id: user.user_id, access_token, refresh_token, expires });
     } catch (e) {
         handleError(res, e);
     }

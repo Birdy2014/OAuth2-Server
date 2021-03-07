@@ -1,7 +1,7 @@
 const { respond, handleError, generateToken } = require("../utils");
 const { getUserFromLogin } = require("../services/user.service");
 const { sendVerificationEmail, validateVerificationCode } = require("../services/verification.service");
-const db = require("../../db");
+const db = require("../../db/db");
 
 exports.post = async (req, res) => {
     try {

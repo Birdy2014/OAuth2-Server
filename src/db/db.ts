@@ -1,9 +1,30 @@
 const mysql = require("mysql");
 const sqlite3 = require("sqlite3");
 const util = require("util");
-const { generateToken } = require("./api/utils");
+const { generateToken } = require("../api/utils");
 const uuid = require("uuid").v4;
-const logger = require("./logger");
+const logger = require("../logger");
+
+export interface TableRow {
+    [name: string]: any;
+}
+
+export enum DBErrorType {
+    DUPLICATE,
+    UNKNOWN
+}
+
+export class DBError extends Error {
+    public type: DBErrorType;
+
+    constructor(type: DBErrorType, message?: string) {
+        super(message);
+        this.type = type;
+    }
+}
+
+let query;
+export { query };
 
 exports.init = async (config, dashboard_uri) => {
     await connect(config);
@@ -21,11 +42,11 @@ function connect(config) {
         if (config.dbms === "mysql") {
             exports.pool = mysql.createPool(config);
             exports.query = util.promisify(exports.pool.query).bind(exports.pool);
-            resolve();
+            resolve(undefined);
         } else if (config.dbms === "sqlite") {
             exports.connection = new sqlite3.Database(config.path);
             exports.query = util.promisify(exports.connection.all).bind(exports.connection);
-            resolve();
+            resolve(undefined);
         } else {
             reject("Invalid dbms");
         }
@@ -318,9 +339,13 @@ async function initDatabase(config, dashboard_uri) {
         const dashboard_id = await exports.getDashboardId();
         await exports.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
     }
+    dashboard_id = await getDashboardId();
 }
 
-exports.getDashboardId = async () => {
+let dashboard_id;
+export { dashboard_id };
+
+export async function getDashboardId () {
     return (await exports.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
 }
 
@@ -329,12 +354,27 @@ exports.getDashboardId = async () => {
  * @param {string} table - Name of the table
  * @param {Object} row - fields to be inserted
  */
-exports.insert = async (table, row) => {
-    let keys = [];
-    let values = [];
+export async function insert (table: string, row: TableRow) {
+    let keys: string[] = [];
+    let values: string[] = [];
     for (let field in row) {
         keys.push(field);
         values.push("\"" + row[field] + "\"");
     }
-    await exports.query(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${values.join(", ")})`);
+    try {
+        await exports.query(`INSERT INTO ${table} (${keys.join(", ")}) VALUES (${values.join(", ")})`);
+    } catch(err) {
+        if (err.code === "ER_DUP_ENTRY" || err.code === "SQLITE_CONSTRAINT")
+            throw new DBError(DBErrorType.DUPLICATE);
+        throw new DBError(DBErrorType.UNKNOWN);
+    }
+}
+
+export async function update(table: string, condition: string, data: TableRow) {
+    let datastring = "";
+    for (let key in data) {
+        datastring += key + " = " + data[key] + ", ";
+    }
+    datastring = datastring.slice(0, -2);
+    await exports.query(`UPDATE ${table} SET ${datastring} WHERE ${condition}`);
 }

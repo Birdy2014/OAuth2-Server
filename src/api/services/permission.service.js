@@ -1,8 +1,8 @@
-const db = require("../../db");
+const db = require("../../db/db");
 
 /**
  * Get all permissions of the user
- * @param {string} user_id 
+ * @param {string} user_id
  * @param {string} [client_id]
  * @returns {Array.string|Array.Object} Permissions
  */

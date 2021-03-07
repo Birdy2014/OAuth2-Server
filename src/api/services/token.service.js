@@ -1,6 +1,6 @@
 const { generateToken, currentUnixTime } = require("../utils");
 const configReader = require("../../configReader");
-const db = require("../../db");
+const db = require("../../db/db");
 
 /**
  * Get the user_id and client_id from a refresh_token

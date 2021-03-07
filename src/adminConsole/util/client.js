@@ -1,4 +1,4 @@
-const db = require("../../db");
+const db = require("../../db/db");
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 
 /**

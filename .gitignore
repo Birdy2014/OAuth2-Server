@@ -1,3 +1,5 @@
+Session.vim
+
 # Logs
 logs
 *.log
@@ -23,7 +25,7 @@ node_modules/
 .env.test
 
 # Transpiled code
-build
+dist
 
 # config
 /config.json

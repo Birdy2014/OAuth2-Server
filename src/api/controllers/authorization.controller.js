@@ -3,7 +3,7 @@ const { createAuthorizationCode } = require("../services/authorization.service")
 const { getUserFromLoginPassword } = require("../services/user.service");
 const { getClientFromRedirectUri } = require("../services/client.service");
 const { generateRefreshToken } = require("../services/token.service");
-const { getDashboardId } = require("../../db");
+const { getDashboardId } = require("../../db/db");
 
 exports.post = async (req, res) => {
     try {

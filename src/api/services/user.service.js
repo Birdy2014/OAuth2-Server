@@ -1,6 +1,6 @@
 const bcrypt = require("bcrypt");
 const uuid = require("uuid").v4;
-const db = require("../../db");
+const db = require("../../db/db");
 const { generateToken, checkUsername, checkEmail, checkPassword, currentUnixTime } = require("../utils");
 const configReader = require("../../configReader");
 const { sendVerificationEmail } = require("../services/verification.service");

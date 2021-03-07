@@ -1,4 +1,4 @@
-const db = require("../../db");
+const db = require("../../db/db");
 const { respond, handleError } = require("../utils");
 const { hasPermission } = require("../services/permission.service");
 

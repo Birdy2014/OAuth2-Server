@@ -1,6 +1,6 @@
 const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getUserInfo } = require("../../api/services/user.service");
 const { getUserId } = require("../util/user");
-const db = require("../../db");
+const db = require("../../db/db");
 
 module.exports.run = async args => {
     switch (args[0]) {
