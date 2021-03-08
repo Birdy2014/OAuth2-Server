@@ -7,8 +7,9 @@
     "test": "mocha --require ts-node/register --extensions ts 'test/*.ts'",
     "start": "node dist/index.js",
     "debug": "DEBUG=1 ts-node --files src/index.ts",
-    "clean": "rm -r dist",
-    "prepare": "npm run clean && ./compile.sh"
+    "clean": "rm -rf dist",
+    "build": "npm run clean && bash ./compile.sh",
+    "prepack": "npm run build"
   },
   "author": "Moritz Vogel",
   "license": "MIT",
