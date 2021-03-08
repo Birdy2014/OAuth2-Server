@@ -1,5 +1,5 @@
 const { addPermission, removePermission } = require("../../api/services/permission.service");
-const db = require("../../db/db");
+const { Database } = require("../../db/db");
 const { getUserId } = require("../util/user");
 
 module.exports.run = async args => {
@@ -19,7 +19,7 @@ module.exports.run = async args => {
         }
         case "list": {
             try {
-                let result = await db.query("SELECT permissions.user_id AS user_id, user.email AS email, user.username AS username FROM permissions JOIN user ON permissions.user_id = user.user_id WHERE permission = 'admin'");
+                let result = await Database.query("SELECT permissions.user_id AS user_id, user.email AS email, user.username AS username FROM permissions JOIN user ON permissions.user_id = user.user_id WHERE permission = 'admin'");
                 if (result.length === 0) {
                     console.log("There are no admins");
                 } else {

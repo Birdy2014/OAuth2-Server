@@ -1,4 +1,4 @@
-const db = require("../../db/db");
+const { Database } = require("../../db/db");
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 const emailRegEx = /^\S+@\S+\.\S+$/;
 
@@ -17,7 +17,7 @@ exports.getUserId = async (login) => {
     else
         query = `SELECT user_id FROM user WHERE username = '${login}'`;
 
-    let result = await db.query(query);
+    let result = await Database.query(query);
     if (result.length === 1) {
         return result[0].user_id;
     } else if (result.length === 0) {

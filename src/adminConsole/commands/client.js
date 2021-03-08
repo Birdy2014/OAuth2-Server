@@ -1,5 +1,5 @@
 const { getUserId } = require("../util/user");
-const db = require("../../db/db");
+const { Database } = require("../../db/db");
 const clientService = require("../../api/services/client.service");
 const clientUtils = require("../util/client");
 
@@ -7,7 +7,7 @@ module.exports.run = async args => {
     switch (args[0]) {
         case "list": {
             try {
-                let results = await db.query("SELECT client_id, name, dev_id FROM client");
+                let results = await Database.query("SELECT client_id, name, dev_id FROM client");
                 if (results.length === 0) {
                     console.log("There are no clients");
                 } else {
@@ -61,7 +61,7 @@ module.exports.run = async args => {
                     console.log("Usage: client get <client id or name>");
                 } else {
                     let client_id = await clientUtils.getClientId(args[0]);
-                    let results = await db.query(`SELECT client.name AS name, client.dev_id AS dev_id, client.client_secret AS client_secret, user.username AS username, user.email AS email FROM client LEFT JOIN user ON user.user_id = client.dev_id WHERE client.client_id = '${client_id}'`);
+                    let results = await Database.query(`SELECT client.name AS name, client.dev_id AS dev_id, client.client_secret AS client_secret, user.username AS username, user.email AS email FROM client LEFT JOIN user ON user.user_id = client.dev_id WHERE client.client_id = '${client_id}'`);
                     console.log(`id: ${client_id} name: ${results[0].name} client_secret: ${results[0].client_secret} dev_id: ${results[0].dev_id} dev_email: ${results[0].email} dev_username: ${results[0].username}`);
                 }
             } catch (e) {

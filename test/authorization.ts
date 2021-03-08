@@ -1,9 +1,8 @@
-const { setup, cleanup } = require("./test-utils");
+import { setup, cleanup } from './test-utils';
 import crypto from 'crypto';
-const db = require("../src/db/db");
-const authorization = require("../src/api/services/authorization.service");
-
-let context;
+import { Database } from '../src/db/db';
+import authorization from '../src/api/services/authorization.service';
+import assert from 'assert';
 
 const testUser = {
     user_id: "e1b53f7e-027a-4c0d-81bc-c4c8de75c9ef",
@@ -16,48 +15,32 @@ const testUser = {
 }
 
 describe("authorization", () => {
-    before((done) => {
-        setup((_context) => {
-            context = _context;
-            db.insert("user", { user_id: testUser.user_id, email: testUser.email, username: testUser.username, password_hash: testUser.password_hash });
-            testUser.challenge = crypto.createHash("sha256").update(testUser.code_verifier).digest("base64").replace(/\+/g, "_");
-            done();
-        });
+    before(async () => {
+        await setup();
+        Database.insert("user", { user_id: testUser.user_id, email: testUser.email, username: testUser.username, password_hash: testUser.password_hash });
+        testUser.challenge = crypto.createHash("sha256").update(testUser.code_verifier).digest("base64").replace(/\+/g, "_");
     });
 
-    after(() => {
-        cleanup();
-    });
+    after(cleanup);
 
     describe("createAuthorizationCode", () => {
-        it("should create an authorization code", (done) => {
-            authorization.createAuthorizationCode(context.dashboard_id, testUser.user_id, testUser.challenge)
-                .then((authorization_code) => { testUser.authorization_code = authorization_code; done() })
-                .catch((e) => done(new Error(e)));
+        it("should create an authorization code", async () => {
+            let authorization_code = await authorization.createAuthorizationCode(Database.dashboard_id, testUser.user_id, testUser.challenge);
+            testUser.authorization_code = authorization_code;
         });
     });
 
     describe("checkPKCE", () => {
-        it("should be successful when correct code verifier is used", (done) => {
-            authorization.checkPKCE(testUser.authorization_code, testUser.code_verifier)
-                .then((success) => {
-                    if (success)
-                        done();
-                    else
-                        done(new Error());
-                })
-                .catch((e) => done(new Error(e)));
+        it("should be successful when correct code verifier is used", async () => {
+            let success = await authorization.checkPKCE(testUser.authorization_code, testUser.code_verifier)
+            if (!success)
+                assert.fail("Success is false");
         });
 
-        it("should fail when incorrect code verifier is used", (done) => {
-            authorization.checkPKCE(testUser.authorization_code, "a")
-                .then((success) => {
-                    if (success)
-                        done(new Error());
-                    else
-                        done();
-                })
-                .catch((e) => done(new Error(e)));
+        it("should fail when incorrect code verifier is used", async () => {
+            let success = await authorization.checkPKCE(testUser.authorization_code, "a");
+            if (success)
+                assert.fail("Success is true");
         });
     });
 });

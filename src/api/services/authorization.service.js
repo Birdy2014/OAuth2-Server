@@ -1,11 +1,11 @@
 const crypto = require('crypto');
 const { generateToken, currentUnixTime } = require("../utils");
-const db = require("../../db/db");
+const { Database } = require("../../db/db");
 const configReader = require("../../configReader");
 
 /**
  * Create an authorization code for user
- * @param {number} client_id
+ * @param {string} client_id
  * @param {string} user_id
  * @param {string} challenge
  * @returns {Promise<string>} authorization_code
@@ -13,7 +13,7 @@ const configReader = require("../../configReader");
 exports.createAuthorizationCode = async (client_id, user_id, challenge) => {
     let authorization_code = generateToken(30);
     let expires = currentUnixTime() + configReader.config.authorizationCodeExpirationTime;
-    await db.insert("authorization_code", { authorization_code, user_id, client_id, challenge, expires });
+    await Database.insert("authorization_code", { authorization_code, user_id, client_id, challenge, expires });
     return authorization_code;
 }
 
@@ -23,7 +23,7 @@ exports.createAuthorizationCode = async (client_id, user_id, challenge) => {
  * @returns {Promise<{user_id: string, client_id: string}>}
  */
 exports.getUserAndClientFromAuthorizationCode = async (code) => {
-    let result = await db.query(`SELECT user_id, client_id FROM authorization_code WHERE authorization_code = '${code}'`);
+    let result = await Database.query(`SELECT user_id, client_id FROM authorization_code WHERE authorization_code = '${code}'`);
     return result[0] || {};
 }
 
@@ -34,7 +34,7 @@ exports.getUserAndClientFromAuthorizationCode = async (code) => {
  * @returns {Promise<boolean>}
  */
 exports.checkPKCE = async (code, code_verifier) => {
-    let challenge = (await db.query(`SELECT challenge FROM authorization_code WHERE authorization_code = '${code}'`))[0].challenge;
+    let challenge = (await Database.query(`SELECT challenge FROM authorization_code WHERE authorization_code = '${code}'`))[0].challenge;
     let hash = crypto.createHash("sha256").update(code_verifier).digest("base64").replace(/\+/g, "_");
     return hash === challenge;
 }

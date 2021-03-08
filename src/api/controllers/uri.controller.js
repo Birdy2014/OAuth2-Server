@@ -1,4 +1,4 @@
-const db = require("../../db/db");
+const { Database } = require("../../db/db");
 const { respond, handleError } = require("../utils");
 const { hasPermission } = require("../services/permission.service");
 
@@ -36,9 +36,9 @@ exports.del = async (req, res) => {
 
 exports.addUri = async (client_id, redirect_uri) => {
     try {
-        let results = await db.query(`SELECT client_id FROM client WHERE client_id = '${client_id}'`);
+        let results = await Database.query(`SELECT client_id FROM client WHERE client_id = '${client_id}'`);
         if (results.length === 1)
-            await db.insert("redirect_uri", { client_id, redirect_uri });
+            await Database.insert("redirect_uri", { client_id, redirect_uri });
         else
             throw { status: 404, error: "Client not found" };
     } catch (e) {
@@ -47,5 +47,5 @@ exports.addUri = async (client_id, redirect_uri) => {
 }
 
 exports.removeUri = async (client_id, redirect_uri) => {
-    await db.query(`DELETE FROM redirect_uri WHERE client_id = '${client_id}' AND redirect_uri = '${redirect_uri}'`);
+    await Database.query(`DELETE FROM redirect_uri WHERE client_id = '${client_id}' AND redirect_uri = '${redirect_uri}'`);
 }

@@ -1,4 +1,4 @@
-import { query } from '../../db/db';
+import { Database } from '../../db/db';
 import { PermissionsTuple } from '../../db/schemas';
 
 export interface PermissionList {
@@ -25,7 +25,7 @@ export class Permissions {
     }
 
     public static async fromUserId(user_id: string) {
-        let result: Array<PermissionsTuple> = await query(`SELECT * FROM permissions WHERE user_id = '${user_id}'`);
+        let result: Array<PermissionsTuple> = await Database.selectAll<PermissionsTuple>('permissions', `user_id = '${user_id}'`);
         let values: PermissionList = {};
         result.forEach(tuple => {
             if (values[tuple.client_id] === undefined) values[tuple.client_id] = [];

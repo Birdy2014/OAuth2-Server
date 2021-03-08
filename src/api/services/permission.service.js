@@ -1,4 +1,4 @@
-const db = require("../../db/db");
+const { Database } = require("../../db/db");
 
 /**
  * Get all permissions of the user
@@ -12,7 +12,7 @@ exports.getPermissions = async (user_id, client_id) => {
         query = `SELECT client_id, permission FROM permissions WHERE user_id = '${user_id}' AND client_id = '${client_id}'`;
     else
         query = `SELECT client_id, permission FROM permissions WHERE user_id = '${user_id}'`;
-    let permissionsRaw = await db.query(query);
+    let permissionsRaw = await Database.query(query);
     let permissions = [];
     for (let i = 0; i < permissionsRaw.length; i++) {
         if (client_id)
@@ -28,18 +28,18 @@ exports.getPermissions = async (user_id, client_id) => {
 
 exports.addPermission = async (user_id, client_id, permission) => {
     try {
-        await db.insert("permissions", { user_id, client_id, permission });
+        await Database.insert("permissions", { user_id, client_id, permission });
     } catch (e) {
         if (e.code != "ER_DUP_ENTRY") throw e; //Allow adding permission multiple times
     }
 }
 
 exports.removePermission = async (user_id, client_id, permission) => {
-    await db.query(`DELETE FROM permissions WHERE user_id = '${user_id}' AND permission = '${permission}' AND client_id = '${client_id}'`);
+    await Database.query(`DELETE FROM permissions WHERE user_id = '${user_id}' AND permission = '${permission}' AND client_id = '${client_id}'`);
 }
 
 exports.hasPermission = async (user_id, client_id, permission) => {
-    let permissions = await db.query(`SELECT permission FROM permissions WHERE user_id = '${user_id}' AND client_id = '${client_id}'`);
+    let permissions = await Database.query(`SELECT permission FROM permissions WHERE user_id = '${user_id}' AND client_id = '${client_id}'`);
     for (const permissionObj of permissions) {
         if (permissionObj.permission === permission)
             return true;

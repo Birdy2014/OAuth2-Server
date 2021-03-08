@@ -1,6 +1,6 @@
 const configReader = require("./configReader");
 configReader.load(__dirname + "/../config");
-const db = require("./db/db");
+const { Database } = require("./db/db");
 import express from 'express';
 const apiRouter = require("./api/router");
 const { currentUnixTime, respond } = require("./api/utils");
@@ -20,7 +20,7 @@ async function main() {
     logger.init(configReader.config.logpath);
 
     //create tables if they don't exist
-    if (await db.init(configReader.config.db, configReader.config.url))
+    if (await Database.init(configReader.config.db, configReader.config.url))
         logger.info("Tables created");
 
     app.use(cors());
@@ -68,9 +68,8 @@ async function main() {
 
     //Backend
     app.use("/api", apiRouter);
-    app.get("/api/dashboard_id", async (req: express.Request, res: express.Response) => {
-        let client_id = (await db.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
-        respond(res, 200, { client_id: client_id });
+    app.get("/api/dashboard_id", (req: express.Request, res: express.Response) => {
+        respond(res, 200, { client_id: Database.dashboard_id });
     });
 
     //assets
@@ -99,9 +98,9 @@ async function main() {
     //delete old access tokens, run once every day
     setInterval(() => {
         logger.info("cleaning db...");
-        db.query(`DELETE FROM access_token WHERE expires < ${currentUnixTime()}`);
-        db.query(`DELETE FROM refresh_token WHERE expires < ${currentUnixTime()}`);
-        db.query(`DELETE FROM authorization_code WHERE expires < ${currentUnixTime()}`);
+        Database.delete('access_token', `expires < ${currentUnixTime()}`);
+        Database.delete('refresh_token', `expires < ${currentUnixTime()}`);
+        Database.delete('authorization_code', `expires < ${currentUnixTime()}`);
         logger.info("cleaning complete");
     }, 86400000);
 

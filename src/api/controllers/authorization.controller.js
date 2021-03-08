@@ -3,7 +3,7 @@ const { createAuthorizationCode } = require("../services/authorization.service")
 const { getUserFromLoginPassword } = require("../services/user.service");
 const { getClientFromRedirectUri } = require("../services/client.service");
 const { generateRefreshToken } = require("../services/token.service");
-const { getDashboardId } = require("../../db/db");
+const { Database } = require("../../db/db");
 
 exports.post = async (req, res) => {
     try {
@@ -12,7 +12,7 @@ exports.post = async (req, res) => {
 
         let user = await getUserFromLoginPassword(req.body.login, req.body.password);
 
-        let dashboardId = await getDashboardId();
+        let dashboardId = Database.dashboard_id;
         let dashboardTokens = await generateRefreshToken(user.user_id, dashboardId);
         res.cookie("access_token", dashboardTokens.access_token);
         res.cookie("refresh_token", dashboardTokens.refresh_token);

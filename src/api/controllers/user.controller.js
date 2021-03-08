@@ -1,7 +1,7 @@
 const { respond, handleError } = require("../utils");
 const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getAllUsers, setValues, setVerified } = require("../services/user.service");
 const { generateRefreshToken } = require("../services/token.service");
-const db = require("../../db/db");
+const { Database } = require("../../db/db");
 const configReader = require("../../configReader");
 const { User } = require("../services/User");
 
@@ -29,7 +29,7 @@ exports.post = async (req, res) => {
         }
         let user = await User.create(req.body.username, req.body.email, req.body.password, user_info);
         await user.save();
-        let { access_token, refresh_token, expires } = await generateRefreshToken(user.user_id, await db.getDashboardId());
+        let { access_token, refresh_token, expires } = await generateRefreshToken(user.user_id, Database.dashboard_id);
         respond(res, 201, { user_id: user.user_id, access_token, refresh_token, expires });
     } catch (e) {
         handleError(res, e);

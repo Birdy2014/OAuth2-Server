@@ -1,4 +1,4 @@
-const db = require("../../db/db");
+const { Database } = require("../../db/db");
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 
 /**
@@ -14,7 +14,7 @@ exports.getClientId = async (identifier) => {
     else
         query = `SELECT client_id FROM client WHERE name = '${identifier}'`;
 
-    let result = await db.query(query);
+    let result = await Database.query(query);
     if (result.length === 1) {
         return result[0].client_id;
     } else if (result.length === 0) {

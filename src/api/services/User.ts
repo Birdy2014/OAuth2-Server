@@ -4,7 +4,7 @@ import { ServerError, generateToken, checkUsername, checkEmail, checkPassword, c
 import { Permissions, PermissionsExport } from './Permissions';
 import bcrypt from 'bcrypt';
 import configReader from '../../configReader';
-import { query, DBError, DBErrorType, insert, update, dashboard_id  } from '../../db/db';
+import { DBError, DBErrorType, Database } from '../../db/db';
 import { sendVerificationEmail } from './verification.service';
 
 export interface UserInfo {
@@ -88,7 +88,7 @@ export class User {
     }
 
     public get admin() {
-        return this.permissions.values[dashboard_id]?.includes('admin');
+        return this.permissions.values[Database.dashboard_id]?.includes('admin');
     }
 
     private constructor(user_id: string, username: string, email: string, password: string|undefined, password_hash: string|undefined, verified: boolean, user_info: UserInfo, permissions: Permissions, create: boolean = false) {
@@ -118,26 +118,13 @@ export class User {
 
         if (!verified) {
             let verification_code = generateToken(12);
-            await insert("verification_code", { user_id, email, verification_code });
+            await Database.insert("verification_code", { user_id, email, verification_code });
             sendVerificationEmail(username, email, verification_code, 0);
         }
 
         let permissions = await Permissions.fromUserId(user_id);
 
         return new User(user_id, username, email, password, undefined, verified, user_info, permissions, true);
-    }
-
-    public static async fromId(user_id: string): Promise<User> {
-        let users: UserTuple[] = await query(`SELECT * FROM user WHERE user_id = '${user_id}'`);
-        if (users.length < 1)
-            throw new ServerError(404, "Invalid user_id");
-        let user_tuple = users[0];
-
-        let user_infos: UserInfoTuple[] = await query(`SELECT * FROM user_info WHERE user_id = '${user_id}'`);
-        let user_info: UserInfo = {};
-        user_infos.forEach(tuple => user_info[tuple.name] = tuple.value);
-
-        return new User(user_tuple.user_id, user_tuple.username, user_tuple.email, undefined, user_tuple.password_hash, user_tuple.verified, user_info, await Permissions.fromUserId(user_tuple.user_id), false);
     }
 
     public static async fromLogin(login: string): Promise<User> {
@@ -152,13 +139,11 @@ export class User {
         else
             type = 'username';
 
-        let users: UserTuple[] = await query(`SELECT * FROM user WHERE ${type} = '${login}'`);
-        if (users.length < 1)
+        let user_tuple: UserTuple|undefined = await Database.select<UserTuple>('user', `${type} = '${login}'`);
+        if (user_tuple === undefined)
             throw new ServerError(404, `User ${login} not found`);
 
-        let user_tuple = users[0];
-
-        let user_infos: UserInfoTuple[] = await query(`SELECT * FROM user_info WHERE user_id = '${user_tuple.user_id}'`)
+        let user_infos: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', `user_id = '${user_tuple.user_id}'`);
         let user_info: UserInfo = {};
         user_infos.forEach(tuple => user_info[tuple.name] = tuple.value);
 
@@ -166,7 +151,7 @@ export class User {
     }
 
     public static async fromLoginPassword(login: string, password: string): Promise<User> {
-        let user = await this.fromLogin(login);
+        let user = await User.fromLogin(login);
 
         let authorized = await bcrypt.compare(password, user.password_hash as string);
         if (!authorized)
@@ -177,18 +162,18 @@ export class User {
 
     public static async fromAccessToken(access_token: string): Promise<User> {
         if (access_token.startsWith("Bearer ")) access_token = access_token.substring("Bearer ".length);
-        let results: AccessTokenTuple[] = await query(`SELECT * FROM access_token WHERE access_token = '${access_token}'`);
-        if (results.length === 0 || results[0].expires < currentUnixTime())
+        let result: AccessTokenTuple|undefined = await Database.select<AccessTokenTuple>('access_token', `access_token = '${access_token}'`);
+        if (result === undefined || result.expires < currentUnixTime())
             throw new ServerError(403, "Invalid access_token");
-        let user = await this.fromId(results[0].user_id);
+        let user = await User.fromLogin(result.user_id);
         return user;
     }
 
     public static async fromRefreshToken(refresh_token: string): Promise<User> {
-        let results: RefreshTokenTuple[] = await query(`SELECT * FROM refresh_token WHERE refresh_token = '${refresh_token}'`);
-        if (results.length === 0 || results[0].expires < currentUnixTime())
+        let result: RefreshTokenTuple|undefined = await Database.select<RefreshTokenTuple>('refresh_token', `refresh_token = '${refresh_token}'`);
+        if (result === undefined || result.expires < currentUnixTime())
             throw new ServerError(403, "Invalid refresh_token");
-        let user = await this.fromId(results[0].user_id);
+        let user = await User.fromLogin(result.user_id);
         return user;
         // TODO update refresh_token expires
     }
@@ -202,9 +187,9 @@ export class User {
             if (this._password) data.password_hash = await bcrypt.hash(this._password, 12);
 
             if (this.create)
-                await insert("user", { user_id: this._user_id, ...data });
+                await Database.insert("user", { user_id: this._user_id, ...data });
             else
-                await update("user", `user_id = '${this._user_id}'`, data)
+                await Database.update("user", `user_id = '${this._user_id}'`, data)
 
             this.c_username = false;
             this.c_email = false;
@@ -217,9 +202,9 @@ export class User {
                     continue;
                 let row: UserInfoTuple = { user_id: this.user_id, name: key, value: this._user_info[key] };
                 if (this.c_user_info.hasOwnProperty(key))
-                    await update("user", `user_id = '${this.user_id}'`, row);
+                    await Database.update("user", `user_id = '${this.user_id}'`, row);
                 else
-                    await insert("user_info", row);
+                    await Database.insert("user_info", row);
             }
 
             this.c_user_info = {...this._user_info};
@@ -233,12 +218,12 @@ export class User {
     }
 
     public async delete() {
-        await query(`DELETE FROM authorization_code WHERE user_id = '${this._user_id}'`);
-        await query(`DELETE FROM access_token WHERE user_id = '${this._user_id}'`);
-        await query(`DELETE FROM refresh_token WHERE user_id = '${this._user_id}'`);
-        await query(`DELETE FROM user WHERE user_id = '${this._user_id}'`);
-        await query(`DELETE FROM verification_code WHERE user_id = '${this._user_id}'`);
-        await query(`DELETE FROM user_info WHERE user_id = '${this._user_id}'`);
+        await Database.delete('authorization_code', `user_id = '${this._user_id}'`);
+        await Database.delete('access_token', `user_id = '${this._user_id}'`);
+        await Database.delete('refresh_token', `user_id = '${this._user_id}'`);
+        await Database.delete('user', `user_id = '${this._user_id}'`);
+        await Database.delete('verification_code', `user_id = '${this._user_id}'`);
+        await Database.delete('user_info', `user_id = '${this._user_id}'`);
         this.c_username = false;
         this.c_email = false;
         this.c_verified = false;

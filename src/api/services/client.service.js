@@ -1,4 +1,4 @@
-const db = require("../../db/db");
+const { Database } = require("../../db/db");
 const uuid = require("uuid").v4;
 const utils = require("../utils");
 
@@ -10,7 +10,7 @@ const utils = require("../utils");
 exports.getClientFromId = async (client_id) => {
     let result;
     try {
-        result = (await db.query(`SELECT * FROM client WHERE client_id = '${client_id}'`))[0];
+        result = (await Database.query(`SELECT * FROM client WHERE client_id = '${client_id}'`))[0];
     } catch (e) {
         throw { status: 500, error: "Internal Server Error" };
     }
@@ -39,16 +39,16 @@ exports.checkClientCredentials = async (client_id, client_secret) => {
  */
 exports.createClient = async (name, dev_id, redirect_uri) => {
     //Does a client with the same name already exist?
-    if ((await db.query(`SELECT * FROM client WHERE name='${name}'`)).length === 1) throw { status: 409, error: "Client already exists" };
+    if ((await Database.query(`SELECT * FROM client WHERE name='${name}'`)).length === 1) throw { status: 409, error: "Client already exists" };
 
     //Generate the client_secret
     let client_secret = utils.generateToken(12);
 
     //Create the client
     let client_id = uuid();
-    await db.insert("client", { client_id, client_secret, name, dev_id });
+    await Database.insert("client", { client_id, client_secret, name, dev_id });
 
-    await db.insert("redirect_uri", { client_id, redirect_uri });
+    await Database.insert("redirect_uri", { client_id, redirect_uri });
 
     return { client_id, client_secret };
 }
@@ -59,17 +59,17 @@ exports.createClient = async (name, dev_id, redirect_uri) => {
  * @param {number} developer_id
  */
 exports.deleteClient = async (client_id) => {
-    if ((await db.query(`SELECT * FROM client WHERE client_id='${client_id}'`)).length !== 1) throw { status: 404, error: "Client not found" };
+    if ((await Database.query(`SELECT * FROM client WHERE client_id='${client_id}'`)).length !== 1) throw { status: 404, error: "Client not found" };
 
-    await db.query(`DELETE FROM authorization_code WHERE client_id = '${client_id}'`);
-    await db.query(`DELETE FROM access_token WHERE client_id = '${client_id}'`);
-    await db.query(`DELETE FROM refresh_token WHERE client_id = '${client_id}'`);
-    await db.query(`DELETE FROM client WHERE client_id = '${client_id}'`);
-    await db.query(`DELETE FROM redirect_uri WHERE client_id = '${client_id}'`);
+    await Database.query(`DELETE FROM authorization_code WHERE client_id = '${client_id}'`);
+    await Database.query(`DELETE FROM access_token WHERE client_id = '${client_id}'`);
+    await Database.query(`DELETE FROM refresh_token WHERE client_id = '${client_id}'`);
+    await Database.query(`DELETE FROM client WHERE client_id = '${client_id}'`);
+    await Database.query(`DELETE FROM redirect_uri WHERE client_id = '${client_id}'`);
 }
 
 exports.getClients = async () => {
-    let results = await db.query("SELECT client_id, name, dev_id FROM client");
+    let results = await Database.query("SELECT client_id, name, dev_id FROM client");
     let clients = [];
     results.forEach(client => {
         clients.push({
@@ -104,7 +104,7 @@ exports.getClientFromSecret = async (client_id, client_secret) => {
  */
 exports.getClientFromRedirectUri = async (client_id, redirect_uri) => {
     let client = await exports.getClientFromId(client_id);
-    let redirect_uris = await db.query(`SELECT redirect_uri FROM redirect_uri WHERE client_id = '${client_id}'`);
+    let redirect_uris = await Database.query(`SELECT redirect_uri FROM redirect_uri WHERE client_id = '${client_id}'`);
     for (const item of redirect_uris) {
         if (redirect_uri.startsWith(item.redirect_uri)) {
             return client;

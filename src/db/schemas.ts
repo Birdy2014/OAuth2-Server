@@ -1,11 +1,15 @@
-export interface ClientTuple {
+export interface TableRow {
+    [name: string]: any;
+}
+
+export interface ClientTuple extends TableRow {
     client_id: string;
     client_secret: string;
     name: string;
     dev_id: string;
 }
 
-export interface UserTuple {
+export interface UserTuple extends TableRow {
     user_id: string;
     username: string;
     email: string;
@@ -13,7 +17,7 @@ export interface UserTuple {
     verified: boolean;
 }
 
-export interface AuthorizationCodeTuple {
+export interface AuthorizationCodeTuple extends TableRow {
     authorization_code: string;
     user_id: string;
     client_id: string;
@@ -21,39 +25,39 @@ export interface AuthorizationCodeTuple {
     challenge: string;
 }
 
-export interface AccessTokenTuple {
+export interface AccessTokenTuple extends TableRow {
     access_token: string;
     user_id: string;
     client_id: string;
     expires: number;
 }
 
-export interface RefreshTokenTuple {
+export interface RefreshTokenTuple extends TableRow {
     refresh_token: string;
     user_id: string;
     client_id: string;
     expires: number;
 }
 
-export interface PermissionsTuple {
+export interface PermissionsTuple extends TableRow {
     user_id: string;
     client_id: string;
     permission: string;
 }
 
-export interface RedirectUriTuple {
+export interface RedirectUriTuple extends TableRow {
     client_id: string;
     redirect_uri: string;
 }
 
-export interface VerificationCodeTuple {
+export interface VerificationCodeTuple extends TableRow {
     verification_code: string;
     user_id: string;
     email: string;
     change_password: boolean;
 }
 
-export interface UserInfoTuple {
+export interface UserInfoTuple extends TableRow {
     user_id: string;
     name: string;
     value: string;

@@ -1,7 +1,7 @@
 const pug = require('pug');
 const userService = require("./user.service");
 const configReader = require("../../configReader");
-const db = require("../../db/db");
+const { Database } = require("../../db/db");
 const logger = require("../../logger");
 const translationProvider = require("../../i18n/translationProvider");
 const verificationEmail = pug.compileFile(__dirname + "/../../views/email/verification.pug");
@@ -16,16 +16,16 @@ const lang = translationProvider.getLanguage(configReader.config.language);
  * @returns {Promise<string>}
  */
 exports.validateVerificationCode = async (verification_code, password) => {
-    let result = await db.query(`SELECT user_id, email, change_password FROM verification_code WHERE verification_code = '${verification_code}'`);
+    let result = await Database.query(`SELECT user_id, email, change_password FROM verification_code WHERE verification_code = '${verification_code}'`);
     if (result.length === 0) throw { status: 403, error: "Invalid verification_code" };
     let { user_id, email, change_password } = result[0];
 
-    await db.query(`DELETE FROM verification_code WHERE verification_code = '${verification_code}'`);
-    await db.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);
+    await Database.query(`DELETE FROM verification_code WHERE verification_code = '${verification_code}'`);
+    await Database.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);
     if (email) {
         //change email
         if (!email) throw { status: 400, error: "Invalid arguments" };
-        await db.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
+        await Database.query(`UPDATE user SET email = '${email}' WHERE user_id = '${user_id}'`);
         return email;
     } else if (change_password) {
         //forgot password

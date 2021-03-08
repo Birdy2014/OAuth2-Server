@@ -1,6 +1,6 @@
 const tokenService = require("../services/token.service");
 const { respond, handleError } = require("../utils");
-const db = require("../../db/db");
+const { Database } = require("../../db/db");
 const { getUserAndClientFromAuthorizationCode, checkPKCE } = require("../services/authorization.service");
 const { checkClientCredentials, getClientFromSecret } = require("../services/client.service");
 const { getUserFromAccessToken } = require("../services/user.service");
@@ -89,10 +89,10 @@ exports.revoke = async (req, res) => {
             throw { status: 400, error: "Invalid arguments" };
 
         if (access_token) //revoke access_token
-            await db.query(`DELETE FROM access_token WHERE access_token = '${access_token}'`);
+            await Database.query(`DELETE FROM access_token WHERE access_token = '${access_token}'`);
 
         if (refresh_token) //revoke refresh_token
-            await db.query(`DELETE FROM refresh_token WHERE refresh_token = '${refresh_token}'`);
+            await Database.query(`DELETE FROM refresh_token WHERE refresh_token = '${refresh_token}'`);
 
         respond(res, 200);
     } catch (e) {
