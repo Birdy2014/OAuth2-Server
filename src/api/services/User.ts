@@ -160,24 +160,6 @@ export class User {
         return user;
     }
 
-    public static async fromAccessToken(access_token: string): Promise<User> {
-        if (access_token.startsWith("Bearer ")) access_token = access_token.substring("Bearer ".length);
-        let result: AccessTokenTuple|undefined = await Database.select<AccessTokenTuple>('access_token', `access_token = '${access_token}'`);
-        if (result === undefined || result.expires < currentUnixTime())
-            throw new ServerError(403, "Invalid access_token");
-        let user = await User.fromLogin(result.user_id);
-        return user;
-    }
-
-    public static async fromRefreshToken(refresh_token: string): Promise<User> {
-        let result: RefreshTokenTuple|undefined = await Database.select<RefreshTokenTuple>('refresh_token', `refresh_token = '${refresh_token}'`);
-        if (result === undefined || result.expires < currentUnixTime())
-            throw new ServerError(403, "Invalid refresh_token");
-        let user = await User.fromLogin(result.user_id);
-        return user;
-        // TODO update refresh_token expires
-    }
-
     public async save() {
         try {
             let data: any = {};

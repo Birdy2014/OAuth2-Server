@@ -82,21 +82,6 @@ export class Client {
         return new Client(client_tuple.client_id, client_tuple.client_secret, client_tuple.name, client_tuple.dev_id, redirect_uris, false);
     }
 
-    public static async fromAccessToken(access_token: string): Promise<Client> {
-        if (access_token.startsWith("Bearer ")) access_token = access_token.substring("Bearer ".length);
-        let result: AccessTokenTuple|undefined = await Database.select<AccessTokenTuple>('access_token', `access_token = '${access_token}'`);
-        if (result === undefined || result.expires < currentUnixTime())
-            throw new ServerError(403, "Invalid access_token");
-        return await this.fromId(result.client_id);
-    }
-
-    public static async fromRefreshToken(refresh_token: string): Promise<Client> {
-        let result: RefreshTokenTuple|undefined = await Database.select<RefreshTokenTuple>('refresh_token', `refresh_token = '${refresh_token}'`);
-        if (result === undefined || result.expires < currentUnixTime())
-            throw new ServerError(403, "Invalid refresh_token");
-        return await this.fromId(result.client_id);
-    }
-
     private static async getUris(client_id: string): Promise<string[]> {
         let uriResults: RedirectUriTuple[] = await Database.selectAll<RedirectUriTuple>('redirect_uri', `client_id = '${client_id}'`);
         return uriResults.map(val => val.redirect_uri);

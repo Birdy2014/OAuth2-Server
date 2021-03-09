@@ -1,7 +1,7 @@
 {
     "db": {
         "dbms": "sqlite",
-        "path": "test.db"
+        "path": ":memory:"
     },
     "emailWhitelist": [
         ""
