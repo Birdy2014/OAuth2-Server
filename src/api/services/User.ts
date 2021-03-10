@@ -17,8 +17,8 @@ export interface UserExport {
     email: string;
     verified: boolean;
     admin: boolean;
-    user_info: UserInfo;
     permissions: PermissionsExport;
+    [name: string]: any;
 }
 
 export class User {
@@ -220,8 +220,8 @@ export class User {
             email: this._email,
             verified: this._verified,
             admin: this.admin,
-            user_info: this._user_info,
-            permissions: this.permissions.export(client_id)
+            permissions: this.permissions.export(client_id),
+            ...this._user_info
         };
     }
 }

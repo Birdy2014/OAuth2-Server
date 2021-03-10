@@ -1,11 +1,10 @@
-import { setup, cleanup, clean } from './test-utils';
+import { setup, cleanup, clean, testClient, testUser, shouldFail, insertTestData } from './test-utils';
 import assert from 'assert';
 import { User } from '../src/api/services/User';
 import { UserTuple, UserInfoTuple } from '../src/db/schemas';
 import { Database } from '../src/db/db';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
-import { shouldFail, testUser, insertTestData } from './test-utils';
 
 describe("User", () => {
     before(setup);
@@ -26,6 +25,7 @@ describe("User", () => {
 
             assert.strictEqual(user.email, testUser.email);
             assert.strictEqual(user.username, testUser.username);
+            assert.strictEqual(user.verified, testUser.verified);
             assert.strictEqual(user.user_info, testUser.user_info);
         });
     });
@@ -38,6 +38,7 @@ describe("User", () => {
 
             assert.strictEqual(user.email, testUser.email);
             assert.strictEqual(user.username, testUser.username);
+            assert.strictEqual(user.verified, testUser.verified);
             assert.deepStrictEqual(user.user_info, testUser.user_info);
         });
 
@@ -51,6 +52,7 @@ describe("User", () => {
 
             assert.strictEqual(user.email, testUser.email);
             assert.strictEqual(user.username, testUser.username);
+            assert.strictEqual(user.verified, testUser.verified);
             assert.deepStrictEqual(user.user_info, testUser.user_info);
         });
 
@@ -63,6 +65,7 @@ describe("User", () => {
 
             assert.strictEqual(user.email, testUser.email);
             assert.strictEqual(user.username, testUser.username);
+            assert.strictEqual(user.verified, testUser.verified);
             assert.deepStrictEqual(user.user_info, testUser.user_info);
         });
 
@@ -79,6 +82,7 @@ describe("User", () => {
 
             assert.strictEqual(user.email, testUser.email);
             assert.strictEqual(user.username, testUser.username);
+            assert.strictEqual(user.verified, testUser.verified);
             assert.deepStrictEqual(user.user_info, testUser.user_info);
         });
 
@@ -97,6 +101,7 @@ describe("User", () => {
 
             assert.strictEqual(userData?.email, testUser.email);
             assert.strictEqual(userData?.username, testUser.username);
+            assert.strictEqual(userData.verified, testUser.verified);
 
             assert.strictEqual(userInfo.length, Object.getOwnPropertyNames(testUser.user_info).length);
             for (let tuple of userInfo) {
@@ -112,10 +117,29 @@ describe("User", () => {
     });
 
     describe("delete", () => {
+        beforeEach(insertTestData);
 
+        it("should work", async () => {
+            let user = await User.fromLogin(testUser.user_id);
+            await user.delete();
+            let row = await Database.select<UserTuple>('user', `user_id = '${testUser.user_id}'`);
+            assert.strictEqual(row, undefined);
+        });
     });
 
     describe("export", () => {
+        beforeEach(insertTestData);
 
+        it("should work", async () => {
+            let user = await User.fromLogin(testUser.user_id);
+            let exported = user.export(testClient.client_id);
+
+            assert.strictEqual(exported.user_id, testUser.user_id);
+            assert.strictEqual(exported.username, testUser.username);
+            assert.strictEqual(exported.email, testUser.email);
+            assert.strictEqual(exported.verified, testUser.verified);
+            assert.strictEqual(exported.key, testUser.user_info.key);
+            // TODO: check permissions
+        });
     });
 });

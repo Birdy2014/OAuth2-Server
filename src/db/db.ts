@@ -1,10 +1,10 @@
-const mysql = require("mysql");
-const sqlite3 = require("sqlite3");
-const util = require("util");
-const { generateToken } = require("../api/utils");
-const uuid = require("uuid").v4;
-const logger = require("../logger");
-import { TableRow } from './schemas';
+import mysql from 'mysql';
+import sqlite3 from 'sqlite3';
+import util from 'util';
+import { generateToken } from '../api/utils';
+import { v4 as uuidv4 } from 'uuid';
+import logger from '../logger';
+import { TableRow, tables, TableDataTypes, TableSchema } from './schemas';
 
 export enum DBErrorType {
     DUPLICATE,
@@ -91,24 +91,32 @@ export class Database {
         }
     }
 
-    static async createTable(config, name, columns) {
+    static async createTable(config, name: string, columns: TableSchema) {
         let mysql = config.dbms == "mysql";
         let q = `CREATE TABLE IF NOT EXISTS ${name}(`;
         let primary = "";
         let unique = "";
-        for (const column of columns) {
+        for (const name in columns) {
+            const column = columns[name];
             if (column.primary) {
-                if (mysql && column.type === "TEXT")
-                    primary += `${column.name}(100), `;
+                if (mysql && column.type === TableDataTypes.TEXT)
+                    primary += `${name}(100), `;
                 else
-                    primary += `${column.name}, `;
+                    primary += `${name}, `;
             } else if (column.unique) {
-                if (mysql && column.type === "TEXT")
-                    unique += `${column.name}(100), `;
+                if (mysql && column.type === TableDataTypes.TEXT)
+                    unique += `${name}(100), `;
                 else
-                    unique += `${column.name}, `;
+                    unique += `${name}, `;
             }
-            q += `${column.name} ${column.type} ${column.options}, `;
+
+            let type: string = "";
+            switch (column.type) {
+                case TableDataTypes.TEXT:    type = "TEXT";    break;
+                case TableDataTypes.INTEGER: type = "INTEGER"; break;
+                case TableDataTypes.BOOLEAN: type = "BOOLEAN"; break;
+            }
+            q += `${name} ${type} ${column.options}, `;
         }
         if (primary)
             q += "PRIMARY KEY (" + primary.substring(0, primary.length - 2) + ")" + (unique ? ", " : " ");
@@ -124,230 +132,13 @@ export class Database {
      */
     static async initDatabase(config, dashboard_uri) {
         //create client table
-        await this.createTable(config, "client", [
-            {
-                name: "client_id",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "client_secret",
-                type: "TEXT",
-                options: "NOT NULL"
-            },
-            {
-                name: "name",
-                type: "TEXT",
-                options: "NOT NULL",
-                unique: true
-            },
-            {
-                name: "dev_id",
-                type: "TEXT",
-                options: "NOT NULL"
-            }
-        ]);
-
-        //create user table
-        await this.createTable(config, "user", [
-            {
-                name: "user_id",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "username",
-                type: "TEXT",
-                options: "NOT NULL"
-            },
-            {
-                name: "email",
-                type: "TEXT",
-                options: "NOT NULL",
-                unique: true
-            },
-            {
-                name: "password_hash",
-                type: "TEXT",
-                options: "NOT NULL"
-            },
-            {
-                name: "verified",
-                type: "BOOLEAN",
-                options: "NOT NULL DEFAULT FALSE"
-            }
-        ]);
-
-        //create authorization_code table
-        await this.createTable(config, "authorization_code", [
-            {
-                name: "authorization_code",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "user_id",
-                type: "TEXT",
-                options: "NOT NULL"
-            },
-            {
-                name: "client_id",
-                type: "TEXT",
-                options: "NOT NULL"
-            },
-            {
-                name: "expires",
-                type: "INTEGER",
-                options: "NOT NULL"
-            },
-            {
-                name: "challenge",
-                type: "TEXT",
-                options: "NOT NULL"
-            }
-        ]);
-
-        //create access_token table
-        await this.createTable(config, "access_token", [
-            {
-                name: "access_token",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "user_id",
-                type: "TEXT",
-                options: "NOT NULL"
-            },
-            {
-                name: "client_id",
-                type: "TEXT",
-                options: "NOT NULL"
-            },
-            {
-                name: "expires",
-                type: "INTEGER",
-                options: ""
-            }
-        ]);
-
-        //create refresh_token table
-        await this.createTable(config, "refresh_token", [
-            {
-                name: "refresh_token",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "user_id",
-                type: "TEXT",
-                options: "NOT NULL"
-            },
-            {
-                name: "client_id",
-                type: "TEXT",
-                options: "NOT NULL"
-            },
-            {
-                name: "expires",
-                type: "INTEGER",
-                options: "NOT NULL"
-            }
-        ]);
-
-        //create permissions table
-        await this.createTable(config, "permissions", [
-            {
-                name: "user_id",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "client_id",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "permission",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            }
-        ]);
-
-        //create redirect_uri table
-        await this.createTable(config, "redirect_uri", [
-            {
-                name: "client_id",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "redirect_uri",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            }
-        ]);
-
-        //create verification_code table for email verification, "email" for new email or empty for for registration
-        await this.createTable(config, "verification_code", [
-            {
-                name: "verification_code",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "user_id",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "email",
-                type: "TEXT",
-                options: ""
-            },
-            {
-                name: "change_password",
-                type: "BOOLEAN",
-                options: "NOT NULL DEFAULT FALSE"
-            }
-        ]);
-
-        //create user_info table for extra user information
-        await this.createTable(config, "user_info", [
-            {
-                name: "user_id",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "name",
-                type: "TEXT",
-                options: "NOT NULL",
-                primary: true
-            },
-            {
-                name: "value",
-                type: "TEXT",
-                options: "NOT NULL"
-            }
-        ]);
+        for (let name in tables) {
+            await this.createTable(config, name, tables[name]);
+        }
 
         //add Dashboard client
         const dashboard_secret = generateToken(12);
-        await this.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${uuid()}', '${dashboard_secret}', 'Dashboard', '')`);
+        await this.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${uuidv4()}', '${dashboard_secret}', 'Dashboard', '')`);
         if (dashboard_uri) {
             const dashboard_id = await this.getDashboardId();
             await this.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
@@ -358,21 +149,39 @@ export class Database {
         return (await this.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
     }
 
+    private static convertRowTypes<T extends TableRow>(table: string, row: TableRow): T {
+        let output: Object = {};
+        for (let key in row) {
+            switch (tables[table][key].type) {
+                case TableDataTypes.BOOLEAN:
+                    output[key] = row[key] === true || row[key] === "true" || row[key] === 1;
+                    break;
+                case TableDataTypes.INTEGER:
+                    output[key] = parseInt(row[key]);
+                    break;
+                default:
+                    output[key] = row[key];
+            }
+        }
+        return output as T;
+    }
+
     static async select<T extends TableRow>(table: string, condition?: string): Promise<T|undefined> {
         let queryStr: string;
         if (condition) queryStr = `SELECT * FROM ${table} WHERE ${condition} LIMIT 1`;
         else queryStr = `SELECT * FROM ${table} LIMIT 1`;
-        let row: T[] = await this.query(queryStr);
-        if (row.length === 0)
+        let rows: TableRow[] = await this.query(queryStr);
+        if (rows.length === 0)
             return undefined;
-        return row[0];
+        return Database.convertRowTypes<T>(table, rows[0]);
     }
 
     static async selectAll<T extends TableRow>(table: string, condition?: string): Promise<T[]> {
         let queryStr: string;
         if (condition) queryStr = `SELECT * FROM ${table} WHERE ${condition}`;
         else queryStr = `SELECT * FROM ${table}`;
-        return await this.query(queryStr);
+        let rows: TableRow[] = await this.query(queryStr);
+        return rows.map(value => Database.convertRowTypes<T>(table, value));
     }
 
     /**

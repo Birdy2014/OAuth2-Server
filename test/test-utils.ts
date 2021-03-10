@@ -59,6 +59,7 @@ const testUser = {
     email: "test@example.com",
     username: "Test",
     password: "password",
+    verified: true,
     user_info: {
         key: "value"
     },
@@ -79,7 +80,7 @@ const testClient = {
 export { testUser, testClient };
 
 export async function insertTestData() {
-    await Database.insert('user', { user_id: testUser.user_id, username: testUser.username, email: testUser.email, password_hash: await bcrypt.hash(testUser.password, 12) });
+    await Database.insert('user', { user_id: testUser.user_id, username: testUser.username, email: testUser.email, password_hash: await bcrypt.hash(testUser.password, 12), verified: testUser.verified });
     await Database.insert('user_info', { user_id: testUser.user_id, name: "key", value: "value" });
     await Database.insert('client', { client_id: testClient.client_id, client_secret: testClient.client_secret, name: testClient.name, dev_id: testClient.dev_id });
     await Database.insert('redirect_uri', { client_id: testClient.client_id, redirect_uri: testClient.redirect_uris[0] });

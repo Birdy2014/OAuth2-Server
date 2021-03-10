@@ -32,6 +32,7 @@ describe("Token", () => {
 
             assert.strictEqual(user.email, testUser.email);
             assert.strictEqual(user.username, testUser.username);
+            assert.strictEqual(user.verified, testUser.verified);
             assert.deepStrictEqual(user.user_info, testUser.user_info);
 
             assert.strictEqual(client.client_secret, testClient.client_secret);
@@ -59,6 +60,7 @@ describe("Token", () => {
 
             assert.strictEqual(user.email, testUser.email);
             assert.strictEqual(user.username, testUser.username);
+            assert.strictEqual(user.verified, testUser.verified);
             assert.deepStrictEqual(user.user_info, testUser.user_info);
 
             assert.strictEqual(client.client_secret, testClient.client_secret);
@@ -86,6 +88,7 @@ describe("Token", () => {
 
             assert.strictEqual(user.email, testUser.email);
             assert.strictEqual(user.username, testUser.username);
+            assert.strictEqual(user.verified, testUser.verified);
             assert.deepStrictEqual(user.user_info, testUser.user_info);
 
             assert.strictEqual(client.client_secret, testClient.client_secret);
@@ -103,7 +106,7 @@ describe("Token", () => {
 
         it("should fail with an expired authorization_code", async () => {
             await Database.insert('authorization_code', { user_id: testUser.user_id, client_id: testClient.client_id, authorization_code: "token", expires: currentUnixTime() - 200, challenge: testUser.challenge });
-            await shouldFail(Token.fromAuthorizationCode, ["token", testUser.code_verifier], "ServerError", "Invalid code_verifier");
+            await shouldFail(Token.fromAuthorizationCode, ["token", testUser.code_verifier], "ServerError", "Invalid authorization_code");
 
         });
 

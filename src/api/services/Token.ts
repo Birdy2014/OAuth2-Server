@@ -54,12 +54,14 @@ export class Token {
 
     public static async fromAuthorizationCode(authorization_code: string, code_verifier: string): Promise<Token> {
         let result = await Database.select<AuthorizationCodeTuple>('authorization_code', `authorization_code = '${authorization_code}'`);
-        if (result === undefined)
+        if (result === undefined || result.expires < currentUnixTime())
             throw new ServerError(403, "Invalid authorization_code");
 
         let hash = crypto.createHash("sha256").update(code_verifier).digest("base64").replace(/\+/g, "_");
         if (hash !== result.challenge)
             throw new ServerError(403, "Invalid code_verifier");
+
+        await Database.delete('authorization_code', `authorization_code = '${authorization_code}'`);
 
         let user = await User.fromLogin(result.user_id);
         let client = await Client.fromId(result.client_id);
