@@ -1,3 +1,4 @@
+import express from 'express';
 const configReader = require("../configReader");
 const logger = require("../logger");
 
@@ -39,7 +40,7 @@ function respondJSON(status: number, data: object|undefined, error: string|undef
  * @param {Object} [data] - Additional data
  * @param {string} [error] - error description
  */
-export function respond(res, status: number, data: object|undefined, error?: string|undefined) {
+export function respond(res, status: number, data?: object, error?: string) {
     res.status(status);
     res.json(respondJSON(status, data, error));
 }
@@ -74,6 +75,16 @@ export function handleError(res, error: Error) {
     } else {
         respond(res, 500, undefined, "Internal Server Error");
         logger.error(error);
+    }
+}
+
+export function wrapRoute(fn: Function) {
+    return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+            await fn(req, res, next)
+        } catch (err) {
+            next(err);
+        }
     }
 }
 

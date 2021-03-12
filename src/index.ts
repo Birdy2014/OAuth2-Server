@@ -33,8 +33,8 @@ async function main() {
 
     //Frontend
     app.use("/authorize", async (req: express.Request, res: express.Response) => {
-        if (req.user && req.query.redirect_uri && req.query.client_id && req.query.code_challenge) {
-            let authorization_code = await createAuthorizationCode(req.query.client_id, req.user.user_id, req.query.code_challenge);
+        if (req.token && req.query.redirect_uri && req.query.client_id && req.query.code_challenge) {
+            let authorization_code = await req.token.createAuthorizationCode(req.query.code_challenge as string);
             res.redirect(`${req.query.redirect_uri}${(req.query.redirect_uri as string).includes("?") ? "&" : "?"}authorization_code=${authorization_code}${req.query.state ? "&state=" + req.query.state : ""}`);
         } else if (req.user) {
             res.redirect("/dashboard");
@@ -88,7 +88,6 @@ async function main() {
 
     // Other errors
     app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-        logger.error(err);
         if (err instanceof ServerError)
             return res.status(err.status).json({ status: err.status, error: err.message });
         res.status(500).json({ status: 500, error: 'Internal Server Error' });

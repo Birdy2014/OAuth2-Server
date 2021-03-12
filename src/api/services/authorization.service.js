@@ -1,21 +1,6 @@
 const crypto = require('crypto');
-const { generateToken, currentUnixTime } = require("../utils");
+const { currentUnixTime } = require("../utils");
 const { Database } = require("../../db/db");
-const configReader = require("../../configReader");
-
-/**
- * Create an authorization code for user
- * @param {string} client_id
- * @param {string} user_id
- * @param {string} challenge
- * @returns {Promise<string>} authorization_code
- */
-exports.createAuthorizationCode = async (client_id, user_id, challenge) => {
-    let authorization_code = generateToken(30);
-    let expires = currentUnixTime() + configReader.config.authorizationCodeExpirationTime;
-    await Database.insert("authorization_code", { authorization_code, user_id, client_id, challenge, expires });
-    return authorization_code;
-}
 
 /**
  * Get the user_id and client_id from an authorization_code

@@ -9,47 +9,6 @@ const { hasPermission } = require("./permission.service");
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 const emailRegEx = /^\S+@\S+\.\S+$/;
 
-/**
- * Create a new user
- * @param {string} email
- * @param {string} username
- * @param {string} password
- * @returns {string} user_id
- */
-exports.createUser = async (email, username, password, user_info) => {
-    if (!checkUsername(username)) throw { status: 400, error: "Invalid Username" };
-    if (!checkEmail(email)) throw { status: 400, error: "Invalid email address" };
-    if (!checkPassword(password)) throw { status: 400, error: "Invalid Password" };
-
-    //Create password hash
-    let password_hash = await bcrypt.hash(password, 12);
-
-    //Create user
-    let user_id = uuid();
-    try {
-        await Database.insert("user", { user_id, email, username, password_hash });
-    } catch (e) {
-        if (e.code === "ER_DUP_ENTRY" || e.code === "SQLITE_CONSTRAINT")
-            throw { status: 409, error: "User already exists" };
-        else
-            throw e;
-    }
-
-    if (configReader.config.email.enabled) {
-        let verification_code = generateToken(12);
-        await Database.insert("verification_code", { user_id, email, verification_code });
-        sendVerificationEmail(username, email, verification_code, 0);
-    } else {
-        await Database.query(`UPDATE user SET verified = true WHERE user_id = '${user_id}'`);
-    }
-
-    //set user_info
-    if (user_info)
-        await exports.setValues(user_id, user_info);
-
-    return user_id;
-}
-
 exports.deleteUser = async user_id => {
     await Database.query(`DELETE FROM authorization_code WHERE user_id = '${user_id}'`);
     await Database.query(`DELETE FROM access_token WHERE user_id = '${user_id}'`);
@@ -109,27 +68,6 @@ exports.getUserInfo = async user_id => {
     let admin = await hasPermission(user_id, Database.dashboard_id, "admin");
     let user_info = await exports.getValues(user_id);
     return Object.assign(user_info, { user_id, username, email, verified: verified === 1, admin });
-}
-
-/**
- * Checks if user exists and returns it's user_id
- * @param {string} login - user_id, email or username
- * @param {string} password
- * @returns {Promise<Object>} user_id or empty string
- */
-exports.getUserFromLoginPassword = async (login, password) => {
-    let user = await exports.getUserFromLogin(login);
-
-    let authorized;
-    try {
-        authorized = await bcrypt.compare(password, user.password_hash);
-    } catch (e) {
-        throw { status: 500, error: "Internal Server Error" };
-    }
-    if (authorized)
-        return user;
-    else
-        throw { status: 403, error: "Invalid user credentials" };
 }
 
 /**

@@ -40,20 +40,6 @@ exports.generateRefreshToken = async (user_id, client_id) => {
 }
 
 /**
- * Validates the access token
- * @param {string} access_token
- * @returns {{active: boolean, user_id: number, username: string, email: string}} An object containing wether it is active, user_id, username, email
- */
-exports.validateAccessToken = async (access_token, client_id) => {
-    let results = await Database.query(`SELECT access_token.user_id AS user_id, access_token.expires AS expires, user.username AS username, user.email AS email FROM access_token JOIN user ON access_token.user_id = user.user_id WHERE access_token.access_token = '${access_token}' AND access_token.client_id = '${client_id}'`);
-    let active = results.length === 1 && results[0].expires > currentUnixTime();
-    if (active)
-        return { active: true, user_id: results[0].user_id, username: results[0].username, email: results[0].email };
-    else
-        return { active: false }
-}
-
-/**
  * Generate a new access_token
  * @param {string} user_id
  * @param {string} client_id

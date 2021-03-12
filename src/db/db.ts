@@ -190,6 +190,8 @@ export class Database {
      * @param {Object} row - fields to be inserted
      */
     static async insert(table: string, row: TableRow) {
+        if (Object.entries(row).length === 0)
+            return;
         let keys: string[] = [];
         let values: string[] = [];
         for (let field in row) {
@@ -206,9 +208,11 @@ export class Database {
     }
 
     static async update(table: string, condition: string, data: TableRow) {
+        if (Object.entries(data).length === 0)
+            return;
         let datastring = "";
         for (let key in data) {
-            datastring += key + " = " + data[key] + ", ";
+            datastring += key + " = '" + data[key] + "', ";
         }
         datastring = datastring.slice(0, -2);
         await this.query(`UPDATE ${table} SET ${datastring} WHERE ${condition}`);

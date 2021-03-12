@@ -1,6 +1,4 @@
 const { Database } = require("../../db/db");
-const uuid = require("uuid").v4;
-const utils = require("../utils");
 
 /**
  *
@@ -31,43 +29,6 @@ exports.checkClientCredentials = async (client_id, client_secret) => {
     return client.client_secret === client_secret;
 }
 
-/**
- * Creates a new client
- * @param {string} name - The name of the client,
- * @param {number} developer_id - The id of the developer
- * @returns {Promise<(string|string)>} client_id and client_secret
- */
-exports.createClient = async (name, dev_id, redirect_uri) => {
-    //Does a client with the same name already exist?
-    if ((await Database.query(`SELECT * FROM client WHERE name='${name}'`)).length === 1) throw { status: 409, error: "Client already exists" };
-
-    //Generate the client_secret
-    let client_secret = utils.generateToken(12);
-
-    //Create the client
-    let client_id = uuid();
-    await Database.insert("client", { client_id, client_secret, name, dev_id });
-
-    await Database.insert("redirect_uri", { client_id, redirect_uri });
-
-    return { client_id, client_secret };
-}
-
-/**
- * Deletes a client
- * @param {string} client_id
- * @param {number} developer_id
- */
-exports.deleteClient = async (client_id) => {
-    if ((await Database.query(`SELECT * FROM client WHERE client_id='${client_id}'`)).length !== 1) throw { status: 404, error: "Client not found" };
-
-    await Database.query(`DELETE FROM authorization_code WHERE client_id = '${client_id}'`);
-    await Database.query(`DELETE FROM access_token WHERE client_id = '${client_id}'`);
-    await Database.query(`DELETE FROM refresh_token WHERE client_id = '${client_id}'`);
-    await Database.query(`DELETE FROM client WHERE client_id = '${client_id}'`);
-    await Database.query(`DELETE FROM redirect_uri WHERE client_id = '${client_id}'`);
-}
-
 exports.getClients = async () => {
     let results = await Database.query("SELECT client_id, name, dev_id FROM client");
     let clients = [];
@@ -95,22 +56,3 @@ exports.getClientFromSecret = async (client_id, client_secret) => {
         return { status: 403, error: "Invalid client_secret" };
     }
 }
-
-/**
- *
- * @param {string} client_id
- * @param {string} redirect_uri
- * @returns {Promise<Object>}
- */
-exports.getClientFromRedirectUri = async (client_id, redirect_uri) => {
-    let client = await exports.getClientFromId(client_id);
-    let redirect_uris = await Database.query(`SELECT redirect_uri FROM redirect_uri WHERE client_id = '${client_id}'`);
-    for (const item of redirect_uris) {
-        if (redirect_uri.startsWith(item.redirect_uri)) {
-            return client;
-        }
-    }
-    throw { status: 403, error: "Invalid redirect_uri" };
-}
-
-//TODO change name

@@ -1,5 +1,5 @@
 const { respond, handleError } = require("../utils");
-const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getAllUsers, setValues, setVerified } = require("../services/user.service");
+const { deleteUser, changeUsername, changeEmail, changePassword, getAllUsers, setValues, setVerified } = require("../services/user.service");
 const { generateRefreshToken } = require("../services/token.service");
 const { Database } = require("../../db/db");
 const configReader = require("../../configReader");

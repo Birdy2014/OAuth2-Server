@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { UserTuple, UserInfoTuple, AccessTokenTuple, RefreshTokenTuple } from '../../db/schemas';
-import { ServerError, generateToken, checkUsername, checkEmail, checkPassword, currentUnixTime } from '../utils';
+import { UserTuple, UserInfoTuple } from '../../db/schemas';
+import { ServerError, generateToken, checkUsername, checkEmail, checkPassword } from '../utils';
 import { Permissions, PermissionsExport } from './Permissions';
 import bcrypt from 'bcrypt';
 import configReader from '../../configReader';
@@ -88,7 +88,7 @@ export class User {
     }
 
     public get admin() {
-        return this.permissions.values[Database.dashboard_id]?.includes('admin');
+        return this.permissions.values[Database.dashboard_id]?.includes('admin') ?? false;
     }
 
     private constructor(user_id: string, username: string, email: string, password: string|undefined, password_hash: string|undefined, verified: boolean, user_info: UserInfo, permissions: Permissions, create: boolean = false) {

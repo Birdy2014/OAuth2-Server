@@ -1,6 +1,6 @@
 const { getClientId } = require("../util/client");
 const { Database } = require("../../db/db");
-const UriMethods = require("../../api/controllers/uri.controller");
+const { Client } = require("../../api/services/Client");
 
 module.exports.run = async args => {
     switch (args[0]) {
@@ -28,8 +28,10 @@ module.exports.run = async args => {
                     console.log("Usage: uri add <client name or ID> <redirect_uri>");
                 } else {
                     let client_id = await getClientId(args[0]);
-                    await UriMethods.addUri(client_id, args[1]);
-                    console.log("Added redirect_uri");
+                    let client = await Client.fromId(client_id);
+                    client.redirect_uris.push(args[1]);
+                    await client.save();
+                    console.log("Added redirect_uri " + args[1]);
                 }
             } catch(e) {
                 console.error(e);
@@ -43,8 +45,10 @@ module.exports.run = async args => {
                     console.log("Usage: uri remove <client name or ID> <redirect_uri>");
                 } else {
                     let client_id = await getClientId(args[0]);
-                    await UriMethods.removeUri(client_id, args[1]);
-                    console.log("Removed redirect_uri");
+                    let client = await Client.fromId(client_id);
+                    client.removeUri(args[1]);
+                    await client.save();
+                    console.log("Removed redirect_uri " + args[1]);
                 }
             } catch(e) {
                 console.error(e);
@@ -58,10 +62,10 @@ module.exports.run = async args => {
                     console.log("Usage: uri get <client name or ID>");
                 } else {
                     let client_id = await getClientId(args[0]);
-                    let results = await Database.query(`SELECT redirect_uri.redirect_uri AS redirect_uri, client.name AS name, user.email AS email, user.username AS username FROM redirect_uri JOIN client ON redirect_uri.client_id = client.client_id LEFT JOIN user ON client.dev_id = user.user_id WHERE redirect_uri.client_id = '${client_id}'`);
-                    let output = "";
-                    for (const result of results) {
-                        output += `client_id: ${client_id} client_name: ${result.name} redirect_uri: ${result.redirect_uri} dev_email: ${result.email} dev_name: ${result.username}\n`;
+                    let client = await Client.fromId(client_id);
+                    let output = `client_id: ${client_id} client_name: ${client.name} redirect_uris:\n`;
+                    for (const uri of client.redirect_uris) {
+                        output += `    ${uri}\n`;
                     }
                     console.log(output.substring(0, output.length -1));
                 }

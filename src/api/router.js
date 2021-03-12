@@ -7,39 +7,40 @@ const user = require("./controllers/user.controller");
 const verification = require("./controllers/verification.controller");
 const isLoggedIn = require("../middleware/isLoggedIn");
 const router = require("express").Router();
+const { wrapRoute } = require("./utils");
 
 router.route("/authorize")
-    .post(authorization.post);
+    .post(wrapRoute(authorization.post));
 
 router.route("/client")
-    .get(isLoggedIn, client.get)
-    .post(isLoggedIn, client.post)
-    .delete(isLoggedIn, client.del);
+    .get(isLoggedIn, wrapRoute(client.get))
+    .post(isLoggedIn, wrapRoute(client.post))
+    .delete(isLoggedIn, wrapRoute(client.del));
 
 router.route("/client/uri")
-    .post(isLoggedIn, uri.post)
-    .delete(isLoggedIn, uri.del);
+    .post(isLoggedIn, wrapRoute(uri.post))
+    .delete(isLoggedIn, wrapRoute(uri.del));
 
 router.route("/permissions")
-    .get(isLoggedIn, permission.get)
-    .post(isLoggedIn, permission.post)
-    .delete(isLoggedIn, permission.del);
+    .get(isLoggedIn, wrapRoute(permission.get))
+    .post(isLoggedIn, wrapRoute(permission.post))
+    .delete(isLoggedIn, wrapRoute(permission.del));
 
 router.route("/token")
-    .post(token.token)
-    .delete(token.revoke);
+    .post(wrapRoute(token.token))
+    .delete(wrapRoute(token.revoke));
 
 router.route("/token_info")
-    .post(token.tokenInfo);
+    .post(wrapRoute(token.tokenInfo));
 
 router.route("/user")
-    .get(isLoggedIn, user.get)
-    .post(user.post)
-    .put(user.put)
-    .delete(user.del);
+    .get(isLoggedIn, wrapRoute(user.get))
+    .post(wrapRoute(user.post))
+    .put(wrapRoute(user.put))
+    .delete(wrapRoute(user.del));
 
 router.route("/verification")
-    .post(verification.post)
-    .put(verification.put);
+    .post(wrapRoute(verification.post))
+    .put(wrapRoute(verification.put));
 
 module.exports = router;

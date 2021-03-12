@@ -1,6 +1,5 @@
-const { createUser, deleteUser, changeUsername, changeEmail, changePassword, getUserInfo } = require("../../api/services/user.service");
-const { getUserId } = require("../util/user");
 const { Database } = require("../../db/db");
+const { User } = require("../../api/services/User");
 
 module.exports.run = async args => {
     switch (args[0]) {
@@ -25,8 +24,9 @@ module.exports.run = async args => {
             args.shift();
             try {
                 if (args.length === 3) {
-                    let user_id = await createUser(args[0], args[1], args[2]);
-                    console.log(`Created user with email: ${args[0]}, username: ${args[1]}, user_id: ${user_id}`);
+                    let user = await User.create(args[1], args[0], args[2]);
+                    await user.save();
+                    console.log(`Created user with email: ${args[0]}, username: ${args[1]}, user_id: ${user.user_id}`);
                 } else {
                     console.log("Usage: user add <email> <username> <password>");
                 }
@@ -42,9 +42,9 @@ module.exports.run = async args => {
             args.shift();
             for (const login of args) {
                 try {
-                    let user_id = await getUserId(login);
-                    await deleteUser(user_id);
-                    console.log(`Deleted user ${user_id}`);
+                    let user = await User.fromLogin(login);
+                    await user.delete();
+                    console.log(`Deleted user ${user.user_id}`);
                 } catch (e) {
                     console.log(e);
                 }
@@ -57,11 +57,22 @@ module.exports.run = async args => {
                 if (args.length === 0) {
                     console.log("Usage: user get <email, username or user ID>");
                 } else {
-                    let user_id = await getUserId(args[0]);
-                    let user = await getUserInfo(user_id);
-                    let output = "";
-                    for (const key in user) {
-                        output += `${key}: ${user[key]} `;
+                    let user = await User.fromLogin(args[0]);
+                    let output = `user_id: ${user.user_id} username: ${user.username} email: ${user.email} verified: ${user.verified} admin: ${user.admin}`;
+                    if (Object.entries(user.user_info).length > 0) {
+                        output += "\n  user_info:\n"
+                        for (const key in user.user_info) {
+                            output += `    ${key}: ${user.user_info[key]}\n`;
+                        }
+                    }
+                    if (Object.entries(user.permissions.values).length > 0) {
+                        output += "\n  permissions:\n"
+                        for (const client_id in user.permissions.values) {
+                            output += `    client_id: ${client_id}:\n`
+                            for (const permission of user.permissions.values[client_id]) {
+                                output += `      ${permission}\n`;
+                            }
+                        }
                     }
                     console.log(output);
                 }
@@ -76,23 +87,24 @@ module.exports.run = async args => {
                 if (args.length < 3 || !(args[1] === "username" || args[1] === "password" || args[1] === "email" || args[1] === "verified")) {
                     console.log("Usage: user edit <email, username or user ID> username/password/email/verified <new value>");
                 } else {
-                    let user_id = await getUserId(args[0]);
+                    let user = await User.fromLogin(args[0]);
                     switch (args[1]) {
                         case "username":
-                            await changeUsername(user_id, args[2]);
+                            user.username = args[2];
                             break;
                         case "password":
-                            await changePassword(user_id, args[2]);
+                            user.password = args[2];
                             break;
                         case "email":
-                            await changeEmail(user_id, args[2], true);
+                            user.email = args[2];
                             break;
                         case "verified":
                             if (["0", "1", "false", "true"].includes(args[2]))
-                                await Database.query(`UPDATE user SET verified = ${args[2]} WHERE user_id = '${user_id}'`);
+                                user.verified = args[2] === "true" || args[2] === "1";
                             else
                                 console.log("Invalid value: " + args[2]);
                     }
+                    await user.save();
                 }
             } catch (e) {
                 console.error(e);
