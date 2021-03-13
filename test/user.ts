@@ -109,6 +109,41 @@ describe("User", () => {
             }
         });
 
+        it("should change user_info", async () => {
+            let user = await User.create(testUser.username, testUser.email, testUser.password, { key1: "value" });
+            await user.save();
+            user.user_info.key1 = "abcd";
+            user.user_info.key2 = "efgh";
+            await user.save();
+
+            let userInfo: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', `user_id = '${user.user_id}'`);
+
+            let stored: any = {};
+            for (let tuple of userInfo) {
+                stored[tuple.name] = tuple.value;
+            }
+
+            assert.deepStrictEqual(stored, { key1: "abcd", key2: "efgh" });
+        });
+
+        it("should change nothing", async () => {
+            let user = await User.create(testUser.username, testUser.email, testUser.password, testUser.user_info);
+            await user.save();
+            await user.save();
+
+            let userData: UserTuple|undefined = await Database.select<UserTuple>('user', `user_id = '${user.user_id}'`);
+            let userInfo: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', `user_id = '${user.user_id}'`);
+
+            assert.strictEqual(userData?.email, testUser.email);
+            assert.strictEqual(userData?.username, testUser.username);
+            assert.strictEqual(userData.verified, testUser.verified);
+
+            assert.strictEqual(userInfo.length, Object.getOwnPropertyNames(testUser.user_info).length);
+            for (let tuple of userInfo) {
+                assert.strictEqual(tuple.value, testUser.user_info[tuple.name]);
+            }
+        });
+
         it("should fail when the user already exists", async () => {
             Database.insert('user', { user_id: uuidv4(), username: testUser.username, email: testUser.email, password_hash: await bcrypt.hash(testUser.password, 12) });
             let user = await User.create(testUser.username, testUser.email, testUser.password, testUser.user_info);
