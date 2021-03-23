@@ -2,7 +2,7 @@ import assert from 'assert';
 import { v4 as uuidv4 } from 'uuid';
 import { setup, cleanup, clean, insertTestData, testUser, testClient } from './test-utils';
 import { Database } from '../src/db/db';
-import { PermissionsTuple } from '../src/db/schemas';
+import { ClientTuple, PermissionsTuple } from '../src/db/schemas';
 import { Permissions } from '../src/api/services/Permissions';
 
 let testPermission: PermissionsTuple = {
@@ -10,6 +10,13 @@ let testPermission: PermissionsTuple = {
     client_id: testClient.client_id,
     permission: 'testPerm'
 };
+
+let clientTuple: ClientTuple = {
+    client_id: uuidv4(),
+    name: 'AdminTestClient',
+    client_secret: '1234',
+    dev_id: uuidv4()
+}
 
 describe("Permissions", () => {
     before(setup);
@@ -33,6 +40,37 @@ describe("Permissions", () => {
             await Database.insert('permissions', testPermission);
             let permissions = await Permissions.fromUserId(testUser.user_id);
             assert.deepStrictEqual(permissions.values[testClient.client_id], [ 'testPerm' ]);
+        });
+    });
+
+    describe("adminOf", () => {
+        it("should return true if the user is a dashboard admin", async () => {
+            await insertTestData();
+            await Database.insert('client', clientTuple);
+            await Database.insert('permissions', { user_id: testUser.user_id, client_id: Database.dashboard_id, permission: 'admin' });
+            let permissions = await Permissions.fromUserId(testUser.user_id);
+            assert.strictEqual(await permissions.adminOf(clientTuple.client_id), true);
+        });
+
+        it("should return true if the user is a client admin", async () => {
+            await insertTestData();
+            await Database.insert('client', clientTuple);
+            await Database.insert('permissions', { user_id: testUser.user_id, client_id: clientTuple.client_id, permission: 'admin' });
+            let permissions = await Permissions.fromUserId(testUser.user_id);
+            assert.strictEqual(await permissions.adminOf(clientTuple.client_id), true);
+        });
+
+        it("should return true if the user is the client owner", async () => {
+            await insertTestData();
+            let permissions = await Permissions.fromUserId(testUser.user_id);
+            assert.strictEqual(await permissions.adminOf(testClient.client_id), true);
+        });
+
+        it("should return false if the user is not an admin", async () => {
+            await insertTestData();
+            await Database.insert('client', clientTuple);
+            let permissions = await Permissions.fromUserId(testUser.user_id);
+            assert.strictEqual(await permissions.adminOf(clientTuple.client_id), false);
         });
     });
 

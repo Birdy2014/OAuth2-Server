@@ -1,5 +1,5 @@
 import { Database } from '../../db/db';
-import { PermissionsTuple } from '../../db/schemas';
+import { ClientTuple, PermissionsTuple } from '../../db/schemas';
 
 export interface PermissionList {
     [client_id: string]: string[];
@@ -34,6 +34,13 @@ export class Permissions {
             values[tuple.client_id].push(tuple.permission);
         });
         return new Permissions(user_id, values);
+    }
+
+    public async adminOf(client_id: string): Promise<boolean> {
+        if (this.has(client_id, 'admin') || this.has(Database.dashboard_id, 'admin'))
+            return true;
+        let tuple: ClientTuple|undefined = await Database.select('client', `client_id = '${client_id}'`);
+        return tuple?.dev_id === this._user_id;
     }
 
     public has(client_id: string, permission: string): boolean {
