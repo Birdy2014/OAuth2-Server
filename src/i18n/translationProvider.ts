@@ -1,31 +1,36 @@
-const fs = require("fs");
-const configReader = require("../configReader");
-const logger = require("../logger");
-let fallbackLang;
+import fs from 'fs';
+import { ConfigReader } from '../ConfigReader';
+import { Logger } from '../Logger';
+
+export interface Language {
+    [key: string]: string;
+}
+
+let fallbackLang: Language;
 try {
-    fallbackLang = require(__dirname + "/" + configReader.config.language);
+    fallbackLang = require(__dirname + "/" + ConfigReader.config.language);
 } catch(e) {
-    logger.error("Cannot find fallback language '" + configReader.config.language + "'");
+    Logger.error("Cannot find fallback language '" + ConfigReader.config.language + "'");
     fallbackLang = {};
 }
-let languages = [];
+let languages: string[] = [];
 for (let lang of fs.readdirSync(__dirname)) {
     if (lang.endsWith(".json")) {
         languages.push(lang.substring(0, lang.lastIndexOf(".")));
     }
 }
 
-exports.getLanguages = () => {
+export function getLanguages(): string[] {
     return languages;
 }
 
-exports.getLanguage = (code) => {
-    let lang;
+export function getLanguage(code: string|boolean): (key: string) => string {
+    let lang: Language;
     try {
         lang = require(__dirname + "/" + code);
     } catch(e) {
         lang = {};
-        logger.info("Cannot find requested language '" + code + "'");
+        Logger.info("Cannot find requested language '" + code + "'");
     }
     return (key, ...params) => {
         let translation = lang[key] || fallbackLang[key] || lang.missingTranslation || fallbackLang.missingTranslation;

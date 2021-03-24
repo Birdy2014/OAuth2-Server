@@ -1,13 +1,13 @@
 const pug = require('pug');
 const userService = require("./user.service");
-const configReader = require("../../configReader");
+const { ConfigReader } = require("../../ConfigReader");
 const { Database } = require("../../db/db");
-const logger = require("../../logger");
+const { Logger } = require("../../Logger");
 const translationProvider = require("../../i18n/translationProvider");
 const verificationEmail = pug.compileFile(__dirname + "/../../views/email/verification.pug");
 const emailChangeEmail = pug.compileFile(__dirname + "/../../views/email/change.pug");
 const passwordResetEmail = pug.compileFile(__dirname + "/../../views/email/reset.pug");
-const lang = translationProvider.getLanguage(configReader.config.language);
+const lang = translationProvider.getLanguage(ConfigReader.config.language);
 
 /**
  *
@@ -46,19 +46,19 @@ exports.validateVerificationCode = async (verification_code, password) => {
  * @param {number} action - 0 for initial email verification, 1 for change email, 2 for forgot password
  */
 exports.sendVerificationEmail = async (username, email, verification_code, action) => {
-    logger.info("Sending verification email to " + email + "; action: " + action);
-    const emailConfig = configReader.config.email;
+    Logger.info("Sending verification email to " + email + "; action: " + action);
+    const emailConfig = ConfigReader.config.email;
     let html;
     let text;
     switch (action) {
         case 0:
-            html = verificationEmail({ username, url: `${configReader.config.url}/verification?verification_code=${verification_code}`, lang });
+            html = verificationEmail({ username, url: `${ConfigReader.config.url}/verification?verification_code=${verification_code}`, lang });
             break;
         case 1:
-            html = emailChangeEmail({ username, url: `${configReader.config.url}/verification?verification_code=${verification_code}`, lang });
+            html = emailChangeEmail({ username, url: `${ConfigReader.config.url}/verification?verification_code=${verification_code}`, lang });
             break;
         case 2:
-            html = passwordResetEmail({ username, url: `${configReader.config.url}/reset_password?verification_code=${verification_code}`, lang });
+            html = passwordResetEmail({ username, url: `${ConfigReader.config.url}/reset_password?verification_code=${verification_code}`, lang });
             break;
         default:
             throw { status: 500, error: "Internal Server Error" };
@@ -69,7 +69,7 @@ exports.sendVerificationEmail = async (username, email, verification_code, actio
         return;
     }
 
-    await configReader.transporter.sendMail({
+    await ConfigReader.transporter.sendMail({
         from: `${emailConfig.name} <${emailConfig.from}>`,
         to: email,
         subject: 'Email verification',

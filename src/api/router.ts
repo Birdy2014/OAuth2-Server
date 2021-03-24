@@ -1,13 +1,15 @@
-const authorization = require("./controllers/authorization.controller");
-const client = require("./controllers/client.controller");
-const uri = require("./controllers/uri.controller");
-const permission = require("./controllers/permission.controller");
-const token = require("./controllers/token.controller");
-const user = require("./controllers/user.controller");
-const verification = require("./controllers/verification.controller");
-const isLoggedIn = require("../middleware/isLoggedIn");
-const router = require("express").Router();
-const { wrapRoute } = require("./utils");
+import { Router } from 'express';
+import { wrapRoute } from './utils';
+import { isLoggedIn } from '../middleware/isLoggedIn';
+import * as authorization from './controllers/authorization.controller';
+import * as client from './controllers/client.controller';
+import * as uri from './controllers/uri.controller';
+import * as permission from './controllers/permission.controller';
+import * as token from './controllers/token.controller';
+import * as user from './controllers/user.controller';
+import verification from './controllers/verification.controller';
+
+export const router = Router();
 
 router.route("/authorize")
     .post(wrapRoute(authorization.post));
@@ -42,5 +44,3 @@ router.route("/user")
 router.route("/verification")
     .post(wrapRoute(verification.post))
     .put(wrapRoute(verification.put));
-
-module.exports = router;

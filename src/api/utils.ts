@@ -1,6 +1,6 @@
 import express from 'express';
-const configReader = require("../configReader");
-const logger = require("../logger");
+import { ConfigReader } from '../ConfigReader';
+import { Logger } from '../Logger';
 
 export class ServerError extends Error {
     status: number;
@@ -74,7 +74,7 @@ export function handleError(res, error: Error) {
         respond(res, (error as any).status, undefined, (error as any).error);
     } else {
         respond(res, 500, undefined, "Internal Server Error");
-        logger.error(error);
+        Logger.error(error);
     }
 }
 
@@ -108,8 +108,8 @@ export function checkEmail(email: string): boolean {
     const forbiddenChars = ["'", ";", "\"", "&", "="];
     if (forbiddenChars.some(i => email.includes(i))) return false;
     if (!emailRegEx.test(email)) return false;
-    if (!configReader.config.emailWhitelist || configReader.config.emailWhitelist.length === 0) return true;
-    for (const whitelistDomain of configReader.config.emailWhitelist) {
+    if (!ConfigReader.config.emailWhitelist || ConfigReader.config.emailWhitelist.length === 0) return true;
+    for (const whitelistDomain of ConfigReader.config.emailWhitelist) {
         if (email.endsWith(whitelistDomain)) return true;
     }
     return false;

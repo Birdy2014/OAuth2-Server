@@ -3,7 +3,7 @@ import { handleError } from '../api/utils';
 import { Token } from '../api/services/Token';
 
 //get information about the current user and client from the access_token, refresh_token, authorization_code or username/password and attach it (including wether the access_token, refresh_token etc was send) to req
-async function getUser(req: Request, res: Response, next: NextFunction) {
+export async function getUser(req: Request, res: Response, next: NextFunction) {
     try {
         //user and client
         if ((req.header("Authorization") && !req.header("Authorization")!.startsWith("Basic")) || req.body.access_token || req.cookies.access_token) {
@@ -38,5 +38,3 @@ async function getUser(req: Request, res: Response, next: NextFunction) {
         handleError(res, e);
     }
 }
-
-module.exports = getUser;

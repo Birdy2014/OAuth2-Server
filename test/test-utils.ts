@@ -1,14 +1,14 @@
-import configReader from '../src/configReader';
-configReader.load(__dirname + "/config");
-import logger from '../src/logger';
+import { ConfigReader } from '../src/ConfigReader';
+ConfigReader.load(__dirname + "/config");
+import { Logger } from '../src/Logger';
 import { Database } from '../src/db/db';
 import { AssertionError, fail } from 'assert';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 
 export async function setup() {
-    logger.init(configReader.config.logpath);
-    await Database.init(configReader.config.db, configReader.config.url);
+    Logger.init(ConfigReader.config.logpath);
+    await Database.init(ConfigReader.config.db, ConfigReader.config.url);
 }
 
 export async function clean() {

@@ -1,9 +1,9 @@
+import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { UserTuple, UserInfoTuple } from '../../db/schemas';
 import { ServerError, generateToken, checkUsername, checkEmail, checkPassword } from '../utils';
 import { Permissions, PermissionsExport } from './Permissions';
-import bcrypt from 'bcrypt';
-import configReader from '../../configReader';
+import { ConfigReader } from '../../ConfigReader';
 import { DBError, DBErrorType, Database } from '../../db/db';
 import { sendVerificationEmail } from './verification.service';
 
@@ -114,7 +114,7 @@ export class User {
         if (!checkPassword(password)) throw new ServerError(400, "Invalid Password");
         if (!checkUsername(username)) throw new ServerError(400, "Invalid Username");
         let user_id = uuidv4();
-        let verified = !configReader.config.email.enabled;
+        let verified = !ConfigReader.config.email.enabled;
 
         if (!verified) {
             let verification_code = generateToken(12);

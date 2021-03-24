@@ -4,7 +4,7 @@ import { AccessTokenTuple, AuthorizationCodeTuple, RefreshTokenTuple } from '../
 import { ServerError, currentUnixTime, generateToken } from '../utils';
 import { Client } from './Client';
 import { User } from './User';
-import configReader from '../../configReader';
+import { ConfigReader } from '../../ConfigReader';
 
 export interface TokenExport {
     token: string;
@@ -69,16 +69,16 @@ export class Token {
     }
 
     public async createAccessToken(): Promise<TokenExport> {
-        let expires = currentUnixTime() + configReader.config.accessTokenExpirationTime;
-        let access_token = generateToken(configReader.config.accessTokenLength);
+        let expires = currentUnixTime() + ConfigReader.config.accessTokenExpirationTime;
+        let access_token = generateToken(ConfigReader.config.accessTokenLength);
         await Database.insert("access_token", { access_token, user_id: this.user.user_id, client_id: this.client.client_id, expires });
 
         return { token: access_token, expires };
     }
 
     public async createRefreshToken(): Promise<TokenExport> {
-        let expires = currentUnixTime() + configReader.config.refreshTokenExpirationTime;
-        let refresh_token = generateToken(configReader.config.refreshTokenLength);
+        let expires = currentUnixTime() + ConfigReader.config.refreshTokenExpirationTime;
+        let refresh_token = generateToken(ConfigReader.config.refreshTokenLength);
         await Database.insert("refresh_token", { refresh_token, user_id: this.user.user_id, client_id: this.client.client_id, expires });
 
         return { token: refresh_token, expires };
@@ -87,7 +87,7 @@ export class Token {
     public async createAuthorizationCode(challenge: string): Promise<TokenExport> {
         if (challenge === '')
             throw new ServerError(400, 'Invalid challenge');
-        let expires = currentUnixTime() + configReader.config.authorizationCodeExpirationTime;
+        let expires = currentUnixTime() + ConfigReader.config.authorizationCodeExpirationTime;
         let authorization_code = generateToken(30);
         await Database.insert("authorization_code", { authorization_code, user_id: this.user.user_id, client_id: this.client.client_id, challenge, expires });
         return { token: authorization_code, expires };

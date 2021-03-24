@@ -2,7 +2,7 @@ import express from 'express';
 import { respond, ServerError } from '../utils';
 import { getAllUsers } from '../services/user.service';
 import { Database } from '../../db/db';
-import configReader from '../../configReader';
+import { ConfigReader } from '../../ConfigReader';
 import { User } from '../services/User';
 import { Token } from '../services/Token';
 import { Client } from '../services/Client';
@@ -21,7 +21,7 @@ export async function post(req: express.Request, res: express.Response) {
 
     let user_info = {};
     for (const key in req.body) {
-        if (configReader.config.user_info.hasOwnProperty(key))
+        if (ConfigReader.config.user_info.hasOwnProperty(key))
             user_info[key] = req.body[key];
     }
     let user = await User.create(req.body.username, req.body.email, req.body.password, user_info);
@@ -45,7 +45,7 @@ export async function put(req: express.Request, res: express.Response) {
         user = req.user;
 
     for (const key in req.body) {
-        if (configReader.config.user_info.hasOwnProperty(key))
+        if (ConfigReader.config.user_info.hasOwnProperty(key))
             user.user_info[key] = req.body[key];
     }
 

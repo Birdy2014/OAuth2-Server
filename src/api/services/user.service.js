@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const { Database } = require("../../db/db");
 const { generateToken, checkEmail, checkPassword } = require("../utils");
-const configReader = require("../../configReader");
+const { ConfigReader } = require("../../ConfigReader");
 const { sendVerificationEmail } = require("../services/verification.service");
 
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
@@ -15,7 +15,7 @@ exports.changePassword = async (user_id, password) => {
 
 exports.changeEmail = async (user_id, email, noVerification) => {
     if (!checkEmail(email)) throw { status: 400, error: "Invalid email address" };
-    if (configReader.config.email.enabled && !noVerification) {
+    if (ConfigReader.config.email.enabled && !noVerification) {
         let verification_code = generateToken(12);
         await Database.query(`DELETE FROM verification_code WHERE user_id = '${user_id}'`); //Delete old verification codes
         await Database.insert("verification_code", { user_id, verification_code, email });

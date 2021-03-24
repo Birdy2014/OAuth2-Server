@@ -3,7 +3,7 @@ import sqlite3 from 'sqlite3';
 import util from 'util';
 import { generateToken } from '../api/utils';
 import { v4 as uuidv4 } from 'uuid';
-import logger from '../logger';
+import { Logger } from '../Logger';
 import { TableRow, tables, TableDataTypes, TableSchema } from './schemas';
 
 export enum DBErrorType {
@@ -49,7 +49,7 @@ export class Database {
 
     static connect(config) {
         return new Promise((resolve, reject) => {
-            logger.info("Connecting to db");
+            Logger.info("Connecting to db");
             if (config.dbms === "mysql") {
                 this.connection = mysql.createPool(config);
                 this.query = util.promisify(this.connection.query).bind(this.connection);
