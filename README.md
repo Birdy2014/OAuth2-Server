@@ -14,6 +14,7 @@ download source and install dependencies:
 git clone https://github.com/Birdy2014/OAuth2-Server
 cd ./OAuth2-Server
 npm install
+npm run build
 ```
 
 Run the server:
