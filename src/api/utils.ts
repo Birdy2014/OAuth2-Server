@@ -123,3 +123,17 @@ export function checkEmail(email: string): boolean {
 export function checkPassword(password: string): boolean {
     return password.length >= 8;
 }
+
+export function deepClone(obj: any): any {
+    if (obj instanceof Array) {
+        return obj.map((val) => deepClone(val));
+    } else if (obj instanceof Object) {
+        let out = {};
+        for (const key in obj)
+            if (obj.hasOwnProperty(key))
+                out[key] = deepClone(obj[key]);
+        return out;
+    } else {
+        return obj;
+    }
+}

@@ -133,6 +133,14 @@ describe("Permissions", () => {
             assert.deepStrictEqual(await Database.select('permissions'), testPermission);
         });
 
+        it("should save added permission if the user already has a permission for the client", async () => {
+            await Database.insert('permissions', testPermission);
+            let permissions = await Permissions.fromUserId(testUser.user_id);
+            permissions.add(testPermission.client_id, "testPerm2");
+            await permissions.save();
+            assert.deepStrictEqual(await Database.select('permissions', `permission = 'testPerm2'`), { user_id: testPermission.user_id, client_id: testPermission.client_id, permission: "testPerm2" });
+        });
+
         it("should remove deleted permissions from the database", async () => {
             await Database.insert('permissions', testPermission);
             let permissions = await Permissions.fromUserId(testUser.user_id);

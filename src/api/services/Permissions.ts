@@ -1,5 +1,6 @@
 import { Database } from '../../db/db';
 import { ClientTuple, PermissionsTuple } from '../../db/schemas';
+import { deepClone } from '../utils';
 
 export interface PermissionList {
     [client_id: string]: string[];
@@ -23,7 +24,7 @@ export class Permissions {
     private constructor(user_id: string, values: PermissionList) {
         this._user_id = user_id;
         this._values = values;
-        this.c_values = {...values};
+        this.c_values = deepClone(values);
     }
 
     public static async fromUserId(user_id: string) {
