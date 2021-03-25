@@ -4,7 +4,7 @@ import { Database } from './db/db';
 import express from 'express';
 import { router as apiRouter } from './api/router';
 import { currentUnixTime, respond } from './api/utils';
-import adminConsole from './adminConsole/adminConsole';
+import { start as startConsole } from './adminConsole/adminConsole';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { getUser } from './middleware/getUser';
@@ -112,7 +112,7 @@ async function main() {
 
     app.listen(ConfigReader.config.port, async () => {
         await Logger.info("Server listening on 0.0.0.0:" + ConfigReader.config.port);
-        adminConsole.start();
+        startConsole();
     });
 }
 
