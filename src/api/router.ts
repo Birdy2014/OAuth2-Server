@@ -7,7 +7,7 @@ import * as uri from './controllers/uri.controller';
 import * as permission from './controllers/permission.controller';
 import * as token from './controllers/token.controller';
 import * as user from './controllers/user.controller';
-import verification from './controllers/verification.controller';
+import * as verification from './controllers/verification.controller';
 
 export const router = Router();
 

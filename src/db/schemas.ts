@@ -53,7 +53,7 @@ export interface RedirectUriTuple extends TableRow {
 export interface VerificationCodeTuple extends TableRow {
     verification_code: string;
     user_id: string;
-    email: string;
+    email?: string;
     change_password: boolean;
 }
 

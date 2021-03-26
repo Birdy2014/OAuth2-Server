@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
-import { UserTuple, UserInfoTuple } from '../../db/schemas';
+import { UserTuple, UserInfoTuple, VerificationCodeTuple } from '../../db/schemas';
 import { ServerError, generateToken, checkUsername, checkEmail, checkPassword } from '../utils';
 import { Permissions, PermissionsExport } from './Permissions';
 import { ConfigReader } from '../../ConfigReader';
@@ -156,6 +156,25 @@ export class User {
         let authorized = await bcrypt.compare(password, user.password_hash as string);
         if (!authorized)
             throw new ServerError(403, "Invalid user credentials");
+
+        return user;
+    }
+
+    public static async fromVerificationCode(verification_code: string, password?: string): Promise<User> {
+        let verificationTuple = await Database.select<VerificationCodeTuple>('verification_code', `verification_code = '${verification_code}'`);
+        if (!verificationTuple)
+            throw new ServerError(403, "Invalid verification_code");
+
+        await Database.delete('verification_code', `verification_code = '${verification_code}'`);
+
+        let user = await User.fromLogin(verificationTuple.user_id);
+        user.verified = true;
+
+        if (verificationTuple.email)
+            user.email = verificationTuple.email;
+
+        if (verificationTuple.change_password && password)
+            user.password = password;
 
         return user;
     }
