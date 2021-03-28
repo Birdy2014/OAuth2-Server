@@ -17,5 +17,6 @@
     "email": "E-Mail",
     "email_change": "Hello %0,\nto verify your email adress, please click this Link: %1",
     "email_reset": "Hello %0,\nto reset your password, please click this Link: %1",
-    "email_verify": "Hello %0,\nto verify your email address, please click this Link: %1"
+    "email_verify": "Hello %0,\nto verify your email address, please click this Link: %1",
+    "notverified": "Your email address is not verified"
 }

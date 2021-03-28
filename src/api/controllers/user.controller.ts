@@ -29,6 +29,8 @@ export async function post(req: express.Request, res: express.Response) {
     let token = await Token.create(user, await Client.fromId(Database.dashboard_id));
     let { token: refresh_token } = await token.createRefreshToken();
     let { token: access_token, expires } = await token.createAccessToken();
+    res.cookie("access_token", access_token);
+    res.cookie("refresh_token", refresh_token);
     respond(res, 201, { user_id: user.user_id, access_token, refresh_token, expires });
 }
 

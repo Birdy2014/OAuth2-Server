@@ -17,5 +17,6 @@
     "email": "E-Mail",
     "email_change": "Hallo %0,\nbitte klicken sie diesen Link, um ihre Email Adresse zu bestätigen: %1",
     "email_reset": "Hallo %0,\nbitte klicken sie diesen Link, um ihr Passwort zurückzusetzen: %1",
-    "email_verify": "Hallo %0,\nbitte klicken sie diesen Link, um ihre Email Adresse zu bestätigen: %1"
+    "email_verify": "Hallo %0,\nbitte klicken sie diesen Link, um ihre Email Adresse zu bestätigen: %1",
+    "notverified": "Ihre Email Adresse ist noch nicht bestätigt"
 }

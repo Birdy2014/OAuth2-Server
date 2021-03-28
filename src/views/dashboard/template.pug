@@ -8,6 +8,8 @@ html
         script(src="../js/register.js")
         script(src="../js/dashboard.js")
     body
+        unless user.verified
+            span= lang("notverified")
         nav
             a(href="javascript:navigate('clients');")= lang("clients")
             = " "
