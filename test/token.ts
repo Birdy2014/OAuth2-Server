@@ -149,7 +149,7 @@ describe("Token", () => {
 
         it("should fail with an empty challenge", async () => {
             let token = await Token.create(await User.fromLogin(testUser.user_id), await Client.fromId(testClient.client_id));
-            await shouldFail(token.createAuthorizationCode, [""], "ServerError", "Invalid challenge");
+            await shouldFail(token.createAuthorizationCode.bind(token), [""], "ServerError", "Invalid challenge");
         });
     });
 });

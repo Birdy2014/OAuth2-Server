@@ -209,7 +209,7 @@ describe("User", () => {
         it("should fail when the user already exists", async () => {
             Database.insert('user', { user_id: uuidv4(), username: testUser.username, email: testUser.email, password_hash: await bcrypt.hash(testUser.password, 12) });
             let user = await User.create(testUser.username, testUser.email, testUser.password, testUser.user_info);
-            shouldFail(user.save, [], 'ServerError', 'User already exists');
+            await shouldFail(user.save.bind(user), [], 'ServerError', 'User already exists');
         });
     });
 

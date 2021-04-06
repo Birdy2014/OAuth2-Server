@@ -130,7 +130,7 @@ export class Client {
             }
         } catch(err) {
             if (err instanceof DBError && err.type === DBErrorType.DUPLICATE)
-                throw new ServerError(409, "User already exists");
+                throw new ServerError(409, "Client already exists");
             throw new ServerError(500, "Internal Server Error");
         }
     }
