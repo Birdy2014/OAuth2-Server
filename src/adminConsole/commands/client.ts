@@ -1,12 +1,12 @@
 import { getUserId, getClientId } from '../utils';
-import { Database } from '../../db/db';
+import { Database } from '../../db/Database';
 import { Client } from '../../api/services/Client';
 import { User } from '../../api/services/User';
 
 export async function run(args: string[]) {
     switch (args[0]) {
         case "list": {
-            let results = await Database.query("SELECT client_id, name, dev_id FROM client");
+            let results = await Database.selectAll('client');
             if (results.length === 0) {
                 console.log("There are no clients");
             } else {

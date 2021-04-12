@@ -1,4 +1,4 @@
-const { Database } = require("../../db/db");
+const { Database } = require("../../db/Database");
 
 /**
  * Get all users. admin only

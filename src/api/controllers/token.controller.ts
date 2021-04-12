@@ -1,6 +1,6 @@
 import express from 'express';
 import { respond, ServerError } from '../utils';
-import { Database } from '../../db/db';
+import { Database } from '../../db/Database';
 import { Token } from '../services/Token';
 
 export async function tokenInfo(req: express.Request, res: express.Response) {
@@ -74,10 +74,10 @@ export async function revoke(req: express.Request, res: express.Response) {
         throw new ServerError(400, "Invalid arguments");
 
     if (access_token) //revoke access_token
-        await Database.query(`DELETE FROM access_token WHERE access_token = '${access_token}'`);
+        await Database.delete('access_token', { access_token });
 
     if (refresh_token) //revoke refresh_token
-        await Database.query(`DELETE FROM refresh_token WHERE refresh_token = '${refresh_token}'`);
+        await Database.delete('refresh_token', { refresh_token });
 
     respond(res, 200);
 }

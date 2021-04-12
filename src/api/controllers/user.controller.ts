@@ -1,7 +1,7 @@
 import express from 'express';
 import { respond, ServerError } from '../utils';
 import { getAllUsers } from '../services/user.service';
-import { Database } from '../../db/db';
+import { Database } from '../../db/Database';
 import { ConfigReader } from '../../ConfigReader';
 import { User } from '../services/User';
 import { Token } from '../services/Token';

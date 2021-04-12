@@ -4,7 +4,7 @@ import { UserTuple, UserInfoTuple, VerificationCodeTuple } from '../../db/schema
 import { ServerError, generateToken, checkUsername, checkEmail, checkPassword } from '../utils';
 import { Permissions, PermissionsExport } from './Permissions';
 import { ConfigReader } from '../../ConfigReader';
-import { DBError, DBErrorType, Database } from '../../db/db';
+import { DBError, DBErrorType, Database } from '../../db/Database';
 import { sendVerificationEmail } from './verification.service';
 
 export interface UserInfo {
@@ -131,19 +131,19 @@ export class User {
         const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
         const emailRegEx = /^\S+@\S+\.\S+$/;
 
-        let type: string;
+        let condition: any = {};
         if (uuidRegEx.test(login))
-            type = 'user_id';
+            condition.user_id = login;
         else if (emailRegEx.test(login))
-            type = 'email';
+            condition.email = login;
         else
-            type = 'username';
+            condition.username = login;
 
-        let user_tuple: UserTuple|undefined = await Database.select<UserTuple>('user', `${type} = '${login}'`);
+        let user_tuple: UserTuple|undefined = await Database.select<UserTuple>('user', condition);
         if (user_tuple === undefined)
             throw new ServerError(404, `User ${login} not found`);
 
-        let user_infos: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', `user_id = '${user_tuple.user_id}'`);
+        let user_infos: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', { user_id: user_tuple.user_id });
         let user_info: UserInfo = {};
         user_infos.forEach(tuple => user_info[tuple.name] = tuple.value);
 
@@ -161,11 +161,11 @@ export class User {
     }
 
     public static async fromVerificationCode(verification_code: string, password?: string): Promise<User> {
-        let verificationTuple = await Database.select<VerificationCodeTuple>('verification_code', `verification_code = '${verification_code}'`);
+        let verificationTuple = await Database.select<VerificationCodeTuple>('verification_code', { verification_code });
         if (!verificationTuple)
             throw new ServerError(403, "Invalid verification_code");
 
-        await Database.delete('verification_code', `verification_code = '${verification_code}'`);
+        await Database.delete('verification_code', { verification_code });
 
         let user = await User.fromLogin(verificationTuple.user_id);
         user.verified = true;
@@ -190,7 +190,7 @@ export class User {
             if (this.create)
                 await Database.insert("user", { user_id: this._user_id, ...data });
             else
-                await Database.update("user", `user_id = '${this._user_id}'`, data)
+                await Database.update("user", { user_id: this._user_id }, data)
 
             this.c_username = false;
             this.c_email = false;
@@ -203,7 +203,7 @@ export class User {
                     continue;
                 let row: UserInfoTuple = { user_id: this.user_id, name: key, value: this._user_info[key] };
                 if (this.c_user_info.hasOwnProperty(key))
-                    await Database.update("user_info", `user_id = '${this.user_id}'`, row);
+                    await Database.update("user_info", { user_id: this.user_id }, row);
                 else
                     await Database.insert("user_info", row);
             }
@@ -219,12 +219,12 @@ export class User {
     }
 
     public async delete() {
-        await Database.delete('authorization_code', `user_id = '${this._user_id}'`);
-        await Database.delete('access_token', `user_id = '${this._user_id}'`);
-        await Database.delete('refresh_token', `user_id = '${this._user_id}'`);
-        await Database.delete('user', `user_id = '${this._user_id}'`);
-        await Database.delete('verification_code', `user_id = '${this._user_id}'`);
-        await Database.delete('user_info', `user_id = '${this._user_id}'`);
+        await Database.delete('authorization_code', { user_id: this._user_id });
+        await Database.delete('access_token', { user_id: this._user_id });
+        await Database.delete('refresh_token', { user_id: this._user_id });
+        await Database.delete('user', { user_id: this._user_id });
+        await Database.delete('verification_code', { user_id: this._user_id });
+        await Database.delete('user_info', { user_id: this._user_id });
         this.c_username = false;
         this.c_email = false;
         this.c_verified = false;

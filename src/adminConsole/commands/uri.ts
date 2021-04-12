@@ -1,5 +1,5 @@
 import { getClientId } from '../utils';
-import { Database } from '../../db/db';
+import { Database } from '../../db/Database';
 import { Client } from '../../api/services/Client';
 
 export async function run(args: string[]) {

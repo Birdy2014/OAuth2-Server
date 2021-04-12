@@ -3,7 +3,7 @@ import { respond, ServerError } from '../utils';
 import { User } from '../services/User';
 import { Client } from '../services/Client';
 import { Token } from '../services/Token';
-import { Database } from '../../db/db';
+import { Database } from '../../db/Database';
 
 export async function post(req: express.Request, res: express.Response) {
     if (!req.body.login || !req.body.password)

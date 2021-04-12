@@ -1,5 +1,5 @@
 import { ClientTuple, RedirectUriTuple } from '../../db/schemas';
-import { Database, DBError, DBErrorType } from '../../db/db';
+import { Database, DBError, DBErrorType } from '../../db/Database';
 import { v4 as uuidv4 } from 'uuid';
 import { ServerError, generateToken } from '../utils';
 
@@ -63,7 +63,7 @@ export class Client {
     }
 
     public static async fromId(client_id: string): Promise<Client> {
-        let client_tuple: ClientTuple|undefined = await Database.select<ClientTuple>('client', `client_id = '${client_id}'`);
+        let client_tuple: ClientTuple|undefined = await Database.select<ClientTuple>('client', { client_id });
         if (client_tuple === undefined)
             throw new ServerError(404, "Client " + client_id + " not found");
 
@@ -73,7 +73,7 @@ export class Client {
     }
 
     public static async fromName(name: string): Promise<Client> {
-        let client_tuple: ClientTuple|undefined = await Database.select<ClientTuple>('client', `name = '${name}'`);
+        let client_tuple: ClientTuple|undefined = await Database.select<ClientTuple>('client', { name });
         if (client_tuple === undefined)
             throw new ServerError(404, "Client " + name + " not found");
 
@@ -93,7 +93,7 @@ export class Client {
     }
 
     private static async getUris(client_id: string): Promise<string[]> {
-        let uriResults: RedirectUriTuple[] = await Database.selectAll<RedirectUriTuple>('redirect_uri', `client_id = '${client_id}'`);
+        let uriResults: RedirectUriTuple[] = await Database.selectAll<RedirectUriTuple>('redirect_uri', { client_id });
         return uriResults.map(val => val.redirect_uri);
     }
 
@@ -106,7 +106,7 @@ export class Client {
             if (this.create)
                 await Database.insert("client", { client_id: this._client_id, ...data, client_secret: this._client_secret });
             else
-                await Database.update("client", `client_id = '${this._client_id}'`, data)
+                await Database.update("client", { client_id: this._client_id }, data)
 
             this.c_name = false;
             this.c_dev_id = false;
@@ -125,7 +125,7 @@ export class Client {
             for (let uri of this.c_redirect_uris) {
                 if (this._redirect_uris.includes(uri))
                     continue;
-                await Database.delete("redirect_uri", `client_id = '${this.client_id}' AND redirect_uri = '${uri}'`);
+                await Database.delete("redirect_uri", { client_id: this.client_id, redirect_uri: uri });
                 this.c_redirect_uris = this.c_redirect_uris.filter(val => val !== uri);
             }
         } catch(err) {
@@ -136,11 +136,11 @@ export class Client {
     }
 
     public async delete() {
-        await Database.delete('authorization_code', `client_id = '${this._client_id}'`);
-        await Database.delete('access_token', `client_id = '${this._client_id}'`);
-        await Database.delete('refresh_token', `client_id = '${this._client_id}'`);
-        await Database.delete('client', `client_id = '${this._client_id}'`);
-        await Database.delete('redirect_uri', `client_id = '${this._client_id}'`);
+        await Database.delete('authorization_code', { client_id: this._client_id });
+        await Database.delete('access_token', { client_id: this._client_id });
+        await Database.delete('refresh_token', { client_id: this._client_id });
+        await Database.delete('client', { client_id: this._client_id });
+        await Database.delete('redirect_uri', { client_id: this._client_id });
     }
 
     public removeUri(uri: string) {

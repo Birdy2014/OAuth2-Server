@@ -2,7 +2,7 @@ import { setup, cleanup, clean, testClient, testUser, shouldFail, insertTestData
 import assert from 'assert';
 import { User } from '../src/api/services/User';
 import { UserTuple, UserInfoTuple, VerificationCodeTuple } from '../src/db/schemas';
-import { Database } from '../src/db/db';
+import { Database } from '../src/db/Database';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 
@@ -132,7 +132,7 @@ describe("User", () => {
             await Database.insert('verification_code', tuple);
             let user = await User.fromVerificationCode(tuple.verification_code, "changedPassword");
             await user.save();
-            let result = await Database.select<UserTuple>('user', `user_id = '${tuple.user_id}'`);
+            let result = await Database.select<UserTuple>('user', { user_id: tuple.user_id });
             assert.notStrictEqual(result, undefined);
             assert.strictEqual(bcrypt.compareSync("changedPassword", result!.password_hash), true);
         });
@@ -158,8 +158,8 @@ describe("User", () => {
             let user = await User.create(testUser.username, testUser.email, testUser.password, testUser.user_info);
             await user.save();
 
-            let userData: UserTuple|undefined = await Database.select<UserTuple>('user', `user_id = '${user.user_id}'`);
-            let userInfo: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', `user_id = '${user.user_id}'`);
+            let userData: UserTuple|undefined = await Database.select<UserTuple>('user', { user_id: user.user_id });
+            let userInfo: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', { user_id: user.user_id });
 
             assert.strictEqual(userData?.email, testUser.email);
             assert.strictEqual(userData?.username, testUser.username);
@@ -178,7 +178,7 @@ describe("User", () => {
             user.user_info.key2 = "efgh";
             await user.save();
 
-            let userInfo: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', `user_id = '${user.user_id}'`);
+            let userInfo: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', { user_id: user.user_id });
 
             let stored: any = {};
             for (let tuple of userInfo) {
@@ -193,8 +193,8 @@ describe("User", () => {
             await user.save();
             await user.save();
 
-            let userData: UserTuple|undefined = await Database.select<UserTuple>('user', `user_id = '${user.user_id}'`);
-            let userInfo: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', `user_id = '${user.user_id}'`);
+            let userData: UserTuple|undefined = await Database.select<UserTuple>('user', { user_id: user.user_id });
+            let userInfo: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', { user_id: user.user_id });
 
             assert.strictEqual(userData?.email, testUser.email);
             assert.strictEqual(userData?.username, testUser.username);
@@ -219,7 +219,7 @@ describe("User", () => {
         it("should work", async () => {
             let user = await User.fromLogin(testUser.user_id);
             await user.delete();
-            let row = await Database.select<UserTuple>('user', `user_id = '${testUser.user_id}'`);
+            let row = await Database.select<UserTuple>('user', { user_id: testUser.user_id });
             assert.strictEqual(row, undefined);
         });
     });

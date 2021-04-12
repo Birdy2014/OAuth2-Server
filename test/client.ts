@@ -3,7 +3,7 @@ import assert from 'assert';
 import { v4 as uuidv4 } from 'uuid';
 import { Client } from '../src/api/services/Client';
 import { ClientTuple, RedirectUriTuple } from '../src/db/schemas';
-import { Database } from '../src/db/db';
+import { Database } from '../src/db/Database';
 
 describe("Client", () => {
     before(setup);
@@ -91,8 +91,8 @@ describe("Client", () => {
             let client = new Client(testClient.client_id, testClient.client_secret, testClient.name, testClient.dev_id, testClient.redirect_uris, true);
             await client.save();
 
-            let client_tuple: ClientTuple|undefined = await Database.select('client', `client_id = '${testClient.client_id}'`);
-            let redirect_uri_tuples: RedirectUriTuple[] = await Database.selectAll('redirect_uri', `client_id = '${testClient.client_id}'`);
+            let client_tuple: ClientTuple|undefined = await Database.select('client', { client_id: testClient.client_id });
+            let redirect_uri_tuples: RedirectUriTuple[] = await Database.selectAll('redirect_uri', { client_id: testClient.client_id });
 
             assert.strictEqual(client_tuple?.client_id, testClient.client_id);
             assert.strictEqual(client_tuple?.client_secret, testClient.client_secret);
@@ -121,8 +121,8 @@ describe("Client", () => {
             client.redirect_uris.push('new.uri');
             await client.save();
 
-            let client_tuple: ClientTuple|undefined = await Database.select('client', `client_id = '${testClient.client_id}'`);
-            let redirect_uri_tuples: RedirectUriTuple[] = await Database.selectAll('redirect_uri', `client_id = '${testClient.client_id}'`);
+            let client_tuple: ClientTuple|undefined = await Database.select('client', { client_id: testClient.client_id });
+            let redirect_uri_tuples: RedirectUriTuple[] = await Database.selectAll('redirect_uri', { client_id: testClient.client_id });
 
             assert.strictEqual(client_tuple?.client_id, testClient.client_id);
             assert.strictEqual(client_tuple?.client_secret, testClient.client_secret);
@@ -152,8 +152,8 @@ describe("Client", () => {
             let client = new Client(testClient.client_id, testClient.client_secret, testClient.name, testClient.dev_id, testClient.redirect_uris, false);
             await client.delete();
 
-            let client_tuple: ClientTuple|undefined = await Database.select('client', `client_id = '${testClient.client_id}'`);
-            let redirect_uri_tuples: RedirectUriTuple[] = await Database.selectAll('redirect_uri', `client_id = '${testClient.client_id}'`);
+            let client_tuple: ClientTuple|undefined = await Database.select('client', { client_id: testClient.client_id });
+            let redirect_uri_tuples: RedirectUriTuple[] = await Database.selectAll('redirect_uri', { client_id: testClient.client_id });
 
             assert.strictEqual(client_tuple, undefined);
             assert.strictEqual(redirect_uri_tuples.length, 0);

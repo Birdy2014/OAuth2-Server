@@ -1,7 +1,7 @@
-const { Database } = require("../../db/db");
+const { Database } = require("../../db/Database");
 
 exports.getClients = async () => {
-    let results = await Database.query("SELECT client_id, name, dev_id FROM client");
+    let results = await Database.selectAll('client');
     let clients = [];
     results.forEach(client => {
         clients.push({

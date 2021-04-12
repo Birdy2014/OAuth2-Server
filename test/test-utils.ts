@@ -1,14 +1,14 @@
 import { ConfigReader } from '../src/ConfigReader';
 ConfigReader.load(__dirname + "/config");
 import { Logger } from '../src/Logger';
-import { Database } from '../src/db/db';
+import { Database } from '../src/db/Database';
 import { AssertionError, fail } from 'assert';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 
 export async function setup() {
     Logger.init(ConfigReader.config.logpath);
-    await Database.init(ConfigReader.config.db, ConfigReader.config.url);
+    await Database.init(ConfigReader.config.url);
 }
 
 export async function clean() {
@@ -24,7 +24,7 @@ export async function clean() {
 }
 
 export async function cleanup() {
-    Database.connection.close();
+    Database.close();
 }
 
 export function shouldFail(func: Function, args: any[], name?: string, message?: string): Promise<void>|void {

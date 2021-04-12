@@ -1,4 +1,4 @@
-import { Database } from '../../db/db';
+import { Database } from '../../db/Database';
 import { ClientTuple, PermissionsTuple } from '../../db/schemas';
 import { deepClone } from '../utils';
 
@@ -28,7 +28,7 @@ export class Permissions {
     }
 
     public static async fromUserId(user_id: string) {
-        let result: Array<PermissionsTuple> = await Database.selectAll<PermissionsTuple>('permissions', `user_id = '${user_id}'`);
+        let result: Array<PermissionsTuple> = await Database.selectAll<PermissionsTuple>('permissions', { user_id });
         let values: PermissionList = {};
         result.forEach(tuple => {
             if (values[tuple.client_id] === undefined) values[tuple.client_id] = [];
@@ -40,7 +40,7 @@ export class Permissions {
     public async adminOf(client_id: string): Promise<boolean> {
         if (this.has(client_id, 'admin') || this.has(Database.dashboard_id, 'admin'))
             return true;
-        let tuple: ClientTuple|undefined = await Database.select('client', `client_id = '${client_id}'`);
+        let tuple: ClientTuple|undefined = await Database.select('client', { client_id });
         return tuple?.dev_id === this._user_id;
     }
 
@@ -78,7 +78,7 @@ export class Permissions {
             for (const permission of this.c_values[client_id]) {
                 if (this._values[client_id].includes(permission))
                     continue;
-                await Database.delete('permissions', `permission = '${permission}'`);
+                await Database.delete('permissions', { permission});
                 this.c_values[client_id] = this.c_values[client_id].filter(val => val !== permission);
             }
         }

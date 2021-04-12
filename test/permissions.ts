@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { v4 as uuidv4 } from 'uuid';
 import { setup, cleanup, clean, insertTestData, testUser, testClient } from './test-utils';
-import { Database } from '../src/db/db';
+import { Database } from '../src/db/Database';
 import { ClientTuple, PermissionsTuple } from '../src/db/schemas';
 import { Permissions } from '../src/api/services/Permissions';
 
@@ -138,7 +138,7 @@ describe("Permissions", () => {
             let permissions = await Permissions.fromUserId(testUser.user_id);
             permissions.add(testPermission.client_id, "testPerm2");
             await permissions.save();
-            assert.deepStrictEqual(await Database.select('permissions', `permission = 'testPerm2'`), { user_id: testPermission.user_id, client_id: testPermission.client_id, permission: "testPerm2" });
+            assert.deepStrictEqual(await Database.select('permissions', { permission: 'testPerm2' }), { user_id: testPermission.user_id, client_id: testPermission.client_id, permission: "testPerm2" });
         });
 
         it("should remove deleted permissions from the database", async () => {

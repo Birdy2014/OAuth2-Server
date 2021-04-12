@@ -1,5 +1,5 @@
 import { Permissions } from '../../api/services/Permissions';
-import { Database } from '../../db/db';
+import { Database } from '../../db/Database';
 import { getUserId } from '../utils';
 
 export async function run(args: string[]) {

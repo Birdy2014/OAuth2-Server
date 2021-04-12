@@ -1,10 +1,10 @@
-import { Database } from '../../db/db';
+import { Database } from '../../db/Database';
 import { User } from '../../api/services/User';
 
 export async function run(args: string[]) {
     switch (args[0]) {
         case "list": {
-            let results = await Database.query("SELECT user_id, username, email, verified FROM user");
+            let results = await Database.selectAll('user');
             if (results.length === 0) {
                 console.log("There are no users");
             } else {

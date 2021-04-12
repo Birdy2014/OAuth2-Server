@@ -1,7 +1,7 @@
 import { setup, cleanup, clean, insertTestData } from './test-utils';
 import assert from 'assert';
 import { Token } from '../src/api/services/Token';
-import { Database } from '../src/db/db';
+import { Database } from '../src/db/Database';
 import { currentUnixTime } from '../src/api/utils';
 import { shouldFail, testUser, testClient } from './test-utils';
 import { User } from '../src/api/services/User';
@@ -100,7 +100,7 @@ describe("Token", () => {
             await Database.insert('authorization_code', { user_id: testUser.user_id, client_id: testClient.client_id, authorization_code: "token", expires: currentUnixTime() + 200, challenge: testUser.challenge });
             await Token.fromAuthorizationCode("token", testUser.code_verifier)
 
-            let row = await Database.select('authorization_code', `authorization_code = '${"token"}'`);
+            let row = await Database.select('authorization_code', { authorization_code: "token" });
             assert.strictEqual(row, undefined);
         });
 
@@ -125,7 +125,7 @@ describe("Token", () => {
         it("should work", async () => {
             let token = await Token.create(await User.fromLogin(testUser.user_id), await Client.fromId(testClient.client_id));
             let { token: access_token, expires } = await token.createAccessToken();
-            let token_row = await Database.select('access_token', `access_token = '${access_token}'`);
+            let token_row = await Database.select('access_token', { access_token });
             assert.deepStrictEqual(token_row, { access_token, user_id: testUser.user_id, client_id: testClient.client_id, expires });
         });
     });
@@ -134,7 +134,7 @@ describe("Token", () => {
         it("should work", async () => {
             let token = await Token.create(await User.fromLogin(testUser.user_id), await Client.fromId(testClient.client_id));
             let { token: refresh_token, expires } = await token.createRefreshToken();
-            let token_row = await Database.select('refresh_token', `refresh_token = '${refresh_token}'`);
+            let token_row = await Database.select('refresh_token', { refresh_token });
             assert.deepStrictEqual(token_row, { refresh_token, user_id: testUser.user_id, client_id: testClient.client_id, expires });
         });
     });
@@ -143,7 +143,7 @@ describe("Token", () => {
         it("should work", async () => {
             let token = await Token.create(await User.fromLogin(testUser.user_id), await Client.fromId(testClient.client_id));
             let { token: authorization_code, expires } = await token.createAuthorizationCode(testUser.challenge);
-            let token_row = await Database.select('authorization_code', `authorization_code = '${authorization_code}'`);
+            let token_row = await Database.select('authorization_code', { authorization_code });
             assert.deepStrictEqual(token_row, { authorization_code, user_id: testUser.user_id, client_id: testClient.client_id, expires, challenge: testUser.challenge });
         });
 

@@ -1,4 +1,4 @@
-import { Database } from '../db/db';
+import { Database } from '../db/Database';
 
 const uuidRegEx = /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 const emailRegEx = /^\S+@\S+\.\S+$/;
@@ -10,22 +10,18 @@ const emailRegEx = /^\S+@\S+\.\S+$/;
  * @throws {string}
  */
 export async function getUserId(login: string): Promise<string> {
-    let query: string;
+    let condition: any = {};
     if (uuidRegEx.test(login))
-        query = `SELECT user_id FROM user WHERE user_id = '${login}'`;
+        condition.user_id = login;
     else if (emailRegEx.test(login))
-        query = `SELECT user_id FROM user WHERE email = '${login}'`;
+        condition.email = login;
     else
-        query = `SELECT user_id FROM user WHERE username = '${login}'`;
+        condition.username = login;
 
-    let result = await Database.query(query);
-    if (result.length === 1) {
-        return result[0].user_id;
-    } else if (result.length === 0) {
+    let result = await Database.select('user', condition);
+    if (!result)
         throw `Can't find user ${login}`;
-    } else {
-        throw `Found ${result.length} users with name ${login}`;
-    }
+    return result.user_id;
 }
 
 /**
@@ -35,18 +31,14 @@ export async function getUserId(login: string): Promise<string> {
  * @throws {string}
  */
 export async function getClientId(identifier: string): Promise<string> {
-    let query: string;
+    let condition: any = {};
     if (uuidRegEx.test(identifier))
-        query = `SELECT client_id FROM client WHERE client_id = '${identifier}'`;
+        condition.client_id = identifier;
     else
-        query = `SELECT client_id FROM client WHERE name = '${identifier}'`;
+        condition.name = identifier;
 
-    let result = await Database.query(query);
-    if (result.length === 1) {
-        return result[0].client_id;
-    } else if (result.length === 0) {
+    let result = await Database.select('client', condition);
+    if (!result)
         throw `Can't find client ${identifier}`;
-    } else {
-        throw `Found ${result.length} clients with name ${identifier}`;
-    }
+    return result.client_id;
 }

@@ -1,6 +1,6 @@
 import { ConfigReader } from './ConfigReader';
 ConfigReader.load(__dirname + '/../config');
-import { Database } from './db/db';
+import { Database } from './db/Database';
 import express from 'express';
 import { router as apiRouter } from './api/router';
 import { currentUnixTime, respond } from './api/utils';
@@ -19,7 +19,7 @@ async function main() {
     Logger.init(ConfigReader.config.logpath);
 
     //create tables if they don't exist
-    if (await Database.init(ConfigReader.config.db, ConfigReader.config.url))
+    if (await Database.init(ConfigReader.config.url))
         Logger.info("Tables created");
 
     app.use(cors());
@@ -104,9 +104,9 @@ async function main() {
     //delete old access tokens, run once every day
     setInterval(() => {
         Logger.info("cleaning db...");
-        Database.delete('access_token', `expires < ${currentUnixTime()}`);
-        Database.delete('refresh_token', `expires < ${currentUnixTime()}`);
-        Database.delete('authorization_code', `expires < ${currentUnixTime()}`);
+        Database.query(`DELETE FROM access_token WHERE expires < ${currentUnixTime()}`);
+        Database.query(`DELETE FROM refresh_token WHERE expires < ${currentUnixTime()}`);
+        Database.query(`DELETE FROM authorization_code WHERE expires < ${currentUnixTime()}`);
         Logger.info("cleaning complete");
     }, 86400000);
 

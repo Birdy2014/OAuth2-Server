@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { Database } from '../../db/db';
+import { Database } from '../../db/Database';
 import { AccessTokenTuple, AuthorizationCodeTuple, RefreshTokenTuple } from '../../db/schemas';
 import { ServerError, currentUnixTime, generateToken } from '../utils';
 import { Client } from './Client';
@@ -34,7 +34,7 @@ export class Token {
 
     public static async fromAccessToken(access_token: string): Promise<Token> {
         if (access_token.startsWith("Bearer ")) access_token = access_token.substring("Bearer ".length);
-        let result: AccessTokenTuple|undefined = await Database.select<AccessTokenTuple>('access_token', `access_token = '${access_token}'`);
+        let result: AccessTokenTuple|undefined = await Database.select<AccessTokenTuple>('access_token', { access_token });
         if (result === undefined || result.expires < currentUnixTime())
             throw new ServerError(403, "Invalid access_token");
         let user = await User.fromLogin(result.user_id);
@@ -43,7 +43,7 @@ export class Token {
     }
 
     public static async fromRefreshToken(refresh_token: string): Promise<Token> {
-        let result: RefreshTokenTuple|undefined = await Database.select<RefreshTokenTuple>('refresh_token', `refresh_token = '${refresh_token}'`);
+        let result: RefreshTokenTuple|undefined = await Database.select<RefreshTokenTuple>('refresh_token', { refresh_token });
         if (result === undefined || result.expires < currentUnixTime())
             throw new ServerError(403, "Invalid refresh_token");
         let user = await User.fromLogin(result.user_id);
@@ -53,7 +53,7 @@ export class Token {
     }
 
     public static async fromAuthorizationCode(authorization_code: string, code_verifier: string): Promise<Token> {
-        let result = await Database.select<AuthorizationCodeTuple>('authorization_code', `authorization_code = '${authorization_code}'`);
+        let result = await Database.select<AuthorizationCodeTuple>('authorization_code', { authorization_code });
         if (result === undefined || result.expires < currentUnixTime())
             throw new ServerError(403, "Invalid authorization_code");
 
@@ -61,7 +61,7 @@ export class Token {
         if (hash !== result.challenge)
             throw new ServerError(403, "Invalid code_verifier");
 
-        await Database.delete('authorization_code', `authorization_code = '${authorization_code}'`);
+        await Database.delete('authorization_code', { authorization_code });
 
         let user = await User.fromLogin(result.user_id);
         let client = await Client.fromId(result.client_id);
