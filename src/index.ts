@@ -13,6 +13,8 @@ import { getLanguage, getLanguages } from './i18n/translationProvider';
 import { getAllUsers } from './api/services/user.service';
 import { getClients } from './api/services/client.service';
 import { ServerError } from './api/utils';
+import { Token } from './api/services/Token';
+import { Client } from './api/services/Client';
 const app = express();
 
 async function main() {
@@ -33,8 +35,9 @@ async function main() {
     //Frontend
     app.use("/authorize", async (req: express.Request, res: express.Response) => {
         if (req.token && req.query.redirect_uri && req.query.client_id && req.query.code_challenge) {
-            let authorization_code = await req.token.createAuthorizationCode(req.query.code_challenge as string);
-            res.redirect(`${req.query.redirect_uri}${(req.query.redirect_uri as string).includes("?") ? "&" : "?"}authorization_code=${authorization_code}${req.query.state ? "&state=" + req.query.state : ""}`);
+            let token = await Token.create(req.token.user, await Client.fromIdUri(req.query.client_id as string, req.query.redirect_uri as string))
+            let authorization_code = await token.createAuthorizationCode(req.query.code_challenge as string);
+            res.redirect(`${req.query.redirect_uri}${(req.query.redirect_uri as string).includes("?") ? "&" : "?"}authorization_code=${authorization_code.token}${req.query.state ? "&state=" + req.query.state : ""}`);
         } else if (req.user) {
             res.redirect("/dashboard");
         } else {
