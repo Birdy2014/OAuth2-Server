@@ -38,8 +38,9 @@ export async function token(req: express.Request, res: express.Response) {
             if (!validClient || token.client.client_id !== req.body.client_id)
                 throw new ServerError(403, "Invalid authorization_code");
 
-            let { token: refresh_token, expires } = await token.createRefreshToken();
-            respond(res, 201, { refresh_token, expires });
+            let { token: refresh_token } = await token.createRefreshToken();
+            let { token: access_token, expires } = await token.createAccessToken();
+            respond(res, 201, { refresh_token, access_token, expires });
             break;
         }
         case "refresh_token": {
