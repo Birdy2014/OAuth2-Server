@@ -2,21 +2,21 @@ doctype html
 html(lang="en")
 head
     meta(charset="UTF-8")
-    link(href="../css/register.css" rel="stylesheet")
+    link(href="../css/authorization.css" rel="stylesheet")
     title= lang("register")
     script(src="../js/register.js")
     script(src="../js/authorization.js")
 body
-#interactionContainer
-    //- Logo
-    h1#interactionHeader= lang("register")
-    label
-        input#usernameInput(type="text" placeholder=lang("username"))
-        br
-        input#emailInput(type="text" placeholder=lang("email"))
-        br
-        input#passwordInput(type="password" placeholder=lang("password"))
-        br
-        input#passwordVerification(type="password" placeholder=lang("confirmPassword"))
-    a#loginButton(href="javascript:void(0)" onclick="redirect('../authorize')")= lang("login")
-    button#registerButton(onclick="submitRegister()")= lang("continue")
+    #outer-container
+        form#inner-container
+            h1#title= lang("register")
+            #input-container
+                input#usernameInput(type="text" name="username" placeholder=lang("username") required)
+                input#emailInput(type="text" name="email" placeholder=lang("email") required)
+                input#passwordInput(type="password" name="password" placeholder=lang("password") required)
+                input#passwordVerification(type="password" name="password-verification" placeholder=lang("confirmPassword") required)
+            #button-container
+                a#loginButton(href="javascript:void(0)" onclick="redirect('../authorize')")= lang("login")
+                input#nextButton(type="submit" value=lang("continue"))
+
+script document.querySelector("form").addEventListener("submit", submitRegister)

@@ -1,25 +1,24 @@
+body {
+    background: #EEEEEE;
+}
+
 #outer-container {
     position: absolute;
     background: white;
     text-align: center;
+    width: 100%;
+    height: 100%;
 }
 
 @media screen and (min-width: 600px) {
     #outer-container {
         width: 450px;
-        height: 500px;
+        height: 550px;
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
         border: 1px solid #bdbdbd;
         border-radius: 5px;
-    }
-}
-
-@media screen and (max-width: 600px) {
-    #outer-container {
-        width: 100%;
-        height: 100%;
     }
 }
 
@@ -53,7 +52,7 @@ input {
     margin-bottom: 10px;
 }
 
-#interactionHeader {
+#title {
     font-weight: lighter;
     font-family: sans-serif;
     color: #202124;
@@ -63,9 +62,11 @@ input {
     display: flex;
     flex-flow: row nowrap;
     justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 10px;
 }
 
-#registerButton {
+#registerButton, #loginButton {
     height: 7%;
     text-align: center;
     border: none;
@@ -75,7 +76,8 @@ input {
     text-decoration: none;
 }
 
-#loginButton {
+#nextButton {
+    margin: 0;
     padding-top: 10px;
     padding-bottom: 10px;
     padding-left: 5px;
@@ -89,7 +91,7 @@ input {
     text-decoration: none;
 }
 
-#loginButton:hover {
+input[type="submit"]:hover {
     cursor: pointer;
 }
 
@@ -98,12 +100,4 @@ input {
     color: black;
     text-decoration: none;
     text-align: left;
-}
-
-#recoverLink:hover {
-    cursor: pointer;
-}
-
-body {
-    background: #EEEEEE;
 }

@@ -5,15 +5,7 @@ async function register(username, email, password, client_id, redirect_uri, stat
 
     try {
         let body = await request(requestUrl, "POST", `username=${username}&email=${email}&password=${password}`);
-        let { user_id, access_token, refresh_token, expires } = JSON.parse(body).data;
-        if (!user_id) {
-            alert("ERROR");
-            return;
-        }
-        window.localStorage.setItem("refresh_token", refresh_token);
-        window.localStorage.setItem("access_token", access_token);
-        window.localStorage.setItem("user_id", user_id);
-        window.localStorage.setItem("client_id", await getDashboardId());
+        let { user_id } = JSON.parse(body).data;
         window.location.href = `${secure ? "https://" : "http://"}${domain}/dashboard`;
     } catch (e) {
         e = JSON.parse(e);
@@ -21,22 +13,26 @@ async function register(username, email, password, client_id, redirect_uri, stat
     }
 }
 
-async function submitRegister() {
+function submitRegister(event) {
+    event.preventDefault();
     let username = document.getElementById("usernameInput").value;
     let email = document.getElementById("emailInput").value;
     let password = document.getElementById("passwordInput").value;
     let passwordVerification = document.getElementById("passwordVerification").value;
     let url = new URL(window.location.href);
     let client_id = url.searchParams.get("client_id");
-    if (!client_id)
-        client_id = await getDashboardId();
     let state = url.searchParams.get("state");
     let redirect_uri = url.searchParams.get("redirect_uri");
+    let code_challenge = url.searchParams.get("code_challenge");
+    let code_challenge_method = url.searchParams.get("code_challenge_method");
 
-    if (username && email && password && passwordVerification && password === passwordVerification)
-        register(username, email, password, client_id, redirect_uri, state);
-    else
-        alert("Please fill in all the information");
+    if (!username || !email || !password || !passwordVerification)
+        return alert("Please fill in all the information");
+
+    if (password !== passwordVerification)
+        return alert("Passwords don't match");
+
+    register(username, email, password, client_id, redirect_uri, state);
 }
 
 async function getDashboardId() {
