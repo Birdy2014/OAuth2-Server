@@ -1,5 +1,4 @@
 import { ConfigReader } from './ConfigReader';
-ConfigReader.load(__dirname + '/../config');
 import { Database } from './db/Database';
 import express from 'express';
 import { router as apiRouter } from './api/router';
@@ -18,6 +17,20 @@ import { Client } from './api/services/Client';
 const app = express();
 
 async function main() {
+    let args = {
+        'config': __dirname + '/../config'
+    }
+
+    const argv = process.argv.slice(2);
+    for (const arg of argv) {
+        if (arg.startsWith('--')) {
+            const equalpos = arg.indexOf('=');
+            if (equalpos > 0)
+                args[arg.substring(2, equalpos)] = arg.substring(equalpos + 1);
+        }
+    }
+
+    ConfigReader.load(args.config);
     Logger.init(ConfigReader.config.logpath);
 
     //create tables if they don't exist
