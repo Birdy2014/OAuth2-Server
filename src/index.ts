@@ -83,24 +83,27 @@ async function main() {
 
     //404
     app.use((req: express.Request, res: express.Response) => {
-        res.status(404);
-        if (req.accepts('html'))
-            res.render("404", {
-                locals: { lang: getLanguage(req.acceptsLanguages(getLanguages())) }
-            });
-        else
-            res.send({ status: 404 });
+        throw new ServerError(404, 'Not found');
     });
 
     // Other errors
     app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-        if (err instanceof ServerError) {
-            if (err.status == 500)
-                Logger.error(err);
-            return res.status(err.status).json({ status: err.status, error: err.message });
-        }
-        Logger.error(err);
-        res.status(500).json({ status: 500, error: 'Internal Server Error' });
+        let error: ServerError;
+        if (err instanceof ServerError)
+            error = err;
+        else
+            error = new ServerError(500, 'Internal Server Error');
+
+        if (error.status == 500)
+            Logger.error(err); // Log the old error object
+        if (req.accepts([ 'json', 'html' ]) === 'json')
+            return res.status(error.status).json({ status: error.status, error: error.message });
+        else
+            return res.render('error', {
+                status: error.status,
+                message: error.message,
+                lang: getLanguage(req.acceptsLanguages(getLanguages()))
+            })
     });
 
 
