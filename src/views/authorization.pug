@@ -16,5 +16,7 @@ body
             #button-container
                 a#registerButton(href="javascript:void(0)" onclick="redirect('../register')")= lang("register")
                 input#nextButton(type="submit" value=lang("continue"))
+    #cookie-banner
+        p #{lang('cookie_banner')}
 
 script document.querySelector("form").addEventListener("submit", submitAuthorization)

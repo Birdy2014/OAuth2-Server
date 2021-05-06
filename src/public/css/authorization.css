@@ -1,13 +1,14 @@
 body {
     background: #EEEEEE;
+    margin: 8px;
 }
 
 #outer-container {
     position: absolute;
     background: white;
     text-align: center;
-    width: 100%;
-    height: 100%;
+    width: calc(100% - 16px);
+    height: calc(100% - 16px);
 }
 
 @media screen and (min-width: 600px) {
@@ -100,4 +101,15 @@ input[type="submit"]:hover {
     color: black;
     text-decoration: none;
     text-align: left;
+}
+
+#cookie-banner {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    width: calc(100% - 16px);
+    background-color: white;
+    text-align: center;
+    font-weight: bold;
+    box-sizing: border-box;
 }

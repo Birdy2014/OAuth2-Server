@@ -21,5 +21,6 @@
     "notverified": "Ihre Email Adresse ist noch nicht bestätigt",
     "error_server_404": "Die Webseite konnte nicht gefunden werden.",
     "error_server_generic": "Ein Fehler ist aufgetreten: %0 - %1",
-    "error_todashboard": "Das Dashboard aufrufen"
+    "error_todashboard": "Das Dashboard aufrufen",
+    "cookie_banner": "Diese Webseite verwendet Cookies, damit sie eingeloggt bleiben."
 }
