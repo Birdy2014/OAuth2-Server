@@ -201,11 +201,10 @@ export class User {
             for (let key in this._user_info) {
                 if (this._user_info[key] === this.c_user_info[key])
                     continue;
-                let row = { value: this._user_info[key] };
                 if (this.c_user_info.hasOwnProperty(key))
-                    await Database.update("user_info", { user_id: this.user_id, name: key }, row);
+                    await Database.update("user_info", { user_id: this.user_id, name: key }, { value: this._user_info[key] });
                 else
-                    await Database.insert("user_info", row);
+                    await Database.insert("user_info", { user_id: this.user_id, name: key, value: this._user_info[key] });
             }
 
             this.c_user_info = {...this._user_info};

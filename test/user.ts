@@ -172,10 +172,13 @@ describe("User", () => {
         });
 
         it("should change user_info", async () => {
-            let user = await User.create(testUser.username, testUser.email, testUser.password, { key1: "value" });
-            await user.save();
-            user.user_info.key1 = "abcd";
-            user.user_info.key2 = "efgh";
+            await insertTestData();
+            let permissionsMock = {
+                save: () => {}
+            }
+            // @ts-expect-error
+            let user = new User(testUser.user_id, testUser.username, testUser.email, undefined, await bcrypt.hash(testUser.password, 12), testUser.verified, { ...testUser.user_info }, permissionsMock, false);
+            user.user_info.key = "abcd";
             await user.save();
 
             let userInfo: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', { user_id: user.user_id });
@@ -185,7 +188,7 @@ describe("User", () => {
                 stored[tuple.name] = tuple.value;
             }
 
-            assert.deepStrictEqual(stored, { key1: "abcd", key2: "efgh" });
+            assert.deepStrictEqual(stored, { key: "abcd" });
         });
 
         it("should change nothing", async () => {
