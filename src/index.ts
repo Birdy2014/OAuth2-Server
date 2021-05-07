@@ -113,11 +113,11 @@ async function main() {
         if (req.accepts([ 'json', 'html' ]) === 'json')
             return res.status(error.status).json({ status: error.status, error: error.message });
         else
-            return res.render('error', {
+            return res.status(error.status).render('error', {
                 status: error.status,
                 message: error.message,
                 lang: getLanguage(req.acceptsLanguages(getLanguages()))
-            })
+            });
     });
 
 
