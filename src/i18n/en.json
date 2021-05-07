@@ -22,5 +22,6 @@
     "error_server_404": "Oh no! The requested website couldn't be found.",
     "error_server_generic": "An error occured: %0 - %1",
     "error_todashboard": "Go to dashboard",
-    "cookie_banner": "This site uses cookies so you stay logged in."
+    "cookie_banner": "This site uses cookies so you stay logged in.",
+    "verified": "Email verified"
 }

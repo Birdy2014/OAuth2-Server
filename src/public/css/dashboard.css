@@ -12,3 +12,20 @@ input {
     border: none;
     background-color: white;
 }
+
+table {
+    border-collapse: collapse;
+}
+
+td, th {
+    border: 1px solid #eee;
+    text-align: left;
+}
+
+tr:nth-child(even) {
+    background-color: #eee;
+}
+
+.user-id {
+    font-family: monospace;
+}

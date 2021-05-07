@@ -1,29 +1,39 @@
 h1= lang("adminSettings")
 h2= lang("users")
-ol#user_list
+table#user_list
+    tr
+        th user_id
+        th= lang("username")
+        th= lang("email")
+        th= lang("password")
+        th= lang("verified")
+        th admin
+        th= lang("change")
     each user in all_users
-        li
-            | user_id:
-            = user.user_id
-            = lang("username") + ": "
-            input(type="text" placeholder=user.username id="input_username_" + user.user_id)
-            = lang("email") + ": "
-            input(type="email" placeholder=user.email id="input_email_" + user.user_id)
-            = lang("password") + ": "
-            input(type="password" id="input_password_" + user.user_id)
-            | verified:
-            input(type="checkbox" checked=user.verified id="input_verified_" + user.user_id)
-            | admin:
-            input(type="checkbox" checked=user.admin id="input_admin_" + user.user_id)
-            a(href="javascript:void(0)" onclick="adminChangeUser('" + user.user_id + "');")= lang("change")
+        tr
+            td.user-id
+                = user.user_id
+            td
+                input(type="text" placeholder=user.username id="input_username_" + user.user_id)
+            td
+                input(type="email" placeholder=user.email id="input_email_" + user.user_id)
+            td
+                input(type="password" id="input_password_" + user.user_id)
+            td
+                input(type="checkbox" checked=user.verified id="input_verified_" + user.user_id)
+            td
+                input(type="checkbox" checked=user.admin id="input_admin_" + user.user_id)
+            td
+                a(href="javascript:void(0)" onclick="adminChangeUser('" + user.user_id + "');")= lang("change")
 
 h2= lang("clients")
-ol#client_list
+table#client_list
+    tr
+        th client_id
+        th name
+        th dev_id
     each client in all_clients
-        li
-            | client_id:
-            = client.client_id
-            | , name:
-            = client.name
-            | , dev_id:
-            = client.dev_id
+        tr
+            td= client.client_id
+            td= client.name
+            td= client.dev_id
