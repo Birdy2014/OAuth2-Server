@@ -3,6 +3,7 @@ import { respond, generateToken, ServerError } from '../utils';
 import { sendVerificationEmail } from '../services/verification.service';
 import { Database } from '../../db/Database';
 import { User } from '../services/User';
+import { ConfigReader } from '../../ConfigReader';
 
 export async function post(req: express.Request, res: express.Response) {
     if (!req.body.verification_code)
@@ -15,7 +16,7 @@ export async function post(req: express.Request, res: express.Response) {
 
 //forgot password
 export async function put(req: express.Request, res: express.Response) {
-    if (!req.body.login)
+    if (!req.body.login || !ConfigReader.config.email.enabled)
         throw new ServerError(400, "Invalid arguments");
 
     let user = await User.fromLogin(req.body.login);

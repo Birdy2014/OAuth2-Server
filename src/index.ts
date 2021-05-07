@@ -55,7 +55,8 @@ async function main() {
             res.redirect("/dashboard");
         } else {
             res.render("authorization", {
-                lang: getLanguage(req.acceptsLanguages(getLanguages()))
+                lang: getLanguage(req.acceptsLanguages(getLanguages())),
+                email: ConfigReader.config.email.enabled
             });
         }
     });

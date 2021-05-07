@@ -12,7 +12,8 @@ body
             #input-container
                 input#usernameInput(type="text" name="login" placeholder="Nutzername, ID oder E-Mail" required)
                 input#passwordInput(type="password" name="password" placeholder=lang("password") required)
-                a#recoverLink(href="javascript:void(0)" onclick="submitPasswordReset()")= lang("forgotPassword")
+                if email
+                    a#recoverLink(href="javascript:void(0)" onclick="submitPasswordReset()")= lang("forgotPassword")
             #button-container
                 a#registerButton(href="javascript:void(0)" onclick="redirect('../register')")= lang("register")
                 input#nextButton(type="submit" value=lang("continue"))
