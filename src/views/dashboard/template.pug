@@ -11,17 +11,13 @@ html
         unless user.verified
             span= lang("notverified")
         nav
-            a(href="javascript:navigate('clients');")= lang("clients")
-            = " "
             a(href="javascript:navigate('settings');")= lang("settings")
             = " "
             if user.admin
                 a#menu_item_admin_settings(href="javascript:navigate('admin_settings');")= lang("adminSettings")
                 = " "
             a(href="javascript:logout();") Logout
-        div.content.active#clients
-            include clients.pug
-        div.content#settings
+        div.content.active#settings
             include settings.pug
         div.content#admin_settings
             include admin_settings.pug
