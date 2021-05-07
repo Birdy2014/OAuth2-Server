@@ -1,6 +1,7 @@
 body {
     background: #EEEEEE;
     margin: 8px;
+    font-family: Noto Sans, sans-serif;
 }
 
 #outer-container {
@@ -44,7 +45,6 @@ input {
     border: 2px solid #121212;
     border-radius: 8px;
     font-size: 14px;
-    font-family: sans-serif;
     color: black;
     padding-left: 8px;
     padding-right: 1px;
@@ -55,7 +55,6 @@ input {
 
 #title {
     font-weight: lighter;
-    font-family: sans-serif;
     color: #202124;
 }
 
@@ -63,7 +62,7 @@ input {
     display: flex;
     flex-flow: row nowrap;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
     margin-top: 10px;
 }
 
