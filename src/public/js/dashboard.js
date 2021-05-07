@@ -15,13 +15,13 @@ async function changeSettings(user_id, settings) {
     if (data === "") throw { status: 400, error: "Input missing" };
     data = data.substring(0, data.length - 1);
 
-    let result = JSON.parse(await request(`${url.protocol}//${url.host}/api/user`, "PUT", data));
+    let result = JSON.parse(await request('/api/user', "PUT", data));
     return result;
 }
 
 async function changePermissions(user_id, permission, add) {
     let data = `client_id=${window.localStorage.getItem("client_id")}&permission=${permission}&user_id=${user_id}`;
-    await request(`${url.protocol}//${url.host}/api/permissions`, add ? "POST" : "DELETE", data);
+    await request('/api/permissions', add ? "POST" : "DELETE", data);
 }
 
 async function adminChangeUser(user_id) {
@@ -57,12 +57,10 @@ async function adminChangeUser(user_id) {
 }
 
 async function logout() {
-    await request(`${url.protocol}//${url.host}/api/token`, "DELETE");
+    await request('/api/token', "DELETE");
     location.reload();
 }
 
-let raw_user_list = {};
-const url = new URL(window.location);
 var input_password;
 var input_confirm_password;
 var inputs_user_info = {};

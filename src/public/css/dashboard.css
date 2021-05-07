@@ -9,7 +9,7 @@
 }
 
 input {
-    border: none;
+    border: 1px solid #eee;
     background-color: white;
 }
 
@@ -20,6 +20,7 @@ table {
 td, th {
     border: 1px solid #eee;
     text-align: left;
+    padding: 4px;
 }
 
 tr:nth-child(even) {
@@ -28,4 +29,8 @@ tr:nth-child(even) {
 
 .user-id {
     font-family: monospace;
+}
+
+#settings-input-container input {
+    width: 400px;
 }
