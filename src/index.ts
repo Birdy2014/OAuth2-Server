@@ -54,23 +54,27 @@ async function main() {
         } else if (req.user) {
             res.redirect("/dashboard");
         } else {
-            res.render("authorization", {
+            res.render("misc/authorization", {
                 lang: getLanguage(req.acceptsLanguages(getLanguages())),
-                email: ConfigReader.config.email.enabled
+                email: ConfigReader.config.email.enabled,
+                customizing: ConfigReader.config.customizing
             });
         }
     });
 
-    app.use("/register", (req: express.Request, res: express.Response) => res.render("register", {
-        lang: getLanguage(req.acceptsLanguages(getLanguages()))
+    app.use("/register", (req: express.Request, res: express.Response) => res.render("misc/register", {
+        lang: getLanguage(req.acceptsLanguages(getLanguages())),
+        customizing: ConfigReader.config.customizing
     }));
 
-    app.use("/verification", (req: express.Request, res: express.Response) => res.render("verification", {
-        lang: getLanguage(req.acceptsLanguages(getLanguages()))
+    app.use("/verification", (req: express.Request, res: express.Response) => res.render("misc/verification", {
+        lang: getLanguage(req.acceptsLanguages(getLanguages())),
+        customizing: ConfigReader.config.customizing
     }));
 
-    app.use("/reset_password", (req: express.Request, res: express.Response) => res.render("reset_password", {
-        lang: getLanguage(req.acceptsLanguages(getLanguages()))
+    app.use("/reset_password", (req: express.Request, res: express.Response) => res.render("misc/reset_password", {
+        lang: getLanguage(req.acceptsLanguages(getLanguages())),
+        customizing: ConfigReader.config.customizing
     }));
 
     app.use("/dashboard", async (req: express.Request, res: express.Response) => {
@@ -82,7 +86,8 @@ async function main() {
                 user: req.user,
                 user_info: ConfigReader.config.user_info,
                 all_users: req.user.admin ? await getAllUsers() : [],
-                all_clients: req.user.admin ? await getClients() : []
+                all_clients: req.user.admin ? await getClients() : [],
+                customizing: ConfigReader.config.customizing
             });
     });
 
@@ -118,10 +123,11 @@ async function main() {
         if (req.accepts([ 'json', 'html' ]) === 'json')
             return res.status(error.status).json({ status: error.status, error: error.message });
         else
-            return res.status(error.status).render('error', {
+            return res.status(error.status).render('misc/error', {
                 status: error.status,
                 message: error.message,
-                lang: getLanguage(req.acceptsLanguages(getLanguages()))
+                lang: getLanguage(req.acceptsLanguages(getLanguages())),
+                customizing: ConfigReader.config.customizing
             });
     });
 

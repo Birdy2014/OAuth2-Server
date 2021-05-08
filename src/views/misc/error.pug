@@ -1,0 +1,31 @@
+extends ../layout.pug
+block head
+    title #{status} - #{message}
+    style.
+        html, body {
+            height: calc(100% - 50px);
+        }
+
+        #error-container {
+            position: absolute;
+            top: 30%;
+            left: 35%;
+            width: 30%;
+            height: 80%;
+            text-align: center;
+        }
+
+        #error-container > h1 {
+            font-size: 100px;
+            margin: 10px;
+            font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+            font-weight: normal;
+        }
+block body
+    #error-container
+        h1 #{status}
+        if status == 404
+            p #{lang('error_server_404')}
+        else
+            p #{lang('error_server_generic', status, message)}
+        a(href="/dashboard") #{lang('error_todashboard')}

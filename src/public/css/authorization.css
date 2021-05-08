@@ -1,7 +1,10 @@
-body {
+html, body {
     background: #EEEEEE;
-    margin: 8px;
-    font-family: Noto Sans, sans-serif;
+    height: calc(100% - 50px);
+}
+
+#content-container {
+    position: relative;
 }
 
 #outer-container {
@@ -10,22 +13,23 @@ body {
     text-align: center;
     width: calc(100% - 16px);
     height: calc(100% - 16px);
+    margin: 8px;
+    font-size: 14px;
 }
 
 @media screen and (min-width: 600px) {
     #outer-container {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         width: 450px;
         height: 550px;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
         border: 1px solid #bdbdbd;
         border-radius: 5px;
     }
 }
 
 #inner-container {
-    position: relative;
     margin: 45px;
     display: flex;
     flex-flow: column nowrap;
@@ -54,7 +58,8 @@ input {
 }
 
 #title {
-    font-weight: lighter;
+    font-weight: normal;
+    font-size: 32px;
     color: #202124;
 }
 
@@ -67,8 +72,6 @@ input {
 }
 
 #registerButton, #loginButton {
-    height: 7%;
-    text-align: center;
     border: none;
     font-weight: bold;
     background: #FFFFFF;
@@ -82,7 +85,6 @@ input {
     padding-bottom: 10px;
     padding-left: 5px;
     padding-right: 5px;
-    text-align: center;
     border: 2px solid black;
     border-radius: 5px;
     font-weight: bold;
@@ -106,7 +108,7 @@ input[type="submit"]:hover {
     display: block;
     position: fixed;
     bottom: 0;
-    width: calc(100% - 16px);
+    width: 100%;
     background-color: white;
     text-align: center;
     font-weight: bold;

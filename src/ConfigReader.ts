@@ -32,7 +32,12 @@ export interface Config {
         name: string
     },
     emailWhitelist: string[],
-    user_info: any
+    user_info: any,
+    customizing: {
+        logo: string,
+        name: string,
+        url: string
+    }
 }
 
 export class ConfigReader {
@@ -65,7 +70,12 @@ export class ConfigReader {
             name: ""
         },
         emailWhitelist: [],
-        user_info: {}
+        user_info: {},
+        customizing: {
+            logo: "",
+            name: "",
+            url: ""
+        }
     };
     public static transporter: any;
 

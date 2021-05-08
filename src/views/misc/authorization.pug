@@ -1,12 +1,9 @@
-doctype html
-html(lang="en")
-head
-    meta(charset="UTF-8")
+extends ../layout.pug
+block head
     link(href="../css/authorization.css" rel="stylesheet")
-    link(rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap")
     title= lang("login")
     script(src="../js/authorization.js")
-body
+block body
     #outer-container
         form#inner-container
             h1#title= lang("login")
@@ -18,7 +15,8 @@ body
             #button-container
                 a#registerButton(href="javascript:void(0)" onclick="redirect('../register')")= lang("register")
                 input#nextButton(type="submit" value=lang("continue"))
+block footer
     #cookie-banner
         p #{lang('cookie_banner')}
 
-script document.querySelector("form").addEventListener("submit", submitAuthorization)
+    script document.querySelector("form").addEventListener("submit", submitAuthorization)

@@ -1,24 +1,19 @@
-doctype html
-html
-    head
-        meta(charset="UTF-8")
-        title Dashboard
-        link(rel="stylesheet" href="../css/dashboard.css")
-        link(rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap")
-        script(src="../js/authorization.js")
-        script(src="../js/register.js")
-        script(src="../js/dashboard.js")
-    body
-        unless user.verified
-            span= lang("notverified")
-        nav
-            a(href="javascript:navigate('settings');")= lang("settings")
-            = " "
-            if user.admin
-                a#menu_item_admin_settings(href="javascript:navigate('admin_settings');")= lang("adminSettings")
-                = " "
-            a(href="javascript:logout();") Logout
-        div.content.active#settings
-            include settings.pug
-        div.content#admin_settings
-            include admin_settings.pug
+extends ../layout.pug
+block head
+    title Dashboard
+    link(rel="stylesheet" href="../css/dashboard.css")
+    script(src="../js/authorization.js")
+    script(src="../js/register.js")
+    script(src="../js/dashboard.js")
+block body
+    unless user.verified
+        span= lang("notverified")
+    nav
+        a(href="javascript:navigate('settings');")= lang("settings")
+        if user.admin
+            a#menu_item_admin_settings(href="javascript:navigate('admin_settings');")= lang("adminSettings")
+        a(href="javascript:logout();") Logout
+    div.content.active#settings
+        include settings.pug
+    div.content#admin_settings
+        include admin_settings.pug
