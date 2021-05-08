@@ -40,7 +40,7 @@ export class ConfigReader {
         url: "",
         port: 3000,
         language: "en",
-        logpath: "./logs",
+        logpath: resolve(__dirname + "/../logs"),
         accessTokenExpirationTime: 604800,
         refreshTokenExpirationTime: 2592000,
         authorizationCodeExpirationTime: 600,
