@@ -95,6 +95,11 @@ async function main() {
     //assets
     app.use("/", express.static(__dirname + "/public"));
 
+    // robots.txt
+    app.get("/robots.txt", (req: express.Request, res: express.Response) => {
+        res.status(200).type('text/plain').send("User-agent: *\nDisallow: /\n");
+    });
+
     //404
     app.use((req: express.Request, res: express.Response) => {
         throw new ServerError(404, 'Not found');
