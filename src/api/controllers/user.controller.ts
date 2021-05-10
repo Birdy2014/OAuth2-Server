@@ -16,6 +16,9 @@ export async function get(req: express.Request, res: express.Response) {
 }
 
 export async function post(req: express.Request, res: express.Response) {
+    if (!ConfigReader.config.enableRegistration)
+        throw new ServerError(400, "Not allowed");
+
     if (!req.body.email || !req.body.username || !req.body.password)
         throw new ServerError(400, "Invalid arguments");
 

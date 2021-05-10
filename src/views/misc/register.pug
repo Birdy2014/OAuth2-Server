@@ -15,8 +15,8 @@ block body
                 input#passwordInput(type="password" name="password" placeholder=lang("password") required)
                 input#passwordVerification(type="password" name="password-verification" placeholder=lang("confirmPassword") required)
             #button-container
-                a#loginButton(href="javascript:void(0)" onclick="redirect('../authorize')")= lang("login")
                 input#nextButton(type="submit" value=lang("continue"))
+                a#loginButton(href="javascript:void(0)" onclick="redirect('../authorize')")= lang("login")
 block footer
     #cookie-banner
         p #{lang('cookie_banner')}

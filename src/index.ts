@@ -57,15 +57,20 @@ async function main() {
             res.render("misc/authorization", {
                 lang: getLanguage(req.acceptsLanguages(getLanguages())),
                 email: ConfigReader.config.email.enabled,
-                custom: ConfigReader.config.custom
+                custom: ConfigReader.config.custom,
+                enableRegistration: ConfigReader.config.enableRegistration
             });
         }
     });
 
-    app.use("/register", (req: express.Request, res: express.Response) => res.render("misc/register", {
-        lang: getLanguage(req.acceptsLanguages(getLanguages())),
-        custom: ConfigReader.config.custom
-    }));
+    app.use("/register", (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        if (!ConfigReader.config.enableRegistration)
+            return next();
+        res.render("misc/register", {
+            lang: getLanguage(req.acceptsLanguages(getLanguages())),
+            custom: ConfigReader.config.custom
+        });
+    });
 
     app.use("/verification", (req: express.Request, res: express.Response) => res.render("misc/verification", {
         lang: getLanguage(req.acceptsLanguages(getLanguages())),

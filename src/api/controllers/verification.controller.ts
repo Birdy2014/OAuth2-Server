@@ -16,7 +16,10 @@ export async function post(req: express.Request, res: express.Response) {
 
 //forgot password
 export async function put(req: express.Request, res: express.Response) {
-    if (!req.body.login || !ConfigReader.config.email.enabled)
+    if (!ConfigReader.config.email.enabled)
+        throw new ServerError(400, "Not allowed");
+
+    if (!req.body.login)
         throw new ServerError(400, "Invalid arguments");
 
     let user = await User.fromLogin(req.body.login);

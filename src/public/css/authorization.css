@@ -65,7 +65,7 @@ input {
 
 #button-container {
     display: flex;
-    flex-flow: row nowrap;
+    flex-flow: row-reverse nowrap;
     justify-content: space-between;
     align-items: center;
     margin-top: 10px;

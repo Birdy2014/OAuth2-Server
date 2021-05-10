@@ -8,6 +8,7 @@ export interface Config {
     port: number,
     language: string,
     logpath: string,
+    enableRegistration: boolean,
     tokens: {
         accessTokenExpirationTime: number,
         refreshTokenExpirationTime: number,
@@ -48,6 +49,7 @@ export class ConfigReader {
         port: 3000,
         language: "en",
         logpath: resolve(__dirname + "/../logs"),
+        enableRegistration: true,
         tokens: {
             accessTokenExpirationTime: 604800,
             refreshTokenExpirationTime: 2592000,
