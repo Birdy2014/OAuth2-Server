@@ -57,24 +57,24 @@ async function main() {
             res.render("misc/authorization", {
                 lang: getLanguage(req.acceptsLanguages(getLanguages())),
                 email: ConfigReader.config.email.enabled,
-                customizing: ConfigReader.config.customizing
+                custom: ConfigReader.config.custom
             });
         }
     });
 
     app.use("/register", (req: express.Request, res: express.Response) => res.render("misc/register", {
         lang: getLanguage(req.acceptsLanguages(getLanguages())),
-        customizing: ConfigReader.config.customizing
+        custom: ConfigReader.config.custom
     }));
 
     app.use("/verification", (req: express.Request, res: express.Response) => res.render("misc/verification", {
         lang: getLanguage(req.acceptsLanguages(getLanguages())),
-        customizing: ConfigReader.config.customizing
+        custom: ConfigReader.config.custom
     }));
 
     app.use("/reset_password", (req: express.Request, res: express.Response) => res.render("misc/reset_password", {
         lang: getLanguage(req.acceptsLanguages(getLanguages())),
-        customizing: ConfigReader.config.customizing
+        custom: ConfigReader.config.custom
     }));
 
     app.use("/dashboard", async (req: express.Request, res: express.Response) => {
@@ -87,7 +87,7 @@ async function main() {
                 user_info: ConfigReader.config.user_info,
                 all_users: req.user.admin ? await getAllUsers() : [],
                 all_clients: req.user.admin ? await getClients() : [],
-                customizing: ConfigReader.config.customizing
+                custom: ConfigReader.config.custom
             });
     });
 
@@ -127,7 +127,7 @@ async function main() {
                 status: error.status,
                 message: error.message,
                 lang: getLanguage(req.acceptsLanguages(getLanguages())),
-                customizing: ConfigReader.config.customizing
+                custom: ConfigReader.config.custom
             });
     });
 

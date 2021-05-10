@@ -8,11 +8,13 @@ export interface Config {
     port: number,
     language: string,
     logpath: string,
-    accessTokenExpirationTime: number,
-    refreshTokenExpirationTime: number,
-    authorizationCodeExpirationTime: number,
-    accessTokenLength: number,
-    refreshTokenLength: number,
+    tokens: {
+        accessTokenExpirationTime: number,
+        refreshTokenExpirationTime: number,
+        authorizationCodeExpirationTime: number,
+        accessTokenLength: number,
+        refreshTokenLength: number
+    },
     db: {
         dbms: string,
         path: string,
@@ -33,7 +35,7 @@ export interface Config {
     },
     emailWhitelist: string[],
     user_info: any,
-    customizing: {
+    custom: {
         logo: string,
         name: string,
         url: string
@@ -46,11 +48,13 @@ export class ConfigReader {
         port: 3000,
         language: "en",
         logpath: resolve(__dirname + "/../logs"),
-        accessTokenExpirationTime: 604800,
-        refreshTokenExpirationTime: 2592000,
-        authorizationCodeExpirationTime: 600,
-        accessTokenLength: 50,
-        refreshTokenLength: 50,
+        tokens: {
+            accessTokenExpirationTime: 604800,
+            refreshTokenExpirationTime: 2592000,
+            authorizationCodeExpirationTime: 600,
+            accessTokenLength: 50,
+            refreshTokenLength: 50
+        },
         db: {
             dbms: "sqlite",
             path: "",
@@ -71,7 +75,7 @@ export class ConfigReader {
         },
         emailWhitelist: [],
         user_info: {},
-        customizing: {
+        custom: {
             logo: "",
             name: "",
             url: ""

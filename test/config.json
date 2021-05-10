@@ -1,7 +1,11 @@
 {
     "db": {
         "dbms": "sqlite",
-        "path": ":memory:"
+        "path": ":memory:",
+        "host": "localhost",
+        "user": "root",
+        "password": "password",
+        "database": "oauth-test"
     },
     "emailWhitelist": [
         ""
@@ -13,11 +17,13 @@
         "key": ""
     },
     "port": 3000,
-    "accessTokenExpirationTime": 3600,
-    "refreshTokenExpirationTime": 2592000,
-    "authorizationCodeExpirationTime": 86400,
-    "accessTokenLength": 40,
-    "refreshTokenLength": 40,
+    "tokens": {
+        "accessTokenExpirationTime": 3600,
+        "refreshTokenExpirationTime": 2592000,
+        "authorizationCodeExpirationTime": 86400,
+        "accessTokenLength": 40,
+        "refreshTokenLength": 40
+    },
     "url": "http://localhost:3000",
     "logpath": "./logs",
     "language": "en"

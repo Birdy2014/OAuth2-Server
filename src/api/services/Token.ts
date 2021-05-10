@@ -69,16 +69,16 @@ export class Token {
     }
 
     public async createAccessToken(): Promise<TokenExport> {
-        let expires = currentUnixTime() + ConfigReader.config.accessTokenExpirationTime;
-        let access_token = generateToken(ConfigReader.config.accessTokenLength);
+        let expires = currentUnixTime() + ConfigReader.config.tokens.accessTokenExpirationTime;
+        let access_token = generateToken(ConfigReader.config.tokens.accessTokenLength);
         await Database.insert("access_token", { access_token, user_id: this.user.user_id, client_id: this.client.client_id, expires });
 
         return { token: access_token, expires };
     }
 
     public async createRefreshToken(): Promise<TokenExport> {
-        let expires = currentUnixTime() + ConfigReader.config.refreshTokenExpirationTime;
-        let refresh_token = generateToken(ConfigReader.config.refreshTokenLength);
+        let expires = currentUnixTime() + ConfigReader.config.tokens.refreshTokenExpirationTime;
+        let refresh_token = generateToken(ConfigReader.config.tokens.refreshTokenLength);
         await Database.insert("refresh_token", { refresh_token, user_id: this.user.user_id, client_id: this.client.client_id, expires });
 
         return { token: refresh_token, expires };
@@ -87,7 +87,7 @@ export class Token {
     public async createAuthorizationCode(challenge: string): Promise<TokenExport> {
         if (challenge === '')
             throw new ServerError(400, 'Invalid challenge');
-        let expires = currentUnixTime() + ConfigReader.config.authorizationCodeExpirationTime;
+        let expires = currentUnixTime() + ConfigReader.config.tokens.authorizationCodeExpirationTime;
         let authorization_code = generateToken(30);
         await Database.insert("authorization_code", { authorization_code, user_id: this.user.user_id, client_id: this.client.client_id, challenge, expires });
         return { token: authorization_code, expires };

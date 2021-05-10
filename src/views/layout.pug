@@ -7,11 +7,11 @@ html
         link(rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap")
         block head
     body
-        if customizing.logo || customizing.name
+        if custom.logo || custom.name
             #header
-                a(href=customizing.url)
-                    img(src=customizing.logo)
-                    h1 #{customizing.name}
+                a(href=custom.url)
+                    img(src=custom.logo)
+                    h1 #{custom.name}
         #content-container
             block body
         block footer
