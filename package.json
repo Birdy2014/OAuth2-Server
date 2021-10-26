@@ -22,7 +22,7 @@
     "nodemailer": "^6.5.0",
     "pug": "^3.0.2",
     "readline-sync": "^1.4.10",
-    "sqlite3": "^5.0.2",
+    "better-sqlite3": "^7.4.4",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
@@ -31,7 +31,7 @@
     "@types/mocha": "^8.2.1",
     "@types/mysql": "^2.15.18",
     "@types/node": "^14.14.31",
-    "@types/sqlite3": "^3.1.7",
+    "@types/better-sqlite3": "^7.4.0",
     "@types/uuid": "^8.3.0",
     "mocha": "^8.3.0",
     "ts-node": "^9.1.1",

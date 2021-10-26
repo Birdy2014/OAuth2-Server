@@ -4,7 +4,7 @@ const { Database } = require("../../db/Database");
  * Get all users. admin only
  */
 exports.getAllUsers = async () => {
-    let results = await Database.query(`SELECT user.user_id AS user_id, user.username AS username, user.email AS email, user.verified AS verified, admins.permission AS permission FROM user LEFT JOIN (SELECT * FROM permissions WHERE client_id = '${Database.dashboard_id}' AND permission = 'admin') admins ON user.user_id = admins.user_id`);
+    let results = await Database.all(`SELECT user.user_id AS user_id, user.username AS username, user.email AS email, user.verified AS verified, admins.permission AS permission FROM user LEFT JOIN (SELECT * FROM permissions WHERE client_id = '${Database.dashboard_id}' AND permission = 'admin') admins ON user.user_id = admins.user_id`);
     let users = [];
     await results.forEach(user => {
         users.push({

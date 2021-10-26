@@ -140,9 +140,9 @@ async function main() {
     //delete old access tokens, run once every day
     setInterval(() => {
         Logger.info("cleaning db...");
-        Database.query(`DELETE FROM access_token WHERE expires < ${currentUnixTime()}`);
-        Database.query(`DELETE FROM refresh_token WHERE expires < ${currentUnixTime()}`);
-        Database.query(`DELETE FROM authorization_code WHERE expires < ${currentUnixTime()}`);
+        Database.run(`DELETE FROM access_token WHERE expires < ${currentUnixTime()}`);
+        Database.run(`DELETE FROM refresh_token WHERE expires < ${currentUnixTime()}`);
+        Database.run(`DELETE FROM authorization_code WHERE expires < ${currentUnixTime()}`);
         Logger.info("cleaning complete");
     }, 86400000);
 

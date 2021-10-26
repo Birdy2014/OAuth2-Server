@@ -64,13 +64,10 @@ async function logout() {
 var input_password;
 var input_confirm_password;
 var inputs_user_info = {};
-var settings_input_container;
-var user_list;
-var client_list;
+var user_info
 window.onload = () => {
     input_password = document.getElementById("input_password");
     input_confirm_password = document.getElementById("input_confirm_password");
-    settings_input_container = document.getElementById("settings_input_container");
     user_list = document.getElementById("user_list");
     client_list = document.getElementById("client_list");
 

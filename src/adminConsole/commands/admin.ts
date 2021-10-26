@@ -16,7 +16,7 @@ export async function run(args: string[]) {
             break;
         }
         case "list": {
-            let result = await Database.query("SELECT permissions.user_id AS user_id, user.email AS email, user.username AS username FROM permissions JOIN user ON permissions.user_id = user.user_id WHERE permission = 'admin'");
+            let result = await Database.all("SELECT permissions.user_id AS user_id, user.email AS email, user.username AS username FROM permissions JOIN user ON permissions.user_id = user.user_id WHERE permission = 'admin'");
             if (result.length === 0) {
                 console.log("There are no admins");
             } else {

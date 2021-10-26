@@ -5,7 +5,7 @@ import { Client } from '../../api/services/Client';
 export async function run(args: string[]) {
     switch (args[0]) {
         case "list": {
-            let results = await Database.query("SELECT redirect_uri.client_id AS client_id, redirect_uri.redirect_uri AS redirect_uri, client.name AS name FROM redirect_uri JOIN client ON redirect_uri.client_id = client.client_id");
+            let results = await Database.all("SELECT redirect_uri.client_id AS client_id, redirect_uri.redirect_uri AS redirect_uri, client.name AS name FROM redirect_uri JOIN client ON redirect_uri.client_id = client.client_id");
             if (results.length === 0) {
                 console.log("There are no redirect_uris");
             } else {

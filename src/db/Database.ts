@@ -1,6 +1,5 @@
 import mysql from 'mysql';
-import sqlite3 from 'sqlite3';
-import util from 'util';
+import SQLITE_Database, { SqliteError } from 'better-sqlite3';
 import { generateToken } from '../api/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '../Logger';
@@ -17,6 +16,8 @@ export enum DBErrorType {
     NO_TABLE,
     UNKNOWN
 }
+
+type DatabaseValue = (number|string|Buffer|null);
 
 export class DBError extends Error {
     public type: DBErrorType;
@@ -42,7 +43,7 @@ export class Database {
     static query: any;
     static dashboard_id: string = '';
     static dbms: DBMS;
-    static database: sqlite3.Database;
+    static database: SQLITE_Database.Database;
     static pool: mysql.Pool;
 
     static async init(dashboard_uri: string): Promise<boolean> {
@@ -80,14 +81,12 @@ export class Database {
             Logger.info("Connecting to db");
             if (Database.dbms === DBMS.MYSQL) {
                 this.pool = mysql.createPool(ConfigReader.config.db);
-                this.query = util.promisify(this.pool.query).bind(this.pool);
                 this.getDashboardId().then(id => {
                     this.dashboard_id = id;
                     resolve();
                 }).catch(() => resolve());
             } else if (Database.dbms === DBMS.SQLITE) {
-                this.database = new sqlite3.Database(ConfigReader.config.db.path);
-                this.query = util.promisify(this.database.all).bind(this.database);
+                this.database = new SQLITE_Database(ConfigReader.config.db.path);
                 this.getDashboardId().then(id => {
                     this.dashboard_id = id;
                     resolve();
@@ -155,7 +154,7 @@ export class Database {
             q += (mysql ? "UNIQUE KEY (" : "UNIQUE (") + unique.substring(0, unique.length - 2) + ") ";
         q += ")";
 
-        await this.query(q);
+        await this.run(q);
     }
 
     /**
@@ -169,15 +168,15 @@ export class Database {
 
         //add Dashboard client
         const dashboard_secret = generateToken(12);
-        await this.query(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${uuidv4()}', '${dashboard_secret}', 'Dashboard', '')`);
+        await this.run(`INSERT INTO client (client_id, client_secret, name, dev_id) VALUES ('${uuidv4()}', '${dashboard_secret}', 'Dashboard', '')`);
         if (dashboard_uri) {
             const dashboard_id = await this.getDashboardId();
-            await this.query(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
+            await this.run(`INSERT INTO redirect_uri (client_id, redirect_uri) VALUES ('${dashboard_id}', '${dashboard_uri}')`);
         }
     }
 
     static async getDashboardId() {
-        return (await this.query("SELECT client_id FROM client WHERE name = 'Dashboard'"))[0].client_id;
+        return (await this.get("SELECT client_id FROM client WHERE name = 'Dashboard'"))?.client_id;
     }
 
     private static convertRowTypes<T extends TableRow>(table: string, row: TableRow): T {
@@ -220,9 +219,13 @@ export class Database {
         }
 
         if (Database.dbms === DBMS.SQLITE) {
-            // TODO
-            if (error.code === "SQLITE_CONSTRAINT")
-                return new DBError(DBErrorType.DUPLICATE);
+            if (error instanceof SqliteError) {
+                if (error.code === 'SQLITE_CONSTRAINT_UNIQUE')
+                    return new DBError(DBErrorType.DUPLICATE);
+                else if (error.message.startsWith('no such table'))
+                    return new DBError(DBErrorType.NO_TABLE);
+            }
+            console.log(error);
             return new DBError(DBErrorType.UNKNOWN);
         }
 
@@ -241,12 +244,14 @@ export class Database {
                     break;
                 }
                 case DBMS.SQLITE: {
-                    this.database.run(sql, params, (error: any) => {
-                        if (error)
-                            return reject(this.getError(error));
+                    try {
+                        params = this.prepareDatabaseValues(params);
+                        let statement = this.database.prepare(sql);
+                        statement.run(params);
                         return resolve();
-                    });
-                    break;
+                    } catch(err) {
+                        return reject(this.getError(err));
+                    }
                 }
             }
         });
@@ -256,7 +261,7 @@ export class Database {
         return new Promise((resolve, reject) => {
             switch (this.dbms) {
                 case DBMS.MYSQL: {
-                    this.pool.query(sql, params, (error: mysql.MysqlError|null, results: any[], fileds: mysql.FieldInfo[]|undefined) => {
+                    this.pool.query(sql, params, (error: mysql.MysqlError|null, results: any[], _: mysql.FieldInfo[]|undefined) => {
                         if (error)
                             return reject(this.getError(error));
                         if (!results || results.length === 0)
@@ -266,14 +271,13 @@ export class Database {
                     break;
                 }
                 case DBMS.SQLITE: {
-                    this.database.get(sql, params, (error: any, row: any) => {
-                        if (error)
-                            return reject(this.getError(error));
-                        if (!row)
-                            return resolve(undefined);
-                        return resolve(row as TableRow);
-                    });
-                    break;
+                    try {
+                        params = this.prepareDatabaseValues(params);
+                        let statement = this.database.prepare(sql);
+                        return resolve(statement.get(params));
+                    } catch(err) {
+                        return reject(this.getError(err));
+                    }
                 }
             }
         });
@@ -283,7 +287,7 @@ export class Database {
         return new Promise((resolve, reject) => {
             switch (this.dbms) {
                 case DBMS.MYSQL: {
-                    this.pool.query(sql, params, (error: mysql.MysqlError|null, results: any[], fileds: mysql.FieldInfo[]|undefined) => {
+                    this.pool.query(sql, params, (error: mysql.MysqlError|null, results: any[], _: mysql.FieldInfo[]|undefined) => {
                         if (error)
                             return reject(this.getError(error));
                         return resolve(results as TableRow[]);
@@ -291,12 +295,13 @@ export class Database {
                     break;
                 }
                 case DBMS.SQLITE: {
-                    this.database.all(sql, params, (error: any, rows: any[]) => {
-                        if (error)
-                            return reject(this.getError(error));
-                        return resolve(rows as TableRow[]);
-                    });
-                    break;
+                    try {
+                        params = this.prepareDatabaseValues(params);
+                        let statement = this.database.prepare(sql);
+                        return resolve(statement.all(params));
+                    } catch(err) {
+                        return reject(this.getError(err));
+                    }
                 }
             }
         });
@@ -327,7 +332,7 @@ export class Database {
         if (Object.entries(row).length === 0)
             return;
         let keys: string[] = [];
-        let values: string[] = [];
+        let values: any[] = [];
         for (let field in row) {
             keys.push(field);
             values.push(row[field]);
@@ -360,5 +365,16 @@ export class Database {
 
     static async clearTable(table: string) {
         await this.run(`DELETE FROM ${table};`);
+    }
+
+    private static prepareDatabaseValue(value: any): DatabaseValue {
+        if (typeof value in [ 'number', 'string', 'Buffer', 'null' ])
+            return value;
+        else
+            return value.toString();
+    }
+
+    private static prepareDatabaseValues(values: any[]): DatabaseValue[] {
+        return values.map(this.prepareDatabaseValue, values);
     }
 }
