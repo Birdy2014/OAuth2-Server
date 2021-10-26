@@ -54,7 +54,7 @@ export async function run(args: string[]) {
                 try {
                     let user = await User.fromLogin(client.dev_id);
                     console.log(`id: ${client_id} name: ${client.name} client_secret: ${client.client_secret} dev_id: ${client.dev_id} dev_email: ${user.email} dev_username: ${user.username}`);
-                } catch (err) {
+                } catch (err: any) {
                     console.log(`id: ${client_id} name: ${client.name} client_secret: ${client.client_secret} dev_id: ${client.dev_id} ${err.message}`);
                 }
             }

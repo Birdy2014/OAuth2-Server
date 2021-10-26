@@ -31,7 +31,7 @@ export function shouldFail(func: Function, args: any[], name?: string, message?:
     let result: any;
     try {
         result = func(...args);
-    } catch(err) {
+    } catch(err: any) {
         if (name !== undefined && err.name !== name)
             fail(`Expected error with name '${name}', but got '${err.name}' with message '${err.message}'`);
         if (message !== undefined && err.message !== message)

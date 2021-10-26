@@ -114,7 +114,7 @@ export class Database {
             await this.select("verification_code");
             await this.select("user_info");
             return true;
-        } catch (err) {
+        } catch (err: any) {
             if (Database.dbms === DBMS.SQLITE) return false; //temporary workaround for sqlite
             if (err.type === DBErrorType.NO_TABLE)
                 return false;

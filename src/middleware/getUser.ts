@@ -34,7 +34,7 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
         }
 
         next();
-    } catch (e) {
+    } catch (e: any) {
         handleError(res, e);
     }
 }
