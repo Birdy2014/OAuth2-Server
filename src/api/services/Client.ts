@@ -65,7 +65,7 @@ export class Client {
     public static async fromId(client_id: string): Promise<Client> {
         let client_tuple: ClientTuple|undefined = await Database.select<ClientTuple>('client', { client_id });
         if (client_tuple === undefined)
-            throw new ServerError(404, "Client " + client_id + " not found");
+            throw new ServerError(404, "Client not found");
 
         let redirect_uris = await this.getUris(client_id);
 
@@ -75,7 +75,7 @@ export class Client {
     public static async fromName(name: string): Promise<Client> {
         let client_tuple: ClientTuple|undefined = await Database.select<ClientTuple>('client', { name });
         if (client_tuple === undefined)
-            throw new ServerError(404, "Client " + name + " not found");
+            throw new ServerError(404, "Client not found");
 
         let redirect_uris = await this.getUris(client_tuple.client_id);
 

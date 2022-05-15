@@ -63,6 +63,23 @@ input {
     color: #202124;
 }
 
+.message {
+    display: none;
+    padding: 10px;
+    border: 5px solid;
+    border-radius: 5px;
+}
+
+.message-error {
+    background-color: #f8d0c8;
+    border-color: #f8d0c8;
+}
+
+.message-info {
+    background-color: #e8e8e8;
+    border-color: #e8e8e8;
+}
+
 #button-container {
     display: flex;
     flex-flow: row-reverse nowrap;

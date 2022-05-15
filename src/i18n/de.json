@@ -23,5 +23,9 @@
     "error_server_generic": "Ein Fehler ist aufgetreten: %0 - %1",
     "error_todashboard": "Das Dashboard aufrufen",
     "cookie_banner": "Diese Webseite verwendet Cookies, damit sie eingeloggt bleiben.",
-    "verified": "Email bestätigt"
+    "verified": "Email bestätigt",
+    "error_invalid_user": "Ungültiger Benutzer",
+    "error_invalid_password": "Ungültiges Passwort",
+    "error_login_missing": "Bitte gebe deine Email Adresse oder dein Passwort ein",
+    "message_password_reset_sent": "Die Email zum Zurücksetzen des Passworts wurde gesendet"
 }

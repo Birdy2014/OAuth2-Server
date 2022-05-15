@@ -44,7 +44,7 @@ describe("User", () => {
 
         it("should fail with an invalid user_id", async () => {
             let user_id = uuidv4();
-            await shouldFail(User.fromLogin, [user_id], "ServerError", `User ${user_id} not found`);
+            await shouldFail(User.fromLogin, [user_id], "ServerError", `User not found`);
         });
 
         it("should work with a valid email address", async () => {
@@ -57,7 +57,7 @@ describe("User", () => {
         });
 
         it("should fail with an invalid email address", async () => {
-            await shouldFail(User.fromLogin, [testUser.email + "a"], "ServerError", `User ${testUser.email}a not found`);
+            await shouldFail(User.fromLogin, [testUser.email + "a"], "ServerError", `User not found`);
         });
 
         it("should work with a valid username", async () => {
@@ -70,7 +70,7 @@ describe("User", () => {
         });
 
         it("should fail with an invalid username", async () => {
-            await shouldFail(User.fromLogin, [testUser.username + "a"], "ServerError", `User ${testUser.username}a not found`);
+            await shouldFail(User.fromLogin, [testUser.username + "a"], "ServerError", `User not found`);
         });
     });
 

@@ -7,6 +7,10 @@ block body
     #outer-container
         form#inner-container
             h1#title= lang("login")
+            .message.message-error#error-invalid-user= lang("error_invalid_user")
+            .message.message-error#error-invalid-password= lang("error_invalid_password")
+            .message.message-error#error-login-missing= lang("error_login_missing")
+            .message.message-info#message-password-reset-send= lang("message_password_reset_sent")
             #input-container
                 input#usernameInput(type="text" name="login" placeholder="Nutzername, ID oder E-Mail" required)
                 input#passwordInput(type="password" name="password" placeholder=lang("password") required)

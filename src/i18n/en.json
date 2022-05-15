@@ -23,5 +23,9 @@
     "error_server_generic": "An error occured: %0 - %1",
     "error_todashboard": "Go to dashboard",
     "cookie_banner": "This site uses cookies so you stay logged in.",
-    "verified": "Email verified"
+    "verified": "Email verified",
+    "error_invalid_user": "User not found",
+    "error_invalid_password": "Invalid password",
+    "error_login_missing": "Username or password missing",
+    "message_password_reset_sent": "Email sent"
 }

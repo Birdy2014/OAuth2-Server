@@ -1,6 +1,8 @@
 let verificationMessageShown = false;
 
 async function getAuthorizationCode(login, password, client_id, redirect_uri, state, code_challenge, code_challenge_method) {
+    document.querySelectorAll(".message").forEach(message => message.style.display = null);
+
     let domain = window.location.href.replace('http://', '').replace('https://', '').split(/[/?#]/)[0];
     let secure = window.location.href.includes("https://");
     let url = `${secure ? "https://" : "http://"}${domain}/api/authorize`;
@@ -20,8 +22,10 @@ async function getAuthorizationCode(login, password, client_id, redirect_uri, st
     } catch (e) {
         let body = JSON.parse(e);
         console.log(e);
-        if (body.status === 403 && body.error === "Invalid User credentials")
-            alert("Invalid username or password");
+        if (body.status === 404 && body.error === "User not found")
+            document.querySelector("#error-invalid-user").style.display = "block";
+        else if (body.status === 403 && body.error === "Invalid user credentials")
+            document.querySelector("#error-invalid-password").style.display = "block";
         else if (body.status === 403 && body.error === "Invalid Client credentials")
             alert("Invalid client_id or redirect_uri");
         else if (body.status === 400 && body.error === "Email not verified")
@@ -56,18 +60,19 @@ function submitAuthorization(event) {
 }
 
 async function submitPasswordReset() {
+    document.querySelectorAll(".message").forEach(message => message.style.display = null);
     try {
         let login = document.getElementById("usernameInput").value;
         if (login) {
             let url = new URL(window.location.href);
             let res = await request(`${url.protocol}//${url.host}/api/verification`, "PUT", `login=${login}`);
-            alert("Email sent");
+            document.querySelector("#message-password-reset-send").style.display = "block";
         } else {
             alert("Username or email missing");
         }
     } catch (e) {
-        if (JSON.parse(e).error === "Invalid Password") {
-            alert("Invalid Password");
+        if (JSON.parse(e).error === "User not found") {
+            document.querySelector("#error-invalid-user").style.display = "block";
         } else {
             alert("Error");
             console.error(e);

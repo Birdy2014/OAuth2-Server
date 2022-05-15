@@ -141,7 +141,7 @@ export class User {
 
         let user_tuple: UserTuple|undefined = await Database.select<UserTuple>('user', condition);
         if (user_tuple === undefined)
-            throw new ServerError(404, `User ${login} not found`);
+            throw new ServerError(404, "User not found");
 
         let user_infos: UserInfoTuple[] = await Database.selectAll<UserInfoTuple>('user_info', { user_id: user_tuple.user_id });
         let user_info: UserInfo = {};

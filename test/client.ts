@@ -36,7 +36,7 @@ describe("Client", () => {
 
         it("should fail if the client doesn't exist", async () => {
             let invalidUuid = uuidv4();
-            await shouldFail(Client.fromId, [ invalidUuid ], 'ServerError', `Client ${invalidUuid} not found`);
+            await shouldFail(Client.fromId, [ invalidUuid ], 'ServerError', `Client not found`);
         });
     });
 
@@ -53,7 +53,7 @@ describe("Client", () => {
 
         it("should fail if the client doesn't exist", async () => {
             let invalidName = testClient.name + 'a';
-            await shouldFail(Client.fromName, [ invalidName ], 'ServerError', `Client ${invalidName} not found`);
+            await shouldFail(Client.fromName, [ invalidName ], 'ServerError', `Client not found`);
         });
     });
 
@@ -76,7 +76,7 @@ describe("Client", () => {
 
         it("should fail if the client doesn't exist", async () => {
             let invalidId = uuidv4();
-            await shouldFail(Client.fromIdUri, [ invalidId, testClient.redirect_uris[0] ], 'ServerError', `Client ${invalidId} not found`);
+            await shouldFail(Client.fromIdUri, [ invalidId, testClient.redirect_uris[0] ], 'ServerError', `Client not found`);
         });
 
         it("should fail if the uri is invalid", async () => {
